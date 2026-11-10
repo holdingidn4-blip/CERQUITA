@@ -8,3 +8,10 @@ export const env = {
 } as const;
 
 export const isSupabaseConfigured = env.supabaseUrl !== '' && env.supabaseAnonKey !== '';
+
+/** TODO(decidir): URLs definitivas de términos y privacidad (hoy son de ejemplo). */
+export const legalUrls = {
+  terms: 'https://example.com/terminos',
+  privacy: 'https://example.com/privacidad',
+  personalData: 'https://example.com/datos',
+} as const;

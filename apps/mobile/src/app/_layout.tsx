@@ -6,34 +6,41 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
+import { AuthProvider, useAuth } from '@/auth/auth-provider';
 import { colors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
+function Navigator() {
+  const { loading } = useAuth();
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     SpaceGrotesk_500Medium,
     SpaceGrotesk_700Bold,
   });
+  const ready = (fontsLoaded || fontError) && !loading;
 
   useEffect(() => {
-    if (loaded || error) SplashScreen.hideAsync();
-  }, [loaded, error]);
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
 
-  if (!loaded && !error) return null;
-
+  if (!ready) return null;
   return (
     <>
       <StatusBar style="dark" />
       <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: colors.background },
-        }}
+        screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
       />
     </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <Navigator />
+    </AuthProvider>
   );
 }

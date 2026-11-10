@@ -8,13 +8,17 @@
     "start": "next start --port 3001",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "echo 'sin pruebas a\u00fan en admin'"
+    "test": "echo 'sin pruebas a\u00fan en admin'",
+    "staff:set": "node --env-file=.env.local scripts/set-staff-role.mjs"
   },
   "dependencies": {
+    "@cerquita/shared": "workspace:*",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "@cerquita/shared": "workspace:*"
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@types/node": "^22",

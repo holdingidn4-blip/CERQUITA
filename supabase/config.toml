@@ -263,16 +263,17 @@ otp_expiry = 3600
 [auth.sms]
 # Allow/disallow the phone provider. When false, users can't sign up or sign in with SMS.
 # To block new signups only, set enable_signup = false under [auth] instead.
-enabled = false
+enabled = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
-template = "Your code is {{ .Code }}"
+template = "Tu código de Cerquita es {{ .Code }}. No lo compartas con nadie."
 # Controls the minimum amount of time that must pass before sending another sms otp.
-max_frequency = "5s"
+max_frequency = "60s"
 
 # Use pre-defined map of phone number to OTP for testing.
 # Keys are the phone number with country code and without the + prefix.
+# Solo local: estos números entran con 123456 sin enviar SMS.
 [auth.sms.test_otp]
 51900000001 = "123456"
 51900000002 = "123456"
@@ -296,10 +297,13 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# TODO(decidir): proveedor de SMS definitivo (ver docs/documento-tecnico.md, pendientes).
+# En local Twilio queda activo con credenciales de relleno de supabase/.env.example;
+# los números de test_otp no llegan a enviarse.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
+enabled = true
+account_sid = "env(SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID)"
+message_service_sid = "env(SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_SID)"
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
 auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
@@ -318,8 +322,8 @@ verify_enabled = false
 enroll_enabled = false
 verify_enabled = false
 otp_length = 6
-template = "Your code is {{ .Code }}"
-max_frequency = "5s"
+template = "Tu código de Cerquita es {{ .Code }}. No lo compartas con nadie."
+max_frequency = "60s"
 
 # Configure MFA via WebAuthn
 # [auth.mfa.web_authn]

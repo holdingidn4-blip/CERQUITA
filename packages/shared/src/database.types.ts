@@ -680,6 +680,18 @@ export type Database = {
       job_counterpart_phone: { Args: { p_job: string }; Returns: string };
       job_exact_address: { Args: { p_job: string }; Returns: string };
       log_document_access: { Args: { p_document: string }; Returns: string };
+      my_account: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          active_role: Database['public']['Enums']['user_role'];
+          avatar_url: string;
+          full_name: string;
+          has_pro_trades: boolean;
+          id: string;
+          phone: string;
+          staff_role: string;
+        }[];
+      };
       public_profiles: {
         Args: { p_ids: string[] };
         Returns: {
@@ -688,6 +700,7 @@ export type Database = {
           id: string;
         }[];
       };
+      set_staff_role: { Args: { p_role: string; p_user: string }; Returns: undefined };
       wallet_post_entry: {
         Args: {
           p_amount_cents: number;

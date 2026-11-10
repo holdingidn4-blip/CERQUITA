@@ -13,6 +13,7 @@ pnpm db:reset   # aplica migraciones y seed
 pnpm db:test    # pruebas de RLS
 pnpm db:lint    # revisa funciones SQL
 pnpm db:types   # regenera packages/shared/src/database.types.ts
+pnpm db:smoke   # ingreso por SMS de punta a punta contra Auth local
 ```
 
 ## Decisiones de seguridad
@@ -24,6 +25,7 @@ pnpm db:types   # regenera packages/shared/src/database.types.ts
 | 5. Ubicación | `job_tracks` solo acepta al pro asignado con el pedido `on_the_way` o `at_home`. Borrado a 30 días con pg_cron. |
 | 6. Documentos | Bucket `verification` sin lectura para nadie desde la API. Soporte llama `log_document_access()` (registra la vista) y el servidor firma la URL. |
 | 7. Datos ocultos | `exact_address` sin permiso de SELECT; se lee con `job_exact_address()`. Teléfono con `job_counterpart_phone()`. Ambos solo tras aceptar. `approx_point` se redondea a ~110 m. |
-| Soporte | `app_metadata.staff_role` (`reviewer`, `support`, `admin`), que solo fija el service role. |
+| Soporte | `app_metadata.staff_role` (`reviewer`, `support`, `admin`). Solo lo fija `set_staff_role()` (service role). El panel lo valida con `getUser()` en `proxy.ts` y en cada página. |
+| Ingreso | SMS OTP de 6 dígitos, un código cada 60 s. `my_account()` devuelve modo, oficios y rol de soporte. |
 
 Consecuencia práctica: en `jobs` no uses `select('*')`; lista las columnas.

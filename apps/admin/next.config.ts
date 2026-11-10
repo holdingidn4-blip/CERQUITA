@@ -1,9 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  cacheComponents: true,
-  partialPrefetching: true,
-  // El paquete compartido se publica como TypeScript sin compilar.
+  // Panel interno y 100 % dinámico (sesión en cookies): sin Cache Components.
   transpilePackages: ['@cerquita/shared'],
 };
 

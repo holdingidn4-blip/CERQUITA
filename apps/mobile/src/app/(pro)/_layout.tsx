@@ -1,5 +1,3 @@
-import { Stack } from 'expo-router';
+import { SessionStack } from '@/auth/require-session';
 
-export default function Layout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
-}
+export default SessionStack;

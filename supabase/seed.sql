@@ -24,6 +24,12 @@ values
   ('00000000-0000-0000-0000-000000000000', '99999999-9999-9999-9999-999999999999', 'authenticated', 'authenticated',
    '51900000009', now(), '{"provider":"phone","providers":["phone"],"staff_role":"reviewer"}', '{}', now(), now());
 
+-- GoTrue no acepta NULL en las columnas de tokens.
+update auth.users set
+  confirmation_token = '', recovery_token = '', email_change = '', email_change_token_new = '',
+  email_change_token_current = '', phone_change = '', phone_change_token = '', reauthentication_token = ''
+where id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '99999999-9999-9999-9999-999999999999');
+
 update public.profiles set full_name = 'Carla Cliente' where id = '11111111-1111-1111-1111-111111111111';
 update public.profiles set full_name = 'Pedro Gasfitero', active_role = 'pro' where id = '22222222-2222-2222-2222-222222222222';
 update public.profiles set full_name = 'Rita Revisora' where id = '99999999-9999-9999-9999-999999999999';
