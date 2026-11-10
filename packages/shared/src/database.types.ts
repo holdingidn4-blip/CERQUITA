@@ -40,6 +40,46 @@ export type Database = {
           },
         ];
       };
+      job_messages: {
+        Row: {
+          body: string;
+          created_at: string;
+          id: number;
+          job_id: string;
+          sender_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          created_at?: string;
+          id?: never;
+          job_id: string;
+          sender_id?: string;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          id?: never;
+          job_id?: string;
+          sender_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'job_messages_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'job_messages_sender_id_fkey';
+            columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       job_tracks: {
         Row: {
           id: number;
@@ -74,15 +114,23 @@ export type Database = {
         Row: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_by: string | null;
           client_id: string;
           commission_rate_bps: number | null;
+          confirmed_at: string | null;
           created_at: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
           id: string;
           offered_price_cents: number;
           photos: string[];
+          security_code: string | null;
+          started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           trade_id: number;
           updated_at: string;
@@ -91,15 +139,23 @@ export type Database = {
         Insert: {
           accepted_offer_id?: string | null;
           approx_point: unknown;
+          arrived_at?: string | null;
+          cancel_reason?: string | null;
+          cancelled_by?: string | null;
           client_id?: string;
           commission_rate_bps?: number | null;
+          confirmed_at?: string | null;
           created_at?: string;
           description: string;
           exact_address: string;
           final_price_cents?: number | null;
+          final_proposed_cents?: number | null;
+          finished_at?: string | null;
           id?: string;
           offered_price_cents: number;
           photos?: string[];
+          security_code?: string | null;
+          started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
           trade_id: number;
           updated_at?: string;
@@ -107,15 +163,23 @@ export type Database = {
         Update: {
           accepted_offer_id?: string | null;
           approx_point?: unknown;
+          arrived_at?: string | null;
+          cancel_reason?: string | null;
+          cancelled_by?: string | null;
           client_id?: string;
           commission_rate_bps?: number | null;
+          confirmed_at?: string | null;
           created_at?: string;
           description?: string;
           exact_address?: string;
           final_price_cents?: number | null;
+          final_proposed_cents?: number | null;
+          finished_at?: string | null;
           id?: string;
           offered_price_cents?: number;
           photos?: string[];
+          security_code?: string | null;
+          started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
           trade_id?: number;
           updated_at?: string;
@@ -126,6 +190,13 @@ export type Database = {
             columns: ['accepted_offer_id'];
             isOneToOne: false;
             referencedRelation: 'offers';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'jobs_cancelled_by_fkey';
+            columns: ['cancelled_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id'];
           },
           {
@@ -684,15 +755,155 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_by: string | null;
           client_id: string;
           commission_rate_bps: number | null;
+          confirmed_at: string | null;
           created_at: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
           id: string;
           offered_price_cents: number;
           photos: string[];
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      arrive: {
+        Args: { p_code: string; p_job: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_by: string | null;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          offered_price_cents: number;
+          photos: string[];
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      cancel_service: {
+        Args: { p_job: string; p_reason: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_by: string | null;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          offered_price_cents: number;
+          photos: string[];
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      confirm_job: {
+        Args: { p_approve?: boolean; p_job: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_by: string | null;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          offered_price_cents: number;
+          photos: string[];
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      finish_job: {
+        Args: { p_final_cents?: number; p_job: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_by: string | null;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          offered_price_cents: number;
+          photos: string[];
+          security_code: string | null;
+          started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           trade_id: number;
           updated_at: string;
@@ -705,8 +916,26 @@ export type Database = {
         };
       };
       is_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
+      job_counterpart: {
+        Args: { p_job: string };
+        Returns: {
+          id: string;
+          name: string;
+          phone: string;
+          rating: number;
+        }[];
+      };
       job_counterpart_phone: { Args: { p_job: string }; Returns: string };
       job_exact_address: { Args: { p_job: string }; Returns: string };
+      job_live_location: {
+        Args: { p_job: string };
+        Returns: {
+          distance_m: number;
+          latitude: number;
+          longitude: number;
+          recorded_at: string;
+        }[];
+      };
       job_offers: {
         Args: { p_job: string };
         Returns: {
@@ -723,6 +952,7 @@ export type Database = {
           status: Database['public']['Enums']['offer_status'];
         }[];
       };
+      job_security_code: { Args: { p_job: string }; Returns: string };
       log_document_access: { Args: { p_document: string }; Returns: string };
       my_account: {
         Args: Record<PropertyKey, never>;
@@ -824,6 +1054,39 @@ export type Database = {
         };
       };
       set_staff_role: { Args: { p_role: string; p_user: string }; Returns: undefined };
+      start_trip: {
+        Args: { p_job: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_by: string | null;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          offered_price_cents: number;
+          photos: string[];
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       submit_pro_trade: {
         Args: { p_pro_trade: string };
         Returns: {

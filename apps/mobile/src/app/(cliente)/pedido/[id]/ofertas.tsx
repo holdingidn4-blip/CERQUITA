@@ -90,7 +90,10 @@ export default function Ofertas() {
       'Cancelar pedido',
     );
     if (!ok) return;
-    await supabase.from('jobs').update({ status: 'cancelled' }).eq('id', id);
+    await supabase.rpc('cancel_service', {
+      p_job: id,
+      p_reason: 'Cancelado por el cliente antes de aceptar',
+    });
     router.replace('/inicio');
   }
 

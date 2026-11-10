@@ -45,7 +45,11 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Cerquita usa tu ubicaci\u00f3n para mostrarte profesionales cerca y ubicar tu pedido."
+          "locationWhenInUsePermission": "Cerquita usa tu ubicaci\u00f3n para mostrarte profesionales cerca y ubicar tu pedido.",
+          "locationAlwaysAndWhenInUsePermission": "Cerquita comparte tu ubicaci\u00f3n con el cliente solo durante un servicio aceptado, desde \u201cIr al domicilio\u201d hasta \u201cTerminado\u201d.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true,
+          "isIosBackgroundLocationEnabled": true
         }
       ]
     ],

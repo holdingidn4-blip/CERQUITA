@@ -5,6 +5,9 @@ import {
   formatSoles,
   formatSolesShort,
   jobTitle,
+  ACTIVE_SERVICE_STATUSES,
+  SERVICE_LABELS,
+  type JobStatus,
 } from '@cerquita/shared';
 import { Link, router } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -38,6 +41,9 @@ type Status = {
 export default function Solicitudes() {
   const [status, setStatus] = useState<Status | null>(null);
   const [jobs, setJobs] = useState<NearbyJob[]>([]);
+  const [active, setActive] = useState<{ id: string; status: JobStatus; description: string }[]>(
+    [],
+  );
   const [switching, setSwitching] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +52,7 @@ export default function Solicitudes() {
     const { data: session } = await supabase.auth.getSession();
     const uid = session.session?.user.id;
     if (!uid) return;
-    const [trades, presence, nearby] = await Promise.all([
+    const [trades, presence, nearby, mine] = await Promise.all([
       supabase
         .from('pro_trades')
         .select('status, trade:trades(name, pro_name)')
@@ -54,7 +60,20 @@ export default function Solicitudes() {
         .in('status', ['approved_observation', 'approved_full']),
       supabase.from('pro_presence').select('online, radius_m').eq('pro_id', uid).maybeSingle(),
       supabase.rpc('nearby_jobs'),
+      supabase
+        .from('offers')
+        .select('job:jobs!offers_job_id_fkey(id, status, description)')
+        .eq('pro_id', uid)
+        .eq('status', 'accepted'),
     ]);
+    setActive(
+      (mine.data ?? [])
+        .map((o) => o.job)
+        .filter(
+          (j): j is { id: string; status: JobStatus; description: string } =>
+            j !== null && ACTIVE_SERVICE_STATUSES.includes(j.status),
+        ),
+    );
     setStatus({
       approvedTrades: (trades.data ?? []).map((t) => t.trade?.pro_name ?? '').filter(Boolean),
       tradeNames: (trades.data ?? []).map((t) => t.trade?.name ?? '').filter(Boolean),
@@ -143,6 +162,20 @@ export default function Solicitudes() {
             </Link>
           </View>
         </View>
+
+        {active.map((job) => (
+          <Pressable
+            key={job.id}
+            accessibilityRole="link"
+            onPress={() => router.push({ pathname: '/trabajo/[id]', params: { id: job.id } })}
+            style={[styles.card, styles.activeCard]}
+          >
+            <Text style={styles.activeKicker}>
+              Servicio en curso · {SERVICE_LABELS[job.status]}
+            </Text>
+            <Text style={styles.jobTitle}>{jobTitle(job.description)}</Text>
+          </Pressable>
+        ))}
 
         {status.approvedTrades.length === 0 ? (
           <View style={styles.card}>
@@ -274,6 +307,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
+  activeCard: { borderColor: colors.primary, borderWidth: 1.5 },
+  activeKicker: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   onlineRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   jobHeader: { flexDirection: 'row', gap: 12 },
   jobTitle: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },

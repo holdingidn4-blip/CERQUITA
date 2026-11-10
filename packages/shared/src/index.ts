@@ -6,3 +6,4 @@ export type { Database, Json, Tables, TablesInsert, TablesUpdate, Enums } from '
 export * from './verification';
 export * from './time';
 export * from './orders';
+export * from './service';

@@ -341,10 +341,10 @@ try {
   check(await client.isVisible('text=Luis Quispe'), 'abre el perfil del profesional');
   await client.click('text=Aceptar y contratar');
   await client.waitForURL('**/servicio/**');
-  await client.waitForSelector('text=Precio acordado: S/ 95.00');
+  await client.waitForSelector('text=Luis aceptó tu pedido');
   check(
-    await client.isVisible('text=Dirección: Jr. Los Pinos 245 · Dpto. 302 · Cocina'),
-    'tras aceptar ve el servicio con la dirección',
+    (await client.locator('text=S/ 95.00 >> visible=true').count()) > 0,
+    'tras aceptar ve el servicio con el precio acordado',
   );
   check(
     sql(
@@ -361,8 +361,90 @@ try {
   await pro.reload();
   await pro.waitForSelector('text=Solicitudes cerca de ti');
   check(
-    !(await pro.isVisible('text=Se filtra agua')),
+    (await pro.locator('[data-testid=solicitud]').count()) === 0,
     'el pedido aceptado sale de las solicitudes',
+  );
+
+  // ─────────────── Fase 6 · Servicio en curso ───────────────
+  await pro.click('text=Servicio en curso · Aceptado');
+  await pro.waitForURL('**/trabajo/**');
+  await pro.waitForSelector('text=Jr. Los Pinos 245 · Dpto. 302 · Cocina');
+  ok('el pro asignado ve la dirección exacta y el servicio');
+  check(
+    sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`) === '0',
+    'antes de salir no se comparte ubicación',
+  );
+  await pro.click('text=Ir al domicilio');
+  await pro.waitForSelector('text=En camino · GPS activo, el cliente te ve');
+  ok('"Ir al domicilio" inicia el viaje');
+  for (
+    let i = 0;
+    i < 50 && sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`) === '0';
+    i++
+  ) {
+    await pro.waitForTimeout(200);
+  }
+  check(
+    Number(sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`)) > 0,
+    'el pro envía su ubicación',
+  );
+  const code = sql(`select security_code from public.jobs where id = '${jobId}'`);
+  await client.waitForSelector(`[aria-label="Código de seguridad ${code.split('').join(' ')}"]`, {
+    timeout: 15000,
+  });
+  ok('el cliente ve el código de seguridad');
+  await client.waitForSelector('text=Luis viene en camino');
+  await client.waitForSelector('[aria-label="Mapa: Ubicación de Luis"]', { timeout: 15000 });
+  check(
+    (await client.locator('text=/Llega en \\d+ min/ >> visible=true').count()) > 0,
+    'y la posición en vivo con tiempo de llegada',
+  );
+
+  await client.click('text=Mensaje');
+  await client.waitForURL('**/chat/**');
+  await client.fill('[aria-label="Escribe un mensaje"]', 'Toca el timbre 302');
+  await client.click('[aria-label="Enviar"]');
+  await client.waitForSelector('[data-testid=mensaje]:has-text("Toca el timbre 302")');
+  await pro.click('text=Mensaje');
+  await pro.waitForSelector('text=Toca el timbre 302', { timeout: 15000 });
+  await pro.fill('[aria-label="Escribe un mensaje"]', 'Llego en 5 minutos');
+  await pro.click('[aria-label="Enviar"]');
+  await client.waitForSelector('text=Llego en 5 minutos', { timeout: 15000 });
+  ok('chat entre cliente y profesional en vivo');
+  await pro.goBack();
+  await client.goBack();
+
+  await pro.fill('[aria-labelledby=code-label]', code === '0000' ? '1111' : '0000');
+  await pro.click('text=Llegué al domicilio');
+  await pro.waitForSelector('text=El código no coincide');
+  ok('un código equivocado no marca la llegada');
+  await pro.fill('[aria-labelledby=code-label]', code);
+  await pro.click('text=Llegué al domicilio');
+  await pro.waitForSelector('text=Monto final');
+  ok('con el código correcto queda "En el domicilio"');
+  await client.waitForSelector('text=Luis llegó a tu domicilio', { timeout: 15000 });
+  ok('el cliente ve la llegada');
+
+  await pro.click('text=Terminado');
+  await pro.waitForSelector('text=Esperando que el cliente confirme el monto');
+  const tracksAtFinish = sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`);
+  await client.waitForURL('**/confirmar', { timeout: 15000 });
+  await client.waitForSelector('text=Luis marcó el trabajo como terminado');
+  check(
+    (await client.locator('text=Coincide con lo acordado >> visible=true').count()) > 0,
+    'el cliente ve el monto final igual al acordado',
+  );
+  await client.click('text=Confirmar S/ 95');
+  await client.waitForURL('**/calificar');
+  check(
+    sql(`select status || '|' || final_price_cents from public.jobs where id = '${jobId}'`) ===
+      'confirmed|9500',
+    'el servicio queda Confirmado con S/ 95',
+  );
+  await pro.waitForTimeout(2000);
+  check(
+    sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`) === tracksAtFinish,
+    'tras Terminado se corta la ubicación',
   );
 
   // ─────────────── Fase 3 · Cerrar sesión ───────────────

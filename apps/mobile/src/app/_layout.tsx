@@ -7,6 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/auth/auth-provider';
+// Registra la tarea de ubicación en segundo plano al arrancar (expo-task-manager lo exige).
+import '@/service/tracking';
 import { colors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();

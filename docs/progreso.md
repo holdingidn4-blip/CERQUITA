@@ -1,6 +1,6 @@
 # Cerquita · Progreso del MVP
 
-Última actualización: fase 5 terminada (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
+Última actualización: fase 6 terminada (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
 
 | Fase | Estado | Criterio de cierre | Cómo se comprueba |
 | --- | --- | --- | --- |
@@ -9,7 +9,7 @@
 | 3. Ingreso y roles | ✅ | Ingreso por SMS, modo Cliente/Profesional y panel solo para soporte | `auth.test.sql`, `pnpm db:smoke`, `pnpm e2e` |
 | 4. Registro y verificación | ✅ | Un oficio aprobado aparece “en observación” y pasa a pleno con 3 calificaciones de 4★ o más | `verification.test.sql`, `pnpm e2e` |
 | 5. Pedidos y ofertas | ✅ | Reparto solo a oficio aprobado, en línea y dentro del radio; el cliente acepta y se congelan precio y tasa | `orders.test.sql`, `pnpm e2e` |
-| 6. Servicio en curso | ⏳ | — | — |
+| 6. Servicio en curso | ✅ | Ir al domicilio → código → Llegué → Terminado → el cliente confirma; ubicación solo en camino/domicilio | `service.test.sql`, `pnpm e2e` |
 | 7. Comisión | ⏳ | — | — |
 | 8. Seguridad y publicación | ⏳ | — | — |
 
@@ -17,13 +17,29 @@
 
 | Tipo | Cantidad | Comando |
 | --- | --- | --- |
-| Unitarias (`packages/shared`) | 100 | `pnpm test` |
-| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos) | 148 | `pnpm db:test` |
+| Unitarias (`packages/shared`) | 106 | `pnpm test` |
+| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio) | 180 | `pnpm db:test` |
 | Humo del ingreso por SMS (Auth local) | 7 | `pnpm db:smoke` |
-| Navegación de punta a punta (app web + panel) | 57 | `pnpm e2e` |
+| Navegación de punta a punta (app web + panel) | 70 | `pnpm e2e` |
 
 Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && next start --port 3001` y la app con
 `expo export --platform web` servida en el puerto 8099 (ver `e2e/flujos.mjs`). El CI hace todo esto en el job `e2e`.
+
+## Fase 6 · Qué se construyó
+
+**Servidor** (`20261110000700_service.sql`)
+- Transiciones solo por funciones: `start_trip` (genera el código de 4 dígitos), `arrive` (exige el código), `finish_job` (monto final), `confirm_job` (aprobar o rechazar; idempotente) y `cancel_service` (motivo obligatorio). Nadie cambia `jobs.status` con UPDATE directo.
+- `job_security_code` (solo el cliente, solo en camino), `job_live_location` (solo el cliente y soporte, solo en camino o en el domicilio) y `job_counterpart` (nombre corto, calificación y teléfono con el servicio activo).
+- Chat `job_messages` (tabla 16): solo los dos participantes, solo con el servicio activo.
+- Realtime en `job_messages`, `job_tracks` y `offers`. **`jobs` no se publica**: Realtime respeta la RLS de filas pero no los permisos por columna, y filtraría la dirección exacta y el código.
+
+**App**
+- Pantalla 10 (pro): dirección, llamar, mensaje, “Ir al domicilio”, código del cliente, “Llegué”, monto final, “Terminado” y cancelar con motivo.
+- Pantalla 13: aviso propio antes del permiso del sistema; “Ahora no” no insiste.
+- Seguimiento: en el teléfono, en segundo plano con notificación visible (`expo-task-manager`); en web, en primer plano. Intervalos del documento técnico (8 s, 4 s a menos de 200 m, 45 s en el domicilio; batería baja los alarga). Si el servidor rechaza un punto, se detiene solo.
+- Pantalla 5 (cliente): pasos, ubicación del pro en el mapa con tiempo de llegada, código de seguridad, llamar, mensaje y cancelar.
+- Pantalla 11: monto acordado contra el indicado; aprobar o rechazar.
+- Chat en vivo para ambos.
 
 ## Fase 5 · Qué se construyó
 
