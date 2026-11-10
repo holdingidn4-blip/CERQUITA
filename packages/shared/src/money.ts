@@ -38,3 +38,8 @@ export function parseSolesToCents(input: string): Cents | null {
   const cents = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
   return Number.isSafeInteger(cents) ? cents : null;
 }
+
+/** Como formatSoles pero sin ".00" en montos enteros: 8000 → "S/ 80", 8550 → "S/ 85.50". */
+export function formatSolesShort(cents: Cents): string {
+  return formatSoles(cents).replace(/\.00$/, '');
+}

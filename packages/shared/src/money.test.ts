@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatSoles, parseSolesToCents } from './money';
+import { formatSoles, formatSolesShort, parseSolesToCents } from './money';
 
 describe('formatSoles', () => {
   it('formatea céntimos como soles', () => {
@@ -39,5 +39,13 @@ describe('parseSolesToCents', () => {
     // 0.29 * 100 = 28.999999999999996 en punto flotante
     expect(parseSolesToCents('0.29')).toBe(29);
     expect(parseSolesToCents('19.99')).toBe(1999);
+  });
+});
+
+describe('formatSolesShort', () => {
+  it('quita .00 solo en montos enteros', () => {
+    expect(formatSolesShort(8000)).toBe('S/ 80');
+    expect(formatSolesShort(8550)).toBe('S/ 85.50');
+    expect(formatSolesShort(120000)).toBe('S/ 1,200');
   });
 });

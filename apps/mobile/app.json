@@ -41,6 +41,12 @@
           "photosPermission": "Cerquita usa tus fotos para verificar tu identidad y tu oficio.",
           "cameraPermission": "Cerquita usa la c\u00e1mara para tu selfie con DNI y fotos de tus trabajos."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Cerquita usa tu ubicaci\u00f3n para mostrarte profesionales cerca y ubicar tu pedido."
+        }
       ]
     ],
     "experiments": {

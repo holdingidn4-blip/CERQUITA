@@ -1,4 +1,4 @@
-// Pruebas de navegación de punta a punta (fases 3 y 4) con Playwright.
+// Pruebas de navegación de punta a punta (fases 3, 4 y 5) con Playwright.
 //
 // Requisitos (ver README): Supabase local recién reseteado, el panel en ADMIN_URL
 // (next build && next start) y la app exportada para web en MOBILE_URL.
@@ -34,6 +34,18 @@ const executablePath = ['/opt/pw-browsers/chromium'].find(
 );
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 const jsErrors = [];
+const GEO = { latitude: -12.121, longitude: -77.031 };
+const phonePage = async () => {
+  const ctx = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    geolocation: GEO,
+    permissions: ['geolocation'],
+  });
+  const page = await ctx.newPage();
+  page.on('pageerror', (e) => jsErrors.push(e.message));
+  page.on('dialog', (d) => d.accept());
+  return page;
+};
 
 async function adminLogin(page, phone) {
   await page.goto(`${ADMIN}/login`, { waitUntil: 'networkidle' });
@@ -88,8 +100,7 @@ try {
   );
 
   // ─────────────── Fase 3 · App: ingreso, modos y sesión ───────────────
-  const client = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  client.on('pageerror', (e) => jsErrors.push(e.message));
+  const client = await phonePage();
   await client.goto(`${MOBILE}/`, { waitUntil: 'networkidle' });
   await client.waitForSelector('text=Recibir código por SMS');
   check(client.url().endsWith('/ingreso'), 'app sin sesión → /ingreso');
@@ -114,18 +125,11 @@ try {
   await client.waitForURL('**/inicio');
   ok('cambio a modo Cliente → /inicio');
   await client.reload();
-  await client.waitForSelector('text=Inicio con mapa');
+  await client.waitForSelector('text=¿Qué necesitas hoy?');
   ok('la sesión persiste al recargar');
-  await client.goto(`${MOBILE}/ajustes`);
-  await client.click('text=Cerrar sesión');
-  await client.waitForURL('**/ingreso');
-  await client.goto(`${MOBILE}/solicitudes`);
-  await client.waitForURL('**/ingreso');
-  ok('cerrar sesión y rutas protegidas → /ingreso');
 
   // ─────────────── Fase 4 · Registro del profesional ───────────────
-  const pro = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  pro.on('pageerror', (e) => jsErrors.push(e.message));
+  const pro = await phonePage();
   await mobileLogin(pro, '900000003', 'Ofrezco mis servicios');
   await pro.waitForURL('**/registro');
   await pro.waitForSelector('text=Paso 1 de 3');
@@ -256,6 +260,118 @@ try {
     'el pro ve "En observación" e identidad verificada',
   );
   check(await pro.isVisible('text=0 de 3'), 'muestra el avance hacia aprobado pleno (0 de 3)');
+
+  // ─────────────── Fase 5 · El cliente publica un pedido ───────────────
+  await client.goto(`${MOBILE}/inicio`, { waitUntil: 'networkidle' });
+  await client.click('text=Usar mi ubicación');
+  await client.waitForSelector('text=1 profesional verificado a menos de 3 km');
+  ok('inicio con ubicación: cuenta los profesionales en línea cerca');
+  await client.click('[aria-label="Pedir Gasfitero"]');
+  await client.waitForURL('**/pedido/nuevo**');
+  await client.waitForSelector('text=Solo el profesional que aceptes verá tu dirección exacta.');
+  await client.fill(
+    'textarea',
+    'Se filtra agua debajo del lavadero de la cocina, gotea desde ayer.',
+  );
+  await uploadPhoto(client, 'Agregar foto', 'trabajo1.jpg');
+  await client.waitForSelector('[aria-label="Foto del pedido"]');
+  await client.fill('input[autocomplete=street-address]', 'Jr. Los Pinos 245');
+  await client.fill('[aria-label="Referencia"]', 'Dpto. 302 · Cocina');
+  await client.click('text=Buscar profesionales cerca');
+  await client.waitForSelector('text=Pon un precio entre');
+  ok('valida el precio');
+  await client.fill('[aria-labelledby=price-label]', '80');
+  await client.click('text=Buscar profesionales cerca');
+  await client.waitForURL('**/ofertas');
+  await client.waitForSelector('text=Buscando gasfiteros cerca…');
+  ok('publica el pedido y espera ofertas');
+  const jobId = sql("select id from public.jobs where description like 'Se filtra agua%'");
+  check(
+    sql(`select offered_price_cents || '|' || status from public.jobs where id = '${jobId}'`) ===
+      '8000|published',
+    'el pedido queda publicado con S/ 80 en céntimos',
+  );
+  check(
+    sql(
+      `select extensions.st_astext(approx_point::extensions.geometry) from public.jobs where id = '${jobId}'`,
+    ) === 'POINT(-77.031 -12.121)',
+    'el servidor guarda solo la zona aproximada',
+  );
+  check(
+    sql(
+      `select count(*) from storage.objects where bucket_id = 'job-photos' and name like '${jobId}/%'`,
+    ) === '1',
+    'la foto queda en job-photos dentro de la carpeta del pedido',
+  );
+
+  // ─────────────── Fase 5 · El profesional cotiza ───────────────
+  await pro.goto(`${MOBILE}/solicitudes`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('text=Desconectado');
+  await pro.click('[aria-label="En línea"]');
+  await pro.waitForSelector('text=Se filtra agua debajo del lavadero de la cocina');
+  ok('el pro se pone en línea y ve el pedido cercano');
+  check(!(await pro.isVisible('text=Jr. Los Pinos')), 'no ve la dirección exacta antes de aceptar');
+  check(await pro.isVisible('text=Carla C. · Nuevo'), 've el nombre corto del cliente');
+  await pro.click('text=Cotizar');
+  await pro.waitForSelector('text=Tu cotización');
+  await pro.waitForSelector('img[src*="/object/sign/job-photos/"]', { state: 'attached' });
+  ok('ve la foto del pedido con URL firmada');
+  await pro.click('[role=radio]:has-text("S/ 95")');
+  await pro.waitForSelector('text=Comisión de la app (10 %)');
+  check(await pro.isVisible('text=− S/ 9.50'), 'muestra la comisión del 10 % (S/ 9.50)');
+  check(await pro.isVisible('text=S/ 85.50'), 'y lo que recibirá (S/ 85.50)');
+  await pro.fill('[aria-labelledby=msg-label]', 'Llevo los repuestos.');
+  await pro.click('text=Enviar cotización');
+  await pro.waitForURL('**/solicitudes');
+  await pro.waitForSelector('text=Oferta enviada: S/ 95.00');
+  ok('envía la cotización');
+  // Segundo profesional (Pedro, del seed) acepta el precio del cliente.
+  sql(
+    `insert into public.offers (job_id, pro_id, price_cents) values ('${jobId}', '22222222-2222-2222-2222-222222222222', 8000)`,
+  );
+
+  // ─────────────── Fase 5 · El cliente compara y acepta ───────────────
+  await client.waitForSelector('text=2 gasfiteros respondieron', { timeout: 15000 });
+  ok('el cliente ve las ofertas sin recargar');
+  check(await client.isVisible('text=Tu precio'), 'marca la oferta con su precio');
+  check(await client.isVisible('text=Contraoferta'), 'y la contraoferta');
+  check(await client.isVisible('text=“Llevo los repuestos.”'), 'con el mensaje del pro');
+  await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Ver perfil');
+  await client.waitForSelector('text=Identidad verificada');
+  check(await client.isVisible('text=Luis Quispe'), 'abre el perfil del profesional');
+  await client.click('text=Aceptar y contratar');
+  await client.waitForURL('**/servicio/**');
+  await client.waitForSelector('text=Precio acordado: S/ 95.00');
+  check(
+    await client.isVisible('text=Dirección: Jr. Los Pinos 245 · Dpto. 302 · Cocina'),
+    'tras aceptar ve el servicio con la dirección',
+  );
+  check(
+    sql(
+      `select status || '|' || final_price_cents || '|' || commission_rate_bps from public.jobs where id = '${jobId}'`,
+    ) === 'accepted|9500|1000',
+    'el pedido queda aceptado con precio y tasa congelados',
+  );
+  check(
+    sql(
+      `select status from public.offers where job_id = '${jobId}' and pro_id = '22222222-2222-2222-2222-222222222222'`,
+    ) === 'rejected',
+    'la otra oferta queda rechazada',
+  );
+  await pro.reload();
+  await pro.waitForSelector('text=Solicitudes cerca de ti');
+  check(
+    !(await pro.isVisible('text=Se filtra agua')),
+    'el pedido aceptado sale de las solicitudes',
+  );
+
+  // ─────────────── Fase 3 · Cerrar sesión ───────────────
+  await client.goto(`${MOBILE}/ajustes`);
+  await client.click('text=Cerrar sesión');
+  await client.waitForURL('**/ingreso');
+  await client.goto(`${MOBILE}/solicitudes`);
+  await client.waitForURL('**/ingreso');
+  ok('cerrar sesión y rutas protegidas → /ingreso');
 
   check(
     jsErrors.length === 0,

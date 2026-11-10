@@ -679,9 +679,50 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_offer: {
+        Args: { p_offer: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          client_id: string;
+          commission_rate_bps: number | null;
+          created_at: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          id: string;
+          offered_price_cents: number;
+          photos: string[];
+          status: Database['public']['Enums']['job_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       is_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       job_counterpart_phone: { Args: { p_job: string }; Returns: string };
       job_exact_address: { Args: { p_job: string }; Returns: string };
+      job_offers: {
+        Args: { p_job: string };
+        Returns: {
+          avatar_url: string;
+          created_at: string;
+          distance_m: number;
+          id: string;
+          jobs_done: number;
+          message: string;
+          price_cents: number;
+          pro_id: string;
+          pro_name: string;
+          rating_avg: number;
+          status: Database['public']['Enums']['offer_status'];
+        }[];
+      };
       log_document_access: { Args: { p_document: string }; Returns: string };
       my_account: {
         Args: Record<PropertyKey, never>;
@@ -700,6 +741,56 @@ export type Database = {
         Returns: {
           identity_missing: string[];
           identity_verified: boolean;
+        }[];
+      };
+      nearby_jobs: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          client_name: string;
+          client_rating: number;
+          created_at: string;
+          description: string;
+          distance_m: number;
+          id: string;
+          my_offer_id: string;
+          my_offer_price_cents: number;
+          my_offer_status: Database['public']['Enums']['offer_status'];
+          offered_price_cents: number;
+          photos: string[];
+          trade_id: number;
+          trade_name: string;
+        }[];
+      };
+      nearby_pros_summary: {
+        Args: { p_point: unknown; p_radius_m?: number };
+        Returns: {
+          nearest_m: number;
+          pros: number;
+          trade_id: number;
+        }[];
+      };
+      price_hint: {
+        Args: { p_trade: number };
+        Returns: {
+          high_cents: number;
+          low_cents: number;
+          samples: number;
+        }[];
+      };
+      pro_profile: {
+        Args: { p_pro: string };
+        Returns: {
+          avatar_url: string;
+          full_name: string;
+          id: string;
+          identity_verified: boolean;
+          jobs_done: number;
+          rating_avg: number;
+          ratings_count: number;
+          review_author: string;
+          review_comment: string;
+          review_stars: number;
+          trades: string[];
         }[];
       };
       pro_trade_missing: { Args: { p_pro_trade: string }; Returns: string[] };
