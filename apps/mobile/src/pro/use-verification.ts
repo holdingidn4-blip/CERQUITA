@@ -136,7 +136,7 @@ export function useVerification() {
     });
   }, []);
 
-  // Recarga al entrar o volver a la pantalla (p. ej. del registro a Mis oficios).
+  // Vuelve a cargar al entrar o volver a la pantalla (p. ej. del registro a Mis oficios).
   useFocusEffect(
     useCallback(() => {
       load();

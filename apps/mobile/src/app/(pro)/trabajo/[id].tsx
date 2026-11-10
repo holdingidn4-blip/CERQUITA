@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
+import { Stars } from '@/components/stars';
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { ContactActions, StepBar } from '@/service/contact-actions';
@@ -40,6 +41,8 @@ export default function Trabajo() {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
+  const [stars, setStars] = useState(0);
+  const [rated, setRated] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -203,6 +206,24 @@ export default function Trabajo() {
           </Text>
         )}
 
+        {(job.status === 'confirmed' || job.status === 'rated') && !rated && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Califica al cliente</Text>
+            <Stars value={stars} onChange={setStars} />
+            <Button
+              variant="outline"
+              label="Enviar calificación"
+              disabled={stars === 0}
+              onPress={async () => {
+                const { error: e } = await supabase
+                  .from('ratings')
+                  .insert({ job_id: id, to_id: job.client_id, stars });
+                if (e && e.code !== '23505') setError('No pudimos guardar tu calificación.');
+                else setRated(true);
+              }}
+            />
+          </View>
+        )}
         {job.status === 'accepted' && (
           <Button label="Ir al domicilio" loading={busy} onPress={goToHome} />
         )}

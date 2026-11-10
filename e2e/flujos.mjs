@@ -447,6 +447,83 @@ try {
     'tras Terminado se corta la ubicación',
   );
 
+  // ─────────────── Fase 7 · Calificación, comisión y constancia ───────────────
+  await client.waitForSelector('text=¿Cómo fue el servicio?');
+  await client.click('[role=radio]:has-text("Yape")');
+  await client.click('[aria-label="5 estrellas"]');
+  await client.click('[role=checkbox]:has-text("Puntual")');
+  await client.fill('[aria-label="Comentario (opcional)"]', 'Llegó puntual y dejó todo limpio.');
+  await client.click('text=Enviar calificación');
+  await client.waitForURL('**/inicio');
+  check(
+    sql(`select status from public.jobs where id = '${jobId}'`) === 'rated',
+    'el cliente califica y el pedido queda Calificado',
+  );
+  check(
+    sql(
+      `select stars || '|' || payment_method_used from public.ratings where job_id = '${jobId}'`,
+    ) === '5|yape',
+    'con 5 estrellas y medio de pago Yape',
+  );
+  const luisId = sql("select id from public.profiles where phone = '51900000003'");
+  check(
+    sql(
+      `select amount_cents from public.wallet_entries where idempotency_key = 'job:${jobId}:commission'`,
+    ) === '-950',
+    'al confirmar se anotó la comisión de S/ 9.50 en el libro',
+  );
+
+  await pro.goto(`${MOBILE}/comision`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('text=Comisión de servicio');
+  check(
+    (await pro.locator('text=−S/ 9.50 >> visible=true').count()) > 0,
+    'el pro ve el movimiento en Mi comisión',
+  );
+  check((await pro.locator('text=S/ 9.50 >> visible=true').count()) > 0, 'y su comisión pendiente');
+  await pro.click('text=Pagar comisión');
+  await pro.waitForSelector('text=Paga a Cerquita por Yape');
+  check(!(await pro.isVisible('text=/comprar saldo|recarga/i')), 'sin compras dentro de la app');
+  await pro.fill('[aria-label="Monto pagado"]', '9.50');
+  await pro.fill('[aria-label="Código de operación"]', 'OP-77812');
+  await uploadPhoto(pro, '', 'trabajo2.jpg', 'text=Subir constancia');
+  await pro.waitForSelector('[aria-label="Constancia"]');
+  await pro.click('text=Enviar constancia');
+  await pro.waitForURL('**/comision');
+  await pro.waitForSelector('text=En revisión');
+  ok('el pro sube la constancia de pago');
+
+  await admin.goto(`${ADMIN}/constancias`, { waitUntil: 'networkidle' });
+  await admin.waitForSelector('text=OP-77812');
+  const [proofTab] = await Promise.all([
+    admin.context().waitForEvent('page'),
+    admin.click('text=OP-77812'),
+  ]);
+  await proofTab.waitForLoadState();
+  check(
+    proofTab.url().includes('/storage/v1/object/sign/payment-proofs/'),
+    'soporte ve la constancia con URL firmada',
+  );
+  await proofTab.close();
+  await admin.click('tr:has-text("OP-77812") >> button:has-text("Aprobar")');
+  await admin.waitForSelector('text=Aprobada: se creó el abono en el libro.');
+  check(
+    sql(
+      `select coalesce(sum(amount_cents), 0) from public.wallet_entries where professional_id = '${luisId}'`,
+    ) === '0',
+    'aprobar crea el payment_credit y la deuda queda en S/ 0',
+  );
+
+  // Pausa por deuda (pantalla 16): una deuda grande sin días de gracia.
+  sql(`update public.settings set value = '0' where key = 'grace_days'`);
+  sql(`select private.wallet_post('${luisId}', 'commission_debit', -4000, 'e2e:deuda')`);
+  await pro.goto(`${MOBILE}/solicitudes`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('text=Tus nuevas ofertas están en pausa');
+  check(
+    await pro.isVisible('text=Para reactivarte, paga más de S/ 10.00'),
+    'en pausa: le dice cuánto pagar para reactivarse',
+  );
+  sql(`update public.settings set value = '3' where key = 'grace_days'`);
+
   // ─────────────── Fase 3 · Cerrar sesión ───────────────
   await client.goto(`${MOBILE}/ajustes`);
   await client.click('text=Cerrar sesión');

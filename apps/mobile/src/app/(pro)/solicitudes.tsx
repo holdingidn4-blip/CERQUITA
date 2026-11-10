@@ -3,6 +3,8 @@ import {
   distanceAndEta,
   formatRating,
   formatSoles,
+  debtMessage,
+  debtState,
   formatSolesShort,
   jobTitle,
   ACTIVE_SERVICE_STATUSES,
@@ -25,6 +27,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { confirm } from '@/lib/confirm';
 import type { NearbyJob } from '@/orders/types';
+import { useDebt } from '@/pro/use-debt';
 import { getCurrentPoint } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
@@ -45,6 +48,8 @@ export default function Solicitudes() {
     [],
   );
   const [switching, setSwitching] = useState(false);
+  const { debt } = useDebt();
+  const paused = debt?.paused ?? false;
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -155,13 +160,50 @@ export default function Solicitudes() {
           <Text style={styles.kicker}>Modo profesional</Text>
           <View style={styles.links}>
             <Link href="/oficios" style={styles.link}>
-              Mis oficios
+              Oficios
+            </Link>
+            <Link href="/comision" style={styles.link}>
+              Comisión
             </Link>
             <Link href="/ajustes" style={styles.link}>
               Cuenta
             </Link>
           </View>
         </View>
+
+        {debt && debtState(debt) !== 'ok' && (
+          <View
+            style={[styles.card, paused ? styles.pausedCard : styles.graceCard]}
+            testID="aviso-comision"
+          >
+            <Text style={styles.h2}>
+              {paused ? 'Tus nuevas ofertas están en pausa' : 'Comisión sobre el límite'}
+            </Text>
+            <Text style={styles.body}>{debtMessage(debt)}</Text>
+            {paused && (
+              <>
+                <Text style={styles.body}>
+                  Para reactivarte, paga más de {formatSoles(debt.payToReactivateCents)}. Mientras
+                  tanto puedes terminar los servicios que ya aceptaste; tus calificaciones y oficios
+                  verificados se mantienen.
+                </Text>
+              </>
+            )}
+            <View style={styles.actions}>
+              <Button
+                label="Pagar comisión"
+                style={styles.flex}
+                onPress={() => router.push('/comision/pagar')}
+              />
+              <Button
+                variant="outline"
+                label="Ver movimientos"
+                style={styles.flex}
+                onPress={() => router.push('/comision')}
+              />
+            </View>
+          </View>
+        )}
 
         {active.map((job) => (
           <Pressable
@@ -257,6 +299,8 @@ export default function Solicitudes() {
               </View>
             ) : job.my_offer_status ? (
               <Text style={styles.secondary}>Tu oferta ya no está activa.</Text>
+            ) : paused ? (
+              <Text style={styles.secondary}>Cotizar en pausa hasta que pagues tu comisión.</Text>
             ) : (
               <View style={styles.actions}>
                 <Button
@@ -307,6 +351,8 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
+  pausedCard: { backgroundColor: colors.dangerSoft, borderColor: colors.danger },
+  graceCard: { backgroundColor: colors.amberSoft, borderColor: colors.amber },
   activeCard: { borderColor: colors.primary, borderWidth: 1.5 },
   activeKicker: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   onlineRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

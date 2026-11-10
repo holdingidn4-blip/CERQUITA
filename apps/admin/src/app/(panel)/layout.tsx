@@ -15,6 +15,10 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
     .from('pro_trades')
     .select('id', { count: 'exact', head: true })
     .in('status', ['submitted', 'in_review']);
+  const { count: proofs } = await supabase
+    .from('payment_proofs')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending');
   const { data: me } = await supabase
     .from('profiles')
     .select('full_name')
@@ -29,15 +33,15 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           <Link href="/verificacion" className={styles.navItem}>
             Verificación <span className={styles.count}>{count ?? 0}</span>
           </Link>
-          <span className={`${styles.navItem} ${styles.navSoon}`} title="Fase 7">
-            Constancias
-          </span>
+          <Link href="/constancias" className={styles.navItem}>
+            Constancias <span className={styles.count}>{proofs ?? 0}</span>
+          </Link>
           <span className={`${styles.navItem} ${styles.navSoon}`} title="Fase 8">
             Alertas SOS
           </span>
-          <span className={`${styles.navItem} ${styles.navSoon}`} title="Fase 7">
+          <Link href="/parametros" className={styles.navItem}>
             Parámetros
-          </span>
+          </Link>
         </nav>
         <div className={styles.me}>
           <span>

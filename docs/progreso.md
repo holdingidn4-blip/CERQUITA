@@ -1,6 +1,6 @@
 # Cerquita · Progreso del MVP
 
-Última actualización: fase 6 terminada (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
+Última actualización: fase 7 terminada (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
 
 | Fase | Estado | Criterio de cierre | Cómo se comprueba |
 | --- | --- | --- | --- |
@@ -10,20 +10,42 @@
 | 4. Registro y verificación | ✅ | Un oficio aprobado aparece “en observación” y pasa a pleno con 3 calificaciones de 4★ o más | `verification.test.sql`, `pnpm e2e` |
 | 5. Pedidos y ofertas | ✅ | Reparto solo a oficio aprobado, en línea y dentro del radio; el cliente acepta y se congelan precio y tasa | `orders.test.sql`, `pnpm e2e` |
 | 6. Servicio en curso | ✅ | Ir al domicilio → código → Llegué → Terminado → el cliente confirma; ubicación solo en camino/domicilio | `service.test.sql`, `pnpm e2e` |
-| 7. Comisión | ⏳ | — | — |
+| 7. Comisión | ✅ | Un servicio de punta a punta deja el asiento correcto y una segunda confirmación no duplica el cobro | `ledger.test.sql`, `pnpm e2e` |
 | 8. Seguridad y publicación | ⏳ | — | — |
 
 ## Pruebas
 
 | Tipo | Cantidad | Comando |
 | --- | --- | --- |
-| Unitarias (`packages/shared`) | 106 | `pnpm test` |
-| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio) | 180 | `pnpm db:test` |
+| Unitarias (`packages/shared`) | 110 | `pnpm test` |
+| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro) | 215 | `pnpm db:test` |
 | Humo del ingreso por SMS (Auth local) | 7 | `pnpm db:smoke` |
-| Navegación de punta a punta (app web + panel) | 70 | `pnpm e2e` |
+| Navegación de punta a punta (app web + panel) | 80 | `pnpm e2e` |
 
 Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && next start --port 3001` y la app con
 `expo export --platform web` servida en el puerto 8099 (ver `e2e/flujos.mjs`). El CI hace todo esto en el job `e2e`.
+
+## Fase 7 · Qué se construyó
+
+**Servidor** (`20261110000800_ledger.sql`)
+- `confirm_job` crea el `commission_debit` = precio final × tasa congelada con clave `job:<id>:commission`. Confirmar otra vez no duplica (idempotencia por clave única).
+- Promoción de lanzamiento: los primeros `launch_promo_jobs` trabajos llevan un `promo_credit` por el mismo monto (hoy 0, por decidir).
+- `pro_debt()`: saldo, pendiente, límite, desde cuándo está sobre el límite, pausa y cuánto pagar para reactivarse. Todo desde `settings` (límite S/ 30, 3 días de gracia).
+- Pausa: la política de inserción de `offers` exige `not pro_is_paused()`. Sigue viendo pedidos y terminando sus servicios; al quedar bajo el límite se reactiva solo.
+- `review_payment_proof()` (soporte): aprobar crea `payment_credit` con clave `proof:<id>`; rechazar exige motivo. El pro ya no puede editar sus constancias.
+- Núcleo `private.wallet_post()`: único punto de escritura del libro (bloqueo por profesional). Ni la app ni el service role insertan directo. Errores → `reversal`.
+- Calificaciones con medio de pago usado; la del cliente deja el pedido “Calificado”.
+- `settings` solo lo edita el rol `admin` (antes, cualquier soporte).
+
+**App**
+- Pantalla 6: total, medio de pago (efectivo, Yape, Plin), estrellas, etiquetas y comentario. El pro también califica al cliente.
+- Pantalla 14: comisión pendiente, límite, estado y movimientos del libro.
+- Pantalla 15: pago **fuera de la app** a la cuenta de la empresa y subida de la constancia (sin compras, recargas ni “comprar saldo”).
+- Pantalla 16: aviso de pausa con monto para reactivarse; “Cotizar en pausa”.
+
+**Panel**
+- Constancias: tabla con medio, código (abre la imagen con URL firmada), monto, pendiente antes y aprobar/rechazar.
+- Parámetros: todos los valores de `settings`, editables solo por un administrador.
 
 ## Fase 6 · Qué se construyó
 
@@ -70,7 +92,7 @@ Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && n
 - **Sin “¿Cuándo? Ahora / Hoy / Programar”** de la pantalla 2: no hay columna en `jobs`. Queda como pendiente por decidir.
 - **Sin “Experiencia”, “Especialidades” ni “Trabajos recientes”** en la pantalla 4: no hay datos en el modelo; las fotos de verificación son privadas.
 - **Oficios del diseño fuera del catálogo** (Cerrajero, Jardinero, Más): no se muestran.
-- **Comisión con empate de medio céntimo a favor del profesional.** Confirmar en la fase 7.
+- **Comisión con empate de medio céntimo a favor del profesional** (aplicado en la fase 7).
 - **Pausa de ofertas por deuda** (pantalla 16): se aplica en la fase 7, junto con el libro.
 
 ## Fase 4 · Qué se construyó
@@ -100,7 +122,8 @@ Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && n
 - **Abrir un caso** lo pasa a “En revisión” automáticamente.
 - **Archivos de un borrador borrado** quedan en storage (las filas sí se borran). Limpieza pendiente para la fase 8.
 
-## Pendientes por decidir (no frenan la fase 6)
+## Pendientes por decidir
+- Número, QR y titular de Yape/Plin de la empresa (se cargan en Parámetros; hoy la pantalla 15 muestra [NÚMERO]).
 - “¿Cuándo?” del nuevo pedido (ahora, hoy o programado): requiere un campo nuevo en `jobs`.
 - Clave de Google Maps para Android (EAS) antes de publicar.
 - Precio máximo de un trabajo “en observación” (pantalla 12; hoy el texto no muestra monto).

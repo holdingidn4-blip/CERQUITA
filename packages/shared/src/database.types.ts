@@ -270,6 +270,7 @@ export type Database = {
           method: Database['public']['Enums']['payment_method'];
           operation_code: string;
           professional_id: string;
+          review_note: string | null;
           reviewed_at: string | null;
           reviewed_by: string | null;
           status: Database['public']['Enums']['payment_proof_status'];
@@ -282,7 +283,8 @@ export type Database = {
           image_path: string;
           method: Database['public']['Enums']['payment_method'];
           operation_code: string;
-          professional_id: string;
+          professional_id?: string;
+          review_note?: string | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           status?: Database['public']['Enums']['payment_proof_status'];
@@ -295,6 +297,7 @@ export type Database = {
           method?: Database['public']['Enums']['payment_method'];
           operation_code?: string;
           professional_id?: string;
+          review_note?: string | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           status?: Database['public']['Enums']['payment_proof_status'];
@@ -452,6 +455,7 @@ export type Database = {
           from_id: string;
           id: string;
           job_id: string;
+          payment_method_used: string | null;
           stars: number;
           tags: string[];
           to_id: string;
@@ -460,9 +464,10 @@ export type Database = {
         Insert: {
           comment?: string | null;
           created_at?: string;
-          from_id: string;
+          from_id?: string;
           id?: string;
           job_id: string;
+          payment_method_used?: string | null;
           stars: number;
           tags?: string[];
           to_id: string;
@@ -473,6 +478,7 @@ export type Database = {
           from_id?: string;
           id?: string;
           job_id?: string;
+          payment_method_used?: string | null;
           stars?: number;
           tags?: string[];
           to_id?: string;
@@ -915,6 +921,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       job_counterpart: {
         Args: { p_job: string };
@@ -1007,6 +1014,18 @@ export type Database = {
           samples: number;
         }[];
       };
+      pro_debt: {
+        Args: { p_pro?: string };
+        Returns: {
+          balance_cents: number;
+          grace_days: number;
+          limit_cents: number;
+          over_limit_since: string;
+          paused: boolean;
+          pay_to_reactivate_cents: number;
+          pending_cents: number;
+        }[];
+      };
       pro_profile: {
         Args: { p_pro: string };
         Returns: {
@@ -1031,6 +1050,28 @@ export type Database = {
           full_name: string;
           id: string;
         }[];
+      };
+      review_payment_proof: {
+        Args: { p_approve: boolean; p_note?: string; p_proof: string };
+        Returns: {
+          amount_cents: number;
+          created_at: string;
+          id: string;
+          image_path: string;
+          method: Database['public']['Enums']['payment_method'];
+          operation_code: string;
+          professional_id: string;
+          review_note: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database['public']['Enums']['payment_proof_status'];
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'payment_proofs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       review_pro_trade: {
         Args: { p_decision: string; p_pro_trade: string; p_reason?: string };

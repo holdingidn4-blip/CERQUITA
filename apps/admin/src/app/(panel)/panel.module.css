@@ -266,3 +266,43 @@ a.navItem:hover {
     padding: 24px 16px;
   }
 }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  font-size: 14px;
+}
+.table th,
+.table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.table th {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  background: var(--background);
+}
+.inlineForm {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.smallInput {
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font: inherit;
+  min-width: 160px;
+}
+.errorInline {
+  color: var(--danger);
+  font-size: 13px;
+}
