@@ -1,0 +1,28 @@
+name: Limpieza de Storage
+
+# Borra a diario los archivos huérfanos (cuentas eliminadas, borradores, subidas a medias).
+# Requiere los secretos SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el repositorio.
+on:
+  schedule:
+    - cron: '37 8 * * *' # 03:37 en Lima
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    if: ${{ vars.STORAGE_CLEANUP_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @cerquita/admin...
+      - run: pnpm --filter @cerquita/admin storage:cleanup
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

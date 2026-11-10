@@ -195,8 +195,8 @@ select is((select count(*)::int from public.trusted_contacts), 0, 'otro usuario 
 
 -- ───────── sos_alerts ─────────
 select pg_temp.as_user(:a);
-insert into public.sos_alerts (job_id, status) values (:job_a, 'open');
-select throws_ok('update public.sos_alerts set status = ''closed''', '42501', null, 'el usuario no cierra la alerta');
+select public.sos_open(:job_a, -12.12, -77.03);
+select throws_ok(format('select public.sos_close(%L, %L)', (select id from public.sos_alerts limit 1), 'listo'), '42501', null, 'el usuario no cierra la alerta');
 select pg_temp.as_user(:b);
 select is((select count(*)::int from public.sos_alerts), 0, 'otro usuario NO ve la alerta');
 

@@ -1,4 +1,4 @@
-// Pruebas de navegación de punta a punta (fases 3, 4 y 5) con Playwright.
+// Pruebas de navegación de punta a punta (fases 3 a 8) con Playwright.
 //
 // Requisitos (ver README): Supabase local recién reseteado, el panel en ADMIN_URL
 // (next build && next start) y la app exportada para web en MOBILE_URL.
@@ -524,12 +524,81 @@ try {
   );
   sql(`update public.settings set value = '3' where key = 'grace_days'`);
 
+  // ─────────────── Fase 8 · Contactos, SOS y eliminar cuenta ───────────────
+  await client.goto(`${MOBILE}/ajustes/contactos`, { waitUntil: 'networkidle' });
+  await client.fill('[aria-label="Nombre del contacto"]', 'Mamá');
+  await client.fill('[aria-label="Celular del contacto"]', '911 111 111');
+  await client.fill('[aria-label="Relación"]', 'mamá');
+  await client.click('text=Agregar contacto');
+  await client.waitForSelector('[data-testid=contacto]:has-text("Mamá")');
+  ok('agrega un contacto de confianza');
+
+  await client.goto(`${MOBILE}/sos`, { waitUntil: 'networkidle' });
+  await client.waitForSelector('text=Avisaremos a soporte y a tus contactos de confianza.');
+  ok('SOS: cuenta regresiva con opción de cancelar');
+  await client.waitForSelector('text=Soporte ya recibió tu alerta', { timeout: 15000 });
+  check(await client.isVisible('text=Mamá'), 'muestra a quién avisar');
+  const carlaId = '11111111-1111-1111-1111-111111111111';
+  check(
+    sql(`select status from public.sos_alerts where user_id = '${carlaId}'`) === 'open',
+    'la alerta queda abierta para soporte',
+  );
+  await admin.goto(`${ADMIN}/sos`, { waitUntil: 'networkidle' });
+  await admin.waitForSelector('[data-testid=alerta-sos]:has-text("Carla Cliente")');
+  check(
+    await admin.isVisible('text=Ver ubicación en el mapa'),
+    'soporte ve la alerta con ubicación',
+  );
+  await admin.fill('[aria-label="Nota de cierre"]', 'Llamamos a Carla: todo bien.');
+  await admin.click('text=Cerrar alerta');
+  await admin.waitForSelector('text=Alerta cerrada con nota.');
+  check(
+    sql(`select status || '|' || note from public.sos_alerts where user_id = '${carlaId}'`) ===
+      'closed|Llamamos a Carla: todo bien.',
+    'soporte cierra la alerta con nota',
+  );
+
+  await client.goto(`${MOBILE}/ajustes`, { waitUntil: 'networkidle' });
+  await client.waitForSelector('text=1 de 3');
+  await client.click('text=Eliminar cuenta');
+  await client.waitForURL('**/ingreso');
+  check(
+    sql(
+      `select (deleted_at is not null)::text || '|' || coalesce(full_name, '') from public.profiles where id = '${carlaId}'`,
+    ) === 'true|',
+    'elimina su cuenta desde la app y el perfil queda anonimizado',
+  );
+  check(
+    sql(`select coalesce(phone, '') from auth.users where id = '${carlaId}'`) === '',
+    'la cuenta de acceso queda sin teléfono',
+  );
+  check(
+    sql(`select count(*) from public.trusted_contacts where user_id = '${carlaId}'`) === '0',
+    'se borran sus contactos',
+  );
+  await client.goto(`${MOBILE}/inicio`);
+  await client.waitForURL('**/ingreso');
+  ok('sin sesión, las rutas protegidas vuelven al ingreso');
+
+  const cleanup = execFileSync(
+    'node',
+    ['--env-file=.env.local', 'scripts/storage-cleanup.mjs', '--dry-run'],
+    {
+      cwd: join(dirname(FIXTURES), '..', 'apps', 'admin'),
+      encoding: 'utf8',
+    },
+  );
+  check(
+    /archivos huérfanos encontrados/.test(cleanup),
+    'la limpieza de Storage corre (modo prueba)',
+  );
+
   // ─────────────── Fase 3 · Cerrar sesión ───────────────
-  await client.goto(`${MOBILE}/ajustes`);
-  await client.click('text=Cerrar sesión');
-  await client.waitForURL('**/ingreso');
-  await client.goto(`${MOBILE}/solicitudes`);
-  await client.waitForURL('**/ingreso');
+  await pro.goto(`${MOBILE}/ajustes`);
+  await pro.click('text=Cerrar sesión');
+  await pro.waitForURL('**/ingreso');
+  await pro.goto(`${MOBILE}/solicitudes`);
+  await pro.waitForURL('**/ingreso');
   ok('cerrar sesión y rutas protegidas → /ingreso');
 
   check(

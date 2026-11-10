@@ -19,6 +19,8 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
     .from('payment_proofs')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'pending');
+  const { data: sosAlerts } = await supabase.rpc('sos_open_alerts');
+  const sos = sosAlerts?.length ?? 0;
   const { data: me } = await supabase
     .from('profiles')
     .select('full_name')
@@ -36,9 +38,9 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           <Link href="/constancias" className={styles.navItem}>
             Constancias <span className={styles.count}>{proofs ?? 0}</span>
           </Link>
-          <span className={`${styles.navItem} ${styles.navSoon}`} title="Fase 8">
-            Alertas SOS
-          </span>
+          <Link href="/sos" className={styles.navItem}>
+            Alertas SOS <span className={styles.count}>{sos ?? 0}</span>
+          </Link>
           <Link href="/parametros" className={styles.navItem}>
             Parámetros
           </Link>

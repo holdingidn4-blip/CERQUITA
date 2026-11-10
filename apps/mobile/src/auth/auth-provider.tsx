@@ -28,7 +28,8 @@ type AuthState = {
   loading: boolean;
   refreshAccount: () => Promise<Account | null>;
   setActiveRole: (role: Role) => Promise<Account | null>;
-  signOut: () => Promise<void>;
+  /** `local`: solo borra la sesión del dispositivo (p. ej. tras eliminar la cuenta en el servidor). */
+  signOut: (scope?: 'global' | 'local') => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -93,8 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [refreshAccount],
   );
 
-  const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+  const signOut = useCallback(async (scope: 'global' | 'local' = 'global') => {
+    const { error } = await supabase.auth.signOut({ scope });
+    if (error && scope === 'global') await supabase.auth.signOut({ scope: 'local' });
+    setSession(null);
     setAccount(null);
   }, []);
 

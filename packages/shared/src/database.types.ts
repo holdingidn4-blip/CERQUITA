@@ -535,6 +535,8 @@ export type Database = {
           closed_by: string | null;
           id: string;
           job_id: string | null;
+          last_point: unknown;
+          last_point_at: string | null;
           note: string | null;
           opened_at: string;
           status: Database['public']['Enums']['sos_status'];
@@ -546,6 +548,8 @@ export type Database = {
           closed_by?: string | null;
           id?: string;
           job_id?: string | null;
+          last_point?: unknown;
+          last_point_at?: string | null;
           note?: string | null;
           opened_at?: string;
           status?: Database['public']['Enums']['sos_status'];
@@ -556,6 +560,8 @@ export type Database = {
           closed_by?: string | null;
           id?: string;
           job_id?: string | null;
+          last_point?: unknown;
+          last_point_at?: string | null;
           note?: string | null;
           opened_at?: string;
           status?: Database['public']['Enums']['sos_status'];
@@ -888,6 +894,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       finish_job: {
         Args: { p_final_cents?: number; p_job: string };
         Returns: {
@@ -1095,6 +1102,66 @@ export type Database = {
         };
       };
       set_staff_role: { Args: { p_role: string; p_user: string }; Returns: undefined };
+      sos_close: {
+        Args: { p_alert: string; p_note: string };
+        Returns: {
+          closed_at: string | null;
+          closed_by: string | null;
+          id: string;
+          job_id: string | null;
+          last_point: unknown;
+          last_point_at: string | null;
+          note: string | null;
+          opened_at: string;
+          status: Database['public']['Enums']['sos_status'];
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'sos_alerts';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      sos_open: {
+        Args: { p_job?: string; p_lat?: number; p_lng?: number };
+        Returns: {
+          closed_at: string | null;
+          closed_by: string | null;
+          id: string;
+          job_id: string | null;
+          last_point: unknown;
+          last_point_at: string | null;
+          note: string | null;
+          opened_at: string;
+          status: Database['public']['Enums']['sos_status'];
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'sos_alerts';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      sos_open_alerts: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          id: string;
+          job_description: string;
+          job_id: string;
+          last_point_at: string;
+          latitude: number;
+          longitude: number;
+          opened_at: string;
+          user_name: string;
+          user_phone: string;
+        }[];
+      };
+      sos_update_location: {
+        Args: { p_alert: string; p_lat: number; p_lng: number };
+        Returns: undefined;
+      };
       start_trip: {
         Args: { p_job: string };
         Returns: {
@@ -1127,6 +1194,13 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      storage_orphans: {
+        Args: { p_min_age?: string };
+        Returns: {
+          bucket_id: string;
+          name: string;
+        }[];
       };
       submit_pro_trade: {
         Args: { p_pro_trade: string };

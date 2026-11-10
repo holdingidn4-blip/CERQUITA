@@ -1,6 +1,6 @@
 # Cerquita · Progreso del MVP
 
-Última actualización: fase 7 terminada (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
+Última actualización: **MVP completo, fases 1 a 8 terminadas** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
 
 | Fase | Estado | Criterio de cierre | Cómo se comprueba |
 | --- | --- | --- | --- |
@@ -11,19 +11,44 @@
 | 5. Pedidos y ofertas | ✅ | Reparto solo a oficio aprobado, en línea y dentro del radio; el cliente acepta y se congelan precio y tasa | `orders.test.sql`, `pnpm e2e` |
 | 6. Servicio en curso | ✅ | Ir al domicilio → código → Llegué → Terminado → el cliente confirma; ubicación solo en camino/domicilio | `service.test.sql`, `pnpm e2e` |
 | 7. Comisión | ✅ | Un servicio de punta a punta deja el asiento correcto y una segunda confirmación no duplica el cobro | `ledger.test.sql`, `pnpm e2e` |
-| 8. Seguridad y publicación | ⏳ | — | — |
+| 8. Seguridad y publicación | ✅ | SOS, contactos, eliminar cuenta, limpieza de Storage, configuración de builds | `privacy.test.sql`, `pnpm e2e` |
 
 ## Pruebas
 
 | Tipo | Cantidad | Comando |
 | --- | --- | --- |
-| Unitarias (`packages/shared`) | 110 | `pnpm test` |
-| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro) | 215 | `pnpm db:test` |
+| Unitarias (`packages/shared`) | 112 | `pnpm test` |
+| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro, privacidad y SOS) | 240 | `pnpm db:test` |
 | Humo del ingreso por SMS (Auth local) | 7 | `pnpm db:smoke` |
-| Navegación de punta a punta (app web + panel) | 80 | `pnpm e2e` |
+| Navegación de punta a punta (app web + panel) | 91 | `pnpm e2e` |
 
 Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && next start --port 3001` y la app con
 `expo export --platform web` servida en el puerto 8099 (ver `e2e/flujos.mjs`). El CI hace todo esto en el job `e2e`.
+
+## Fase 8 · Qué se construyó
+
+**Servidor** (`20261110000900_privacy_sos.sql`)
+- `delete_my_account()`: no procede con un servicio en curso. Cancela pedidos abiertos, retira ofertas, borra contactos, presencia, documentos y mensajes; anonimiza perfil, dirección y comentarios; deja la cuenta de acceso sin teléfono, bloqueada y sin sesiones. **Conserva el libro de comisiones** (obligación legal).
+- `storage_orphans()` (solo service role): archivos sin fila que los use, con 1 día de margen. Lo usa `pnpm --filter @cerquita/admin storage:cleanup` y la tarea diaria `.github/workflows/storage-cleanup.yml` (se activa con la variable `STORAGE_CLEANUP_ENABLED=true` y los secretos `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY`).
+- SOS: `sos_open` (al terminar la cuenta regresiva), `sos_update_location` (cada 10 s mientras esté abierta), `sos_close` (solo soporte, nota obligatoria) y `sos_open_alerts` para el panel. Ya no se insertan alertas directo.
+
+**App**
+- Pantalla 17: SOS con toque largo de 2 s, cuenta regresiva de 5 s con “Cancelar”, aviso a soporte, ubicación cada 10 s, SMS o WhatsApp a los contactos y botones 105, 116 y 106 (abren el marcador; la app nunca llama sola). Está en las pantallas de servicio del cliente y del pro.
+- Pantalla 18: hasta 3 contactos de confianza.
+- Pantalla 19: “Eliminar cuenta” activo (Apple 5.1.1(v)), contador de contactos, ubicación durante servicios y enlaces legales configurables por entorno (`EXPO_PUBLIC_TERMS_URL`, `EXPO_PUBLIC_PRIVACY_URL`, `EXPO_PUBLIC_PERSONAL_DATA_URL`).
+- Builds: `app.config.ts` toma `GOOGLE_MAPS_ANDROID_API_KEY` del entorno de EAS; `eas.json` con perfiles development, preview y production.
+
+**Panel**: Alertas SOS con usuario, teléfono, servicio, enlace al mapa y cierre con nota.
+
+## Checklist de publicación (lo que falta fuera del código)
+1. Crear el proyecto de Supabase de producción, `supabase link` y `supabase db push`. Cargar en Parámetros los datos de Yape/Plin/cuenta de la empresa.
+2. Proveedor de SMS real en Supabase Auth (hoy Twilio con relleno en local) y quitar `test_otp`.
+3. Asignar los roles de soporte con `staff:set` (un `admin` como mínimo).
+4. URLs definitivas de términos y privacidad, y plazos de retención con un abogado (Ley 29733).
+5. Clave de Google Maps para Android como secreto de EAS (`eas env:create`).
+6. Cuenta de Google Play y Apple (personal u organización) y ajustar `bundleIdentifier`/`package` si cambia el titular.
+7. `eas build --profile production` para Android e iOS, prueba cerrada en Google Play (12 testers, 14 días) y TestFlight.
+8. Verificar los números de emergencia 105, 116 y 106 y activar la limpieza diaria de Storage.
 
 ## Fase 7 · Qué se construyó
 

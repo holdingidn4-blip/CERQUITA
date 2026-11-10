@@ -9,9 +9,9 @@ export const env = {
 
 export const isSupabaseConfigured = env.supabaseUrl !== '' && env.supabaseAnonKey !== '';
 
-/** TODO(decidir): URLs definitivas de términos y privacidad (hoy son de ejemplo). */
+/** URLs legales por entorno. TODO(decidir): URLs definitivas (sin ellas se usan las de ejemplo). */
 export const legalUrls = {
-  terms: 'https://example.com/terminos',
-  privacy: 'https://example.com/privacidad',
-  personalData: 'https://example.com/datos',
+  terms: process.env.EXPO_PUBLIC_TERMS_URL || 'https://example.com/terminos',
+  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || 'https://example.com/privacidad',
+  personalData: process.env.EXPO_PUBLIC_PERSONAL_DATA_URL || 'https://example.com/datos',
 } as const;

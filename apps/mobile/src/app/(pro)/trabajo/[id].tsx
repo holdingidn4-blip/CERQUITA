@@ -26,6 +26,7 @@ import { InitialsAvatar } from '@/components/initials-avatar';
 import { Stars } from '@/components/stars';
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
+import { SosButton } from '@/components/sos-button';
 import { ContactActions, StepBar } from '@/service/contact-actions';
 import { hasLocationPermission, startTracking, stopTracking } from '@/service/tracking';
 import { useService } from '@/service/use-service';
@@ -159,7 +160,11 @@ export default function Trabajo() {
           {address && <Text style={styles.address}>{address}</Text>}
           <Text style={styles.body}>{jobTitle(job.description)}</Text>
           {job.status !== 'cancelled' && job.status !== 'confirmed' && job.status !== 'rated' && (
-            <ContactActions jobId={job.id} phone={other?.phone ?? null} />
+            <ContactActions
+              jobId={job.id}
+              phone={other?.phone ?? null}
+              extra={<SosButton jobId={job.id} />}
+            />
           )}
         </View>
 

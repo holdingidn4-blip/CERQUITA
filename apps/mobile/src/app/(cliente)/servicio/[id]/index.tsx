@@ -23,6 +23,7 @@ import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
 import { MapPreview } from '@/components/map-preview';
 import { supabase } from '@/lib/supabase';
+import { SosButton } from '@/components/sos-button';
 import { ContactActions, StepBar } from '@/service/contact-actions';
 import { useService } from '@/service/use-service';
 import { colors, fonts, radii } from '@/theme';
@@ -138,7 +139,11 @@ export default function Seguimiento() {
             </View>
           )}
           {['accepted', 'on_the_way', 'at_home'].includes(job.status) && (
-            <ContactActions jobId={job.id} phone={other?.phone ?? null} />
+            <ContactActions
+              jobId={job.id}
+              phone={other?.phone ?? null}
+              extra={<SosButton jobId={job.id} />}
+            />
           )}
         </View>
 

@@ -9,7 +9,8 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "echo 'sin pruebas a\u00fan en admin'",
-    "staff:set": "node --env-file=.env.local scripts/set-staff-role.mjs"
+    "staff:set": "node --env-file=.env.local scripts/set-staff-role.mjs",
+    "storage:cleanup": "node --env-file-if-exists=.env.local scripts/storage-cleanup.mjs"
   },
   "dependencies": {
     "@cerquita/shared": "workspace:*",

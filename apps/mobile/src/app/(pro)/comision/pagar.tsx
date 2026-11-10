@@ -84,14 +84,12 @@ export default function PagarComision() {
       .upload(path, body, { contentType: photo.mimeType ?? 'image/jpeg' });
     const ins = up.error
       ? up
-      : await supabase
-          .from('payment_proofs')
-          .insert({
-            method,
-            operation_code: operation.trim(),
-            amount_cents: cents,
-            image_path: path,
-          });
+      : await supabase.from('payment_proofs').insert({
+          method,
+          operation_code: operation.trim(),
+          amount_cents: cents,
+          image_path: path,
+        });
     setBusy(false);
     if (ins.error) {
       return setError(

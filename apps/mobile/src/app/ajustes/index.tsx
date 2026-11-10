@@ -1,14 +1,17 @@
 import { homeRouteFor, initials, maskPhone, type Role } from '@cerquita/shared';
 import { Link, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/auth-provider';
 import { Button } from '@/components/button';
 import { Segmented } from '@/components/segmented';
+import { confirm } from '@/lib/confirm';
 import { legalUrls } from '@/lib/env';
+import { supabase } from '@/lib/supabase';
+import { usePolling } from '@/lib/use-polling';
 import { colors, fonts, radii } from '@/theme';
 
 const MODE_OPTIONS = [
@@ -20,6 +23,33 @@ export default function Ajustes() {
   const { account, setActiveRole, signOut } = useAuth();
   const [switching, setSwitching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contacts, setContacts] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  const loadContacts = useCallback(async () => {
+    const { count } = await supabase
+      .from('trusted_contacts')
+      .select('id', { count: 'exact', head: true });
+    setContacts(count ?? 0);
+  }, []);
+  usePolling(loadContacts, 60000);
+
+  async function deleteAccount() {
+    const ok = await confirm(
+      '¿Eliminar tu cuenta?',
+      'Borramos tu perfil, fotos y documentos, y cerramos tu sesión. No se puede deshacer.',
+      'Eliminar',
+    );
+    if (!ok) return;
+    setDeleting(true);
+    setError(null);
+    const { error: e } = await supabase.rpc('delete_my_account');
+    setDeleting(false);
+    if (e) return setError(e.message);
+    // Las sesiones ya se cerraron en el servidor: solo queda limpiar el dispositivo.
+    await signOut('local');
+    router.replace('/ingreso');
+  }
 
   async function changeMode(role: Role) {
     if (!account || role === account.activeRole) return;
@@ -77,9 +107,24 @@ export default function Ajustes() {
           <Link href="/ajustes/contactos" asChild>
             <Pressable style={styles.row} accessibilityRole="link">
               <Text style={styles.rowText}>Contactos de confianza</Text>
+              <Text style={styles.count}>{contacts} de 3</Text>
               <Text style={styles.chevron}>›</Text>
             </Pressable>
           </Link>
+          <View style={styles.divider} />
+          <Pressable
+            style={styles.row}
+            accessibilityRole="button"
+            onPress={() => Linking.openSettings()}
+          >
+            <View style={styles.flex}>
+              <Text style={styles.rowText}>Ubicación durante servicios</Text>
+              <Text style={styles.secondary}>
+                Solo con un servicio aceptado · cámbiala en los ajustes del teléfono
+              </Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </Pressable>
           <View style={styles.divider} />
           <Row
             label="Política de privacidad"
@@ -103,12 +148,12 @@ export default function Ajustes() {
             Borramos tu perfil, fotos y documentos. Guardamos solo lo que la ley exige, por el plazo
             de la política de privacidad.
           </Text>
-          {/* Se activa en la fase 8 (eliminar cuenta, exigencia de Apple 5.1.1(v)). */}
+          {/* Apple 5.1.1(v): la cuenta se elimina desde la app. */}
           <Button
             variant="danger"
             label="Eliminar cuenta"
-            disabled
-            accessibilityHint="Disponible pronto"
+            loading={deleting}
+            onPress={deleteAccount}
           />
         </View>
 
@@ -158,6 +203,7 @@ const styles = StyleSheet.create({
   secondary: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.textSecondary },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 56, paddingHorizontal: 16 },
   rowText: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: colors.text },
+  count: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, marginRight: 8 },
   chevron: { fontSize: 22, color: colors.textSecondary },
   divider: { height: 1, backgroundColor: '#F0EDE4', marginHorizontal: 16 },
   danger: { padding: 16, gap: 8 },

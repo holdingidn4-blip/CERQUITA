@@ -3,7 +3,7 @@
 App de servicios del hogar (Android e iOS) con selector Cliente / Profesional, pedidos filtrados por oficio verificado y comisión de 10 % por trabajo completado.
 
 ## Estado
-Fases 1 a 5 terminadas (base, esquema y seguridad, ingreso y roles, registro y verificación, pedidos y ofertas). Detalle en `docs/progreso.md`. El código se construye por fases con Claude Code (ver `docs/documento-tecnico.md`, sección “Plan de trabajo”).
+MVP completo: las 8 fases del plan están terminadas. Lo que falta para publicar está en `docs/progreso.md` → “Checklist de publicación”. Detalle en `docs/progreso.md`. El código se construye por fases con Claude Code (ver `docs/documento-tecnico.md`, sección “Plan de trabajo”).
 
 ## Estructura
 ```
