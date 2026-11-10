@@ -9,3 +9,4 @@ export * from './orders';
 export * from './service';
 export * from './ledger';
 export * from './sos';
+export * from './pilot';

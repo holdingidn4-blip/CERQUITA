@@ -15,6 +15,10 @@ describe('domain.ts coincide con los enums de la base de datos', () => {
     ['payment_proof_status', d.PAYMENT_PROOF_STATUSES, e.payment_proof_status],
     ['sos_status', d.SOS_STATUSES, e.sos_status],
     ['verification_document_kind', d.VERIFICATION_DOCUMENT_KINDS, e.verification_document_kind],
+    ['trade_category', d.TRADE_CATEGORIES, e.trade_category],
+    ['pricing_unit', d.PRICING_UNITS, e.pricing_unit],
+    ['materials_provider', d.MATERIALS_PROVIDERS, e.materials_provider],
+    ['bypass_status', d.BYPASS_STATUSES, e.bypass_status],
   ])('%s', (_name, local, db) => {
     expect([...local]).toEqual([...db]);
   });

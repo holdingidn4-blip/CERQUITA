@@ -15,6 +15,7 @@ export const SERVICE_LABELS: Record<JobStatus, string> = {
   accepted: 'Aceptado',
   on_the_way: 'En camino',
   at_home: 'En el domicilio',
+  price_renegotiated: 'Precio reevaluado',
   finished: 'Terminado',
   confirmed: 'Confirmado',
   rated: 'Calificado',
@@ -30,7 +31,10 @@ export const ACTIVE_SERVICE_STATUSES: readonly JobStatus[] = [
 ];
 
 export function serviceStepIndex(status: JobStatus): number {
-  return (SERVICE_STEPS as readonly JobStatus[]).indexOf(status);
+  // Precio reevaluado sigue siendo “en el domicilio”; Calificado cuenta como Confirmado.
+  const step =
+    status === 'price_renegotiated' ? 'at_home' : status === 'rated' ? 'confirmed' : status;
+  return (SERVICE_STEPS as readonly JobStatus[]).indexOf(step);
 }
 
 /**
@@ -45,7 +49,7 @@ export function trackingIntervalMs(
 ): number | null {
   let ms: number;
   if (status === 'on_the_way') ms = distanceM !== null && distanceM < 200 ? 4000 : 8000;
-  else if (status === 'at_home') ms = 45000;
+  else if (status === 'at_home' || status === 'price_renegotiated') ms = 45000;
   else return null;
   if (battery !== null && battery < 0.1) return 60000;
   if (battery !== null && battery < 0.2) return Math.min(ms * 2, 60000);
@@ -53,7 +57,7 @@ export function trackingIntervalMs(
 }
 
 export function isTrackingStatus(status: JobStatus): boolean {
-  return status === 'on_the_way' || status === 'at_home';
+  return status === 'on_the_way' || status === 'at_home' || status === 'price_renegotiated';
 }
 
 /** Solo dígitos, máximo 4: para el campo del código de seguridad. */

@@ -26,9 +26,9 @@ insert into public.pro_trades (pro_id, trade_id, status, reviewed_by, reviewed_a
 select '22222222-2222-2222-2222-222222222222', id, 'approved_observation', '99999999-9999-9999-9999-999999999999', now()
 from public.trades where slug = 'gasfiteria';
 
--- Miraflores, Lima.
+-- Huancayo (piloto), cerca de la Plaza Constitución.
 insert into public.pro_presence (pro_id, online, radius_m, last_point)
-values ('22222222-2222-2222-2222-222222222222', true, 5000, 'SRID=4326;POINT(-77.0300 -12.1200)');
+values ('22222222-2222-2222-2222-222222222222', true, 5000, 'SRID=4326;POINT(-75.2040 -12.0660)');
 
 -- Identidad y evidencia del profesional de prueba (archivos ficticios, solo metadatos).
 insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path)
@@ -45,3 +45,25 @@ with pt as (
 insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path)
 select '22222222-2222-2222-2222-222222222222', pt.id, 'work_photo', '22222222-2222-2222-2222-222222222222/seed-luz-' || n || '.jpg'
 from pt, generate_series(1, 2) n;
+
+-- Tarifario y catálogo de EJEMPLO para Huancayo (solo local).
+-- TODO(decidir): montos reales del mercado de Huancayo y precios de referencia vigentes de cada tienda.
+insert into public.trade_rate_cards (trade_id, unit, label, min_cents, suggested_cents, max_cents, visit_fee_cents)
+select t.id, v.unit::public.pricing_unit, v.label, v.min_c, v.sug_c, v.max_c, v.visit_c
+from (values
+  ('gasfiteria', 'job', 'Reparación de gasfitería', 3000, 8000, 20000, 3000),
+  ('electricidad', 'job', 'Reparación eléctrica', 3000, 9000, 25000, 3000),
+  ('albanileria', 'job', 'Trabajo de albañilería', 5000, 15000, 80000, 4000),
+  ('limpieza', 'hour', 'Hora de limpieza', 1000, 1200, 1800, null),
+  ('cuidado', 'day', 'Día de cuidado', 6000, 8000, 12000, null),
+  ('chofer', 'hour', 'Hora de chofer', 1500, 2000, 3000, null)
+) v(slug, unit, label, min_c, sug_c, max_c, visit_c)
+join public.trades t on t.slug = v.slug;
+
+insert into public.materials_catalog (store, brand, name, unit, category, reference_price_cents) values
+  ('promart', 'Vainsa', 'Llave de paso 1/2" (ejemplo)', 'unidad', 'technical', 1590),
+  ('sodimac', 'Pavco', 'Tubo PVC 1/2" x 5 m (ejemplo)', 'unidad', 'technical', 1290),
+  ('promart', 'Genérico', 'Cinta teflón 3/4" (ejemplo)', 'rollo', 'technical', 350),
+  ('sodimac', 'Indeco', 'Cable THW 14 AWG x 100 m (ejemplo)', 'rollo', 'technical', 18900),
+  ('ferreteria', 'Sol', 'Cemento Portland Tipo I 42.5 kg (ejemplo)', 'bolsa', 'construction', 3290),
+  ('promart', 'Cpp', 'Pintura látex 1 gl (ejemplo)', 'galón', 'construction', 4590);

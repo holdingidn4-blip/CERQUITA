@@ -1,4 +1,4 @@
-import type { JobStatus } from '@cerquita/shared';
+import type { JobStatus, MaterialItem, MaterialsProvider, PricingUnit } from '@cerquita/shared';
 import { useCallback, useEffect, useState } from 'react';
 
 import { supabase } from '@/lib/supabase';
@@ -13,6 +13,23 @@ export type ServiceJob = {
   final_proposed_cents: number | null;
   commission_rate_bps: number | null;
   cancel_reason: string | null;
+  trade_id: number;
+  pricing_unit: PricingUnit;
+  units: number;
+  currency_code: string;
+  labor_cents: number | null;
+  materials_cents: number;
+  materials_provided_by: MaterialsProvider;
+  materials_items: MaterialItem[];
+  materials_receipt_path: string | null;
+  reeval_labor_cents: number | null;
+  reeval_materials_cents: number | null;
+  reeval_materials_by: MaterialsProvider | null;
+  reeval_items: MaterialItem[] | null;
+  reeval_receipt_path: string | null;
+  reeval_proposed_at: string | null;
+  reeval_answered_at: string | null;
+  visit_fee_cents: number | null;
   trade: { name: string; pro_name: string } | null;
 };
 export type Counterpart = { id: string; name: string; rating: number | null; phone: string | null };
@@ -24,7 +41,10 @@ export type LiveLocation = {
 };
 
 const COLUMNS =
-  'id, status, description, client_id, final_price_cents, final_proposed_cents, commission_rate_bps, cancel_reason, trade:trades(name, pro_name)';
+  'id, status, description, client_id, final_price_cents, final_proposed_cents, commission_rate_bps, cancel_reason, ' +
+  'trade_id, pricing_unit, units, currency_code, labor_cents, materials_cents, materials_provided_by, materials_items, ' +
+  'materials_receipt_path, reeval_labor_cents, reeval_materials_cents, reeval_materials_by, reeval_items, ' +
+  'reeval_receipt_path, reeval_proposed_at, reeval_answered_at, visit_fee_cents, trade:trades(name, pro_name)';
 
 /**
  * Estado del servicio para cliente y profesional. El estado del pedido se consulta cada 4 s
@@ -48,7 +68,7 @@ export function useService(jobId: string, options: { live?: boolean } = {}) {
         ? supabase.rpc('job_live_location', { p_job: jobId })
         : Promise.resolve({ data: null }),
     ]);
-    setJob((j.data as ServiceJob | null) ?? null);
+    setJob((j.data as unknown as ServiceJob | null) ?? null);
     setOther((c.data?.[0] as Counterpart | undefined) ?? null);
     setAddress(a.data ?? null);
     setCode(s.data ?? null);

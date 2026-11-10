@@ -35,6 +35,8 @@ export type VerificationData = {
   radiusM: number | null;
   minEvidence: number;
   ratingsForFull: number;
+  /** Requisitos por oficio según su categoría (trade_requirements en el servidor). */
+  requirements: Record<number, { requirement: string; min_count: number }[]>;
 };
 
 const randomId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
@@ -133,6 +135,14 @@ export function useVerification() {
       radiusM: presence.data?.radius_m ?? null,
       minEvidence: settingInt(settings.data ?? [], 'min_trade_evidence', 2),
       ratingsForFull: settingInt(settings.data ?? [], 'full_approval_ratings', 3),
+      requirements: Object.fromEntries(
+        await Promise.all(
+          [...new Set((proTrades.data ?? []).map((t) => t.trade_id))].map(async (tradeId) => {
+            const { data: req } = await supabase.rpc('trade_requirements', { p_trade: tradeId });
+            return [tradeId, req ?? []] as const;
+          }),
+        ),
+      ),
     });
   }, []);
 

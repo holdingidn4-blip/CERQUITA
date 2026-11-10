@@ -3,6 +3,7 @@ import {
   IDENTITY_KINDS,
   RADIUS_OPTIONS_KM,
   DOCUMENT_LABELS,
+  type VerificationDocumentKind,
 } from '@cerquita/shared';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -118,8 +119,17 @@ function VerificationStep() {
   const pending = selected.filter((t) => t.status === 'draft' || t.status === 'needs_info');
   const hasIdentity = (kind: string) =>
     data.documents.some((d) => d.kind === kind && d.proTradeId === null);
-  const evidenceCount = (proTradeId: string) =>
-    data.documents.filter((d) => d.proTradeId === proTradeId).length;
+  const EVIDENCE = ['work_photo', 'certificate', 'reference', 'quiz'];
+  const countFor = (proTradeId: string, requirement: string) =>
+    data.documents.filter(
+      (d) =>
+        d.proTradeId === proTradeId &&
+        (requirement === 'evidence' ? EVIDENCE.includes(d.kind) : d.kind === requirement),
+    ).length;
+  const missingFor = (trade: { id: string; tradeId: number }) =>
+    (data.requirements[trade.tradeId] ?? [])
+      .filter((r) => countFor(trade.id, r.requirement) < r.min_count)
+      .map((r) => r.requirement);
   const tradeName = (tradeId: number) => data.trades.find((t) => t.id === tradeId)?.pro_name ?? '';
 
   async function continueFlow() {
@@ -130,7 +140,7 @@ function VerificationStep() {
     }
     const missing = [
       ...IDENTITY_KINDS.filter((k) => !hasIdentity(k)),
-      ...(pending.some((t) => evidenceCount(t.id) < data.minEvidence) ? ['evidence'] : []),
+      ...new Set(pending.flatMap((t) => missingFor(t))),
     ];
     if (missing.length > 0) {
       setError(`Te falta: ${describeMissing(missing, data.minEvidence).join(', ')}.`);
@@ -194,23 +204,39 @@ function VerificationStep() {
           <>
             <Text style={styles.section}>Prueba de tu oficio</Text>
             <View style={styles.card}>
-              {selected.map((trade, i) => {
-                const count = evidenceCount(trade.id);
+              {selected.flatMap((trade, i) => {
                 const editable = trade.status === 'draft' || trade.status === 'needs_info';
-                return (
-                  <UploadRow
-                    key={trade.id}
-                    first={i === 0}
-                    title={tradeName(trade.tradeId)}
-                    subtitle={`Fotos de trabajos o certificado · ${count} de ${data.minEvidence}`}
-                    done={count >= data.minEvidence}
-                    doneLabel={editable ? 'Listo' : 'Enviado'}
-                    busy={uploading === trade.id}
-                    disabled={!editable}
-                    keepUploading={editable}
-                    onUpload={() => upload('work_photo', trade.id)}
-                  />
-                );
+                return (data.requirements[trade.tradeId] ?? []).map((req, j) => {
+                  const count = countFor(trade.id, req.requirement);
+                  const isEvidence = req.requirement === 'evidence';
+                  const label = isEvidence
+                    ? 'Fotos de trabajos o certificado'
+                    : (DOCUMENT_LABELS[req.requirement as keyof typeof DOCUMENT_LABELS] ??
+                      req.requirement);
+                  return (
+                    <UploadRow
+                      key={`${trade.id}-${req.requirement}`}
+                      first={i === 0 && j === 0}
+                      title={
+                        isEvidence
+                          ? tradeName(trade.tradeId)
+                          : `${tradeName(trade.tradeId)}: ${label}`
+                      }
+                      subtitle={`${isEvidence ? label : 'Requisito de la categoría'} · ${count} de ${req.min_count}`}
+                      done={count >= req.min_count}
+                      doneLabel={editable ? 'Listo' : 'Enviado'}
+                      busy={uploading === trade.id}
+                      disabled={!editable}
+                      keepUploading={editable && (isEvidence || req.requirement === 'reference')}
+                      onUpload={() =>
+                        upload(
+                          (isEvidence ? 'work_photo' : req.requirement) as VerificationDocumentKind,
+                          trade.id,
+                        )
+                      }
+                    />
+                  );
+                });
               })}
             </View>
           </>

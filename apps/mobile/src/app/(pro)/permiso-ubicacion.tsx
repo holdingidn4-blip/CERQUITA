@@ -19,13 +19,14 @@ export default function PermisoUbicacion() {
           Cerquita usa tu ubicación
         </Text>
         <Text style={styles.body}>
-          Incluso con la app cerrada o en segundo plano, solo mientras tengas un servicio aceptado,
-          para:
+          Mientras estés en línea o tengas un servicio aceptado (incluso con la app en segundo
+          plano), para:
         </Text>
         {[
           'Mostrar a clientes cercanos tu disponibilidad',
           'Que tu cliente te vea llegar',
           'Activar el botón de emergencia (SOS)',
+          'Prevenir fraudes: solo Cerquita ve tu última posición, sin historial',
         ].map((item) => (
           <View key={item} style={styles.item}>
             <View style={styles.dot} />
@@ -34,8 +35,8 @@ export default function PermisoUbicacion() {
         ))}
         <View style={styles.note}>
           <Text style={styles.noteText}>
-            Solo se comparte durante un servicio y se detiene sola al terminar o cancelar. Puedes
-            desactivarla en Ajustes.
+            Con el cliente solo se comparte durante un servicio y se corta al terminar o cancelar.
+            Desconectado no se envía nada. Puedes desactivarla en Ajustes.
           </Text>
         </View>
       </View>

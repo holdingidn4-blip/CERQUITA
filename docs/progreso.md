@@ -1,6 +1,6 @@
 # Cerquita · Progreso del MVP
 
-Última actualización: **MVP completo, fases 1 a 8 terminadas** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
+Última actualización: **MVP completo + módulo Piloto Huancayo** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
 
 | Fase | Estado | Criterio de cierre | Cómo se comprueba |
 | --- | --- | --- | --- |
@@ -17,13 +17,44 @@
 
 | Tipo | Cantidad | Comando |
 | --- | --- | --- |
-| Unitarias (`packages/shared`) | 112 | `pnpm test` |
-| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro, privacidad y SOS) | 240 | `pnpm db:test` |
+| Unitarias (`packages/shared`) | 130 | `pnpm test` |
+| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro, privacidad, SOS y piloto) | 286 | `pnpm db:test` |
 | Humo del ingreso por SMS (Auth local) | 7 | `pnpm db:smoke` |
 | Navegación de punta a punta (app web + panel) | 91 | `pnpm e2e` |
 
 Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && next start --port 3001` y la app con
 `expo export --platform web` servida en el puerto 8099 (ver `e2e/flujos.mjs`). El CI hace todo esto en el job `e2e`.
+
+## Piloto Huancayo · multicategoría, reevaluación, materiales y antifraude
+
+Migraciones `20261111000100_pilot_enums.sql` y `20261111000200_pilot_huancayo.sql`; pruebas en `supabase/tests/pilot.test.sql`.
+
+**Equivalencias con la especificación:** “orders” = `jobs`; “commission_ledger” = `wallet_entries` (no se renombraron para no romper el resto).
+
+| Tema | Cómo quedó |
+| --- | --- |
+| Ciudad y moneda | `settings.active_city = huancayo`. `setting_int/setting_text` leen primero `city:<ciudad>` y luego `global`. `jobs.city_slug` y `jobs.currency_code` (PEN) se fijan al publicar. `formatMoney()` soporta PEN, USD, EUR, COP, CLP y MXN. |
+| 4 categorías | `trades.category`: technical (gasfitería, electricidad, hogar), construction (albañilería, carpintería, pintura), domestic (limpieza por hora, cuidado por día), driver (chofer por hora). `trades.pricing_unit` = job / hour / day. |
+| Requisitos por categoría | `trade_requirements()`: técnicos y construcción, N evidencias; choferes, licencia + récord MTC/SAT; servidumbre, antecedentes policiales + penales + 2 referencias. Se exigen al enviar y al aprobar. |
+| Tarifario (sin regateo) | `trade_rate_cards` (mín., sugerido, máx. y tarifa de visita por oficio, ciudad y unidad). El pedido no puede bajar del mínimo × unidades; las ofertas deben quedar entre mínimo y máximo × unidades. |
+| Catálogo de materiales | `materials_catalog` (Promart, Sodimac, ferretería formal; precio de referencia). El pro busca y agrega ítems; el reembolso real es con boleta. |
+| Materiales y comisión | `jobs.labor_cents`, `materials_cents`, `materials_provided_by`, `materials_items` y `total_cents` (generado). **La comisión se calcula solo sobre `labor_cents`**; los materiales quedan exentos. Si el pro compra materiales, debe subir la boleta al bucket privado `material-receipts`. La pausa por deuda sigue usando `debt_limit_cents` y `grace_days` (con `grace_days = 0` es inmediata). |
+| Reevaluación en sitio | `propose_reevaluation()` (pro, en el domicilio): mano de obra, quién pone los materiales, ítems (el servidor suma) y boleta. `answer_reevaluation()` (cliente): aprobar → estado `price_renegotiated` con el total y desglose nuevos; rechazar → puede cancelar pagando la visita. |
+| Tarifa de visita | Si el **cliente** cancela con el pro en el domicilio, `jobs.visit_fee_cents` = tarifa del tarifario (o `default_visit_fee_cents`), y se anota la comisión de Cerquita sobre esa tarifa (`job:<id>:visit`). |
+| Antifraude GPS | `update_presence()` guarda solo la última posición del pro **en línea** y desde cuándo no se mueve (sin historial). `detect_bypass()` (pg_cron cada 5 min): pedido cancelado y pro ≥ 15 min a ≤ 150 m → `bypass_suspicions`. Con 2 en 7 días se suspenden sus oficios. Panel: **Sospechas** (confirmar o descartar; descartar levanta la suspensión automática). |
+| Aviso | “Los pagos fuera de la app pierden el Seguro Cerquita y la Garantía por 30 días.” en servicio, confirmación y pantallas del pro. |
+
+**App:** inicio por categorías; nuevo pedido con horas o días y tarifa sugerida de Huancayo; cotización con el tarifario y el precio por unidad; registro con los requisitos de cada categoría; “Reevaluar en sitio” en la pantalla 10; alerta con el desglose en la pantalla 5; desglose en la confirmación; tarifa de visita al cancelar; aviso de ubicación actualizado (antifraude).
+
+**Panel:** Sospechas de bypass, Tarifario y catálogo (lectura).
+
+### Decisiones y pendientes del piloto
+- **Tarifa de visita “cobrada automáticamente”:** Cerquita no toca el dinero del cliente (documento técnico). La app registra cuánto le debe el cliente al pro y anota la comisión de Cerquita sobre esa tarifa en el libro del pro.
+- **“Seguro Cerquita” y “Garantía por 30 días”:** el aviso se muestra tal como se pidió. TODO(decidir) con un abogado: el seguro y la garantía deben existir y estar en los términos antes de publicar (protección al consumidor).
+- **GPS fuera del servicio:** para detectar bypass se usa la última posición mientras el pro está **en línea** (el documento ya lo permite: “solo el servidor”), sin historial. La política de privacidad debe mencionarlo (Ley 29733). En la app la posición se envía con la pantalla abierta; el envío en segundo plano fuera de un servicio queda pendiente.
+- **Montos del tarifario y precios del catálogo:** los de `seed.sql` son ejemplos. TODO(decidir): datos reales de Huancayo y de cada tienda.
+- **Tarifa de visita por defecto:** `default_visit_fee_cents = 3000` (S/ 30) en `city:huancayo`, por decidir.
+- **Editar tarifario y catálogo desde el panel:** hoy es de solo lectura; se cargan por SQL o CSV (las RLS ya permiten editar solo a `admin`).
 
 ## Fase 8 · Qué se construyó
 

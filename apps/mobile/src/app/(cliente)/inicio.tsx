@@ -1,4 +1,11 @@
-import { approxPointWkt, formatSoles, type JobStatus, type Tables } from '@cerquita/shared';
+import {
+  approxPointWkt,
+  CATEGORY_LABELS,
+  formatSoles,
+  TRADE_CATEGORIES,
+  type JobStatus,
+  type Tables,
+} from '@cerquita/shared';
 import { Link, router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -11,7 +18,7 @@ import { supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
 import { colors, fonts, radii } from '@/theme';
 
-type Trade = Pick<Tables<'trades'>, 'id' | 'slug' | 'name' | 'pro_name'>;
+type Trade = Pick<Tables<'trades'>, 'id' | 'slug' | 'name' | 'pro_name' | 'category'>;
 type MyJob = {
   id: string;
   trade_id: number;
@@ -49,7 +56,11 @@ export default function Inicio() {
     const { data: session } = await supabase.auth.getSession();
     const uid = session.session?.user.id;
     const [t, j] = await Promise.all([
-      supabase.from('trades').select('id, slug, name, pro_name').eq('active', true).order('id'),
+      supabase
+        .from('trades')
+        .select('id, slug, name, pro_name, category')
+        .eq('active', true)
+        .order('id'),
       uid
         ? supabase
             .from('jobs')
@@ -139,22 +150,31 @@ export default function Inicio() {
 
         <View style={styles.section}>
           <Text style={styles.h1}>¿Qué necesitas hoy?</Text>
-          <View style={styles.grid}>
-            {trades.map((trade) => (
-              <Pressable
-                key={trade.id}
-                accessibilityRole="button"
-                accessibilityLabel={`Pedir ${trade.pro_name}`}
-                onPress={() => pick(trade)}
-                style={styles.tile}
-              >
-                <Text style={styles.tileText}>{trade.pro_name}</Text>
-                {nearby.get(trade.id) ? (
-                  <Text style={styles.tileCount}>{nearby.get(trade.id)} cerca</Text>
-                ) : null}
-              </Pressable>
-            ))}
-          </View>
+          {TRADE_CATEGORIES.map((category) => {
+            const list = trades.filter((t) => t.category === category);
+            if (list.length === 0) return null;
+            return (
+              <View key={category} style={styles.category}>
+                <Text style={styles.h2}>{CATEGORY_LABELS[category]}</Text>
+                <View style={styles.grid}>
+                  {list.map((trade) => (
+                    <Pressable
+                      key={trade.id}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Pedir ${trade.pro_name}`}
+                      onPress={() => pick(trade)}
+                      style={styles.tile}
+                    >
+                      <Text style={styles.tileText}>{trade.pro_name}</Text>
+                      {nearby.get(trade.id) ? (
+                        <Text style={styles.tileCount}>{nearby.get(trade.id)} cerca</Text>
+                      ) : null}
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            );
+          })}
           {point && (
             <Text style={styles.secondary}>
               {total === 0
@@ -180,6 +200,7 @@ const styles = StyleSheet.create({
   section: { gap: 10 },
   h1: { fontFamily: fonts.display, fontSize: 20, color: colors.text },
   h2: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
+  category: { gap: 8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tile: {
     width: '31.5%',

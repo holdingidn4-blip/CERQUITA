@@ -14,6 +14,7 @@ export const JOB_STATUSES = [
   'accepted', // Aceptado: precio y tasa congelados
   'on_the_way', // En camino
   'at_home', // En el domicilio
+  'price_renegotiated', // Precio reevaluado en el sitio y aprobado por el cliente
   'finished', // Terminado (lo marca el profesional)
   'confirmed', // Confirmado: se crea commission_debit
   'rated', // Calificado
@@ -72,6 +73,10 @@ export const VERIFICATION_DOCUMENT_KINDS = [
   'certificate',
   'reference',
   'quiz',
+  'driver_license', // licencia de conducir
+  'driver_record', // récord de conductor MTC / papeletas SAT
+  'police_record', // antecedentes policiales
+  'criminal_record', // antecedentes penales
 ] as const;
 export type VerificationDocumentKind = (typeof VERIFICATION_DOCUMENT_KINDS)[number];
 
@@ -95,3 +100,15 @@ export const SETTING_KEYS = {
 export type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];
 
 export const MAX_TRUSTED_CONTACTS = 3;
+
+export const TRADE_CATEGORIES = ['technical', 'construction', 'domestic', 'driver'] as const;
+export type TradeCategory = (typeof TRADE_CATEGORIES)[number];
+
+export const PRICING_UNITS = ['job', 'hour', 'day'] as const;
+export type PricingUnit = (typeof PRICING_UNITS)[number];
+
+export const MATERIALS_PROVIDERS = ['client', 'pro'] as const;
+export type MaterialsProvider = (typeof MATERIALS_PROVIDERS)[number];
+
+export const BYPASS_STATUSES = ['open', 'dismissed', 'confirmed'] as const;
+export type BypassStatus = (typeof BYPASS_STATUSES)[number];

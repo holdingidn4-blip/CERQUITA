@@ -23,7 +23,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
+import { OffAppWarning } from '@/components/off-app-warning';
 import { Stars } from '@/components/stars';
+import { BreakdownCard } from '@/service/breakdown-card';
+import { ReevaluatePanel } from '@/service/reevaluate-panel';
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { SosButton } from '@/components/sos-button';
@@ -42,6 +45,7 @@ export default function Trabajo() {
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
+  const [reevaluating, setReevaluating] = useState(false);
   const [stars, setStars] = useState(0);
   const [rated, setRated] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -123,11 +127,13 @@ export default function Trabajo() {
     );
   }
 
-  const step = serviceStepIndex(job.status === 'rated' ? 'confirmed' : job.status);
+  const step = serviceStepIndex(job.status);
+  const atHome = job.status === 'at_home' || job.status === 'price_renegotiated';
   const headline: Record<string, string> = {
     accepted: 'Ve hacia el domicilio',
     on_the_way: 'En camino · GPS activo, el cliente te ve',
     at_home: 'En el domicilio',
+    price_renegotiated: 'En el domicilio · precio reevaluado',
     finished: 'Esperando que el cliente confirme el monto',
     confirmed: 'Trabajo confirmado',
     rated: 'Trabajo confirmado',
@@ -185,7 +191,46 @@ export default function Trabajo() {
             />
           </View>
         )}
-        {job.status === 'at_home' && (
+        {job.status === 'price_renegotiated' && (
+          <BreakdownCard
+            title="Precio aprobado por el cliente"
+            laborCents={job.labor_cents ?? 0}
+            materialsCents={job.materials_cents}
+            provider={job.materials_provided_by}
+            items={job.materials_items}
+            currency={job.currency_code}
+            rateBps={job.commission_rate_bps}
+          />
+        )}
+        {atHome && job.reeval_proposed_at && (
+          <Text style={styles.pending}>Esperando que el cliente responda tu reevaluación…</Text>
+        )}
+        {atHome &&
+          !job.reeval_proposed_at &&
+          job.reeval_answered_at &&
+          job.status === 'at_home' && (
+            <Text style={styles.secondary}>
+              El cliente rechazó la última reevaluación. Puede cancelar pagando la visita.
+            </Text>
+          )}
+        {atHome &&
+          !job.reeval_proposed_at &&
+          (reevaluating ? (
+            <ReevaluatePanel
+              job={job}
+              onDone={() => {
+                setReevaluating(false);
+                reload();
+              }}
+            />
+          ) : (
+            <Button
+              variant="outline"
+              label="Reevaluar en sitio"
+              onPress={() => setReevaluating(true)}
+            />
+          ))}
+        {atHome && (
           <View style={styles.field}>
             <Text style={styles.label} nativeID="final-label">
               Monto final (déjalo vacío si es el acordado)
@@ -235,9 +280,18 @@ export default function Trabajo() {
         {job.status === 'on_the_way' && (
           <Button label="Llegué al domicilio" loading={busy} onPress={arrived} />
         )}
-        {job.status === 'at_home' && <Button label="Terminado" loading={busy} onPress={finish} />}
+        {atHome && !job.reeval_proposed_at && (
+          <Button label="Terminado" loading={busy} onPress={finish} />
+        )}
+        {job.status === 'cancelled' && (job.visit_fee_cents ?? 0) > 0 && (
+          <Text style={styles.pending}>
+            El cliente canceló en el domicilio: te debe la tarifa de visita de{' '}
+            {formatSoles(job.visit_fee_cents ?? 0)}.
+          </Text>
+        )}
+        {job.status !== 'cancelled' && <OffAppWarning />}
 
-        {['accepted', 'on_the_way', 'at_home'].includes(job.status) &&
+        {['accepted', 'on_the_way', 'at_home', 'price_renegotiated'].includes(job.status) &&
           (cancelling ? (
             <View style={styles.field}>
               <TextInput
@@ -300,6 +354,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   code: { fontFamily: fonts.display, fontSize: 26, letterSpacing: 10, textAlign: 'center' },
+  pending: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 14,
+    color: '#7A5A12',
+    backgroundColor: colors.amberSoft,
+    borderRadius: radii.md,
+    padding: 12,
+  },
   error: {
     fontFamily: fonts.bodyMedium,
     fontSize: 14,

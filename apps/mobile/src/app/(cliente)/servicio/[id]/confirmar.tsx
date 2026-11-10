@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
+import { OffAppWarning } from '@/components/off-app-warning';
+import { BreakdownCard } from '@/service/breakdown-card';
 import { supabase } from '@/lib/supabase';
 import { useService } from '@/service/use-service';
 import { colors, fonts, radii } from '@/theme';
@@ -84,6 +86,17 @@ export default function Confirmar() {
               : `Cambió ${proposed > agreed ? '+' : '−'}${formatSoles(Math.abs(proposed - agreed))}`}
           </Text>
         </View>
+        {job.materials_cents > 0 && (
+          <BreakdownCard
+            title="Desglose"
+            laborCents={proposed - job.materials_cents}
+            materialsCents={job.materials_cents}
+            provider={job.materials_provided_by}
+            items={job.materials_items}
+            currency={job.currency_code}
+          />
+        )}
+        <OffAppWarning />
         <View style={styles.note}>
           <Text style={styles.noteText}>
             Le pagas directamente a {first} en efectivo, Yape o Plin. Cerquita no recibe este pago.

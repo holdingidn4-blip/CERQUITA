@@ -12,7 +12,7 @@ import {
   type JobStatus,
 } from '@cerquita/shared';
 import { Link, router } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -90,6 +90,19 @@ export default function Solicitudes() {
   }, []);
 
   usePolling(load, 10000);
+
+  // Antifraude: en línea, la última posición va solo al servidor (sin historial) cada 60 s.
+  const online = status?.online ?? false;
+  useEffect(() => {
+    if (!online) return;
+    const ping = async () => {
+      const p = await getCurrentPoint();
+      if (p) await supabase.rpc('update_presence', { p_lat: p.latitude, p_lng: p.longitude });
+    };
+    ping();
+    const id = setInterval(ping, 60000);
+    return () => clearInterval(id);
+  }, [online]);
 
   async function toggleOnline(next: boolean) {
     const { data: session } = await supabase.auth.getSession();

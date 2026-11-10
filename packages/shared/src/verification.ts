@@ -26,6 +26,10 @@ export const DOCUMENT_LABELS: Record<VerificationDocumentKind, string> = {
   certificate: 'Certificado del oficio',
   reference: 'Referencia',
   quiz: 'Prueba corta',
+  driver_license: 'Licencia de conducir',
+  driver_record: 'Récord de conductor (MTC / SAT)',
+  police_record: 'Antecedentes policiales',
+  criminal_record: 'Antecedentes penales',
 };
 
 export type Tone = 'success' | 'info' | 'warning' | 'danger' | 'neutral';
@@ -125,11 +129,17 @@ export function observationProgress(goodRatings: number, ratingsForFull: number)
 }
 
 /** Convierte la respuesta de pro_trade_missing() en textos para el usuario. */
-export function describeMissing(missing: readonly string[], minEvidence: number): string[] {
+export function describeMissing(
+  missing: readonly string[],
+  minEvidence: number,
+  minReferences = 2,
+): string[] {
   return missing.map((item) =>
     item === 'evidence'
       ? `Al menos ${minEvidence} pruebas de tu oficio`
-      : (DOCUMENT_LABELS[item as VerificationDocumentKind] ?? item),
+      : item === 'reference'
+        ? `Al menos ${minReferences} referencias`
+        : (DOCUMENT_LABELS[item as VerificationDocumentKind] ?? item),
   );
 }
 

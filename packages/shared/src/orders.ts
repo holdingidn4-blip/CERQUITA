@@ -88,6 +88,7 @@ export function approxPointWkt(latitude: number, longitude: number): string {
 export function tradePlural(proName: string, count = 2): string {
   const name = proName.trim().toLowerCase();
   if (name === 'hogar') return count === 1 ? 'profesional de hogar' : 'profesionales de hogar';
+  if (name === 'limpieza') return count === 1 ? 'persona de limpieza' : 'personas de limpieza';
   if (count === 1) return name;
   return /[aeiouáéíóú]$/.test(name) ? `${name}s` : `${name}es`;
 }

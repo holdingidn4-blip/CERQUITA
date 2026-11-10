@@ -21,6 +21,8 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
     .eq('status', 'pending');
   const { data: sosAlerts } = await supabase.rpc('sos_open_alerts');
   const sos = sosAlerts?.length ?? 0;
+  const { data: bypass } = await supabase.rpc('bypass_queue');
+  const suspicions = (bypass ?? []).filter((b) => b.status === 'open').length;
   const { data: me } = await supabase
     .from('profiles')
     .select('full_name')
@@ -40,6 +42,12 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           </Link>
           <Link href="/sos" className={styles.navItem}>
             Alertas SOS <span className={styles.count}>{sos ?? 0}</span>
+          </Link>
+          <Link href="/sospechas" className={styles.navItem}>
+            Sospechas <span className={styles.count}>{suspicions}</span>
+          </Link>
+          <Link href="/tarifario" className={styles.navItem}>
+            Tarifario
           </Link>
           <Link href="/parametros" className={styles.navItem}>
             Parámetros

@@ -22,6 +22,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
 import { MapPreview } from '@/components/map-preview';
+import { OffAppWarning } from '@/components/off-app-warning';
+import { BreakdownCard } from '@/service/breakdown-card';
+import { ReevaluationAlert } from '@/service/reevaluation-alert';
 import { supabase } from '@/lib/supabase';
 import { SosButton } from '@/components/sos-button';
 import { ContactActions, StepBar } from '@/service/contact-actions';
@@ -37,6 +40,14 @@ export default function Seguimiento() {
   const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [visitFee, setVisitFee] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!job?.trade_id) return;
+    supabase
+      .rpc('visit_fee_for_trade', { p_trade: job.trade_id })
+      .then(({ data }) => setVisitFee(data ?? null));
+  }, [job?.trade_id]);
 
   useEffect(() => {
     if (job?.status === 'finished')
@@ -74,11 +85,13 @@ export default function Seguimiento() {
     accepted: `${first} aceptó tu pedido`,
     on_the_way: `${first} viene en camino`,
     at_home: `${first} llegó a tu domicilio`,
+    price_renegotiated: `${first} está trabajando con el precio reevaluado`,
     confirmed: 'Servicio confirmado',
     rated: 'Servicio confirmado',
     cancelled: 'Servicio cancelado',
   };
-  const step = serviceStepIndex(job.status === 'rated' ? 'confirmed' : job.status);
+  const step = serviceStepIndex(job.status);
+  const atHome = job.status === 'at_home' || job.status === 'price_renegotiated';
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -138,7 +151,7 @@ export default function Seguimiento() {
               </View>
             </View>
           )}
-          {['accepted', 'on_the_way', 'at_home'].includes(job.status) && (
+          {['accepted', 'on_the_way', 'at_home', 'price_renegotiated'].includes(job.status) && (
             <ContactActions
               jobId={job.id}
               phone={other?.phone ?? null}
@@ -147,6 +160,25 @@ export default function Seguimiento() {
           )}
         </View>
 
+        {atHome && job.reeval_proposed_at && (
+          <ReevaluationAlert job={job} proName={first} onAnswered={reload} />
+        )}
+        {job.status === 'price_renegotiated' && (
+          <BreakdownCard
+            title="Precio aprobado"
+            laborCents={job.labor_cents ?? 0}
+            materialsCents={job.materials_cents}
+            provider={job.materials_provided_by}
+            items={job.materials_items}
+            currency={job.currency_code}
+          />
+        )}
+        {job.status === 'cancelled' && (job.visit_fee_cents ?? 0) > 0 && (
+          <Text style={styles.feeDue} accessibilityRole="alert">
+            Cancelaste después de la llegada: págale a {first} la tarifa de visita/diagnóstico de{' '}
+            {formatSoles(job.visit_fee_cents ?? 0)} en efectivo, Yape o Plin.
+          </Text>
+        )}
         {job.status === 'confirmed' && (
           <Button
             label="Calificar el servicio"
@@ -157,13 +189,14 @@ export default function Seguimiento() {
           <Text style={styles.secondary}>Motivo: {job.cancel_reason}</Text>
         )}
         <Text style={styles.secondary}>Pagas al terminar: efectivo, Yape o Plin.</Text>
+        {job.status !== 'cancelled' && <OffAppWarning />}
 
         {error && (
           <Text style={styles.error} accessibilityRole="alert">
             {error}
           </Text>
         )}
-        {['accepted', 'on_the_way', 'at_home'].includes(job.status) &&
+        {['accepted', 'on_the_way', 'at_home', 'price_renegotiated'].includes(job.status) &&
           (cancelling ? (
             <View style={styles.field}>
               <TextInput
@@ -175,10 +208,28 @@ export default function Seguimiento() {
                 placeholderTextColor={colors.textSecondary}
                 maxLength={300}
               />
-              <Button variant="outline" label="Confirmar cancelación" onPress={cancel} />
+              {atHome && visitFee !== null && (
+                <Text style={styles.feeDue}>
+                  {first} ya llegó: si cancelas, le debes la tarifa de visita/diagnóstico de{' '}
+                  {formatSoles(visitFee)}.
+                </Text>
+              )}
+              <Button
+                variant="outline"
+                label={
+                  atHome && visitFee !== null
+                    ? `Cancelar y pagar visita (${formatSoles(visitFee)})`
+                    : 'Confirmar cancelación'
+                }
+                onPress={cancel}
+              />
             </View>
           ) : (
-            <Button variant="ghost" label="Cancelar pedido" onPress={() => setCancelling(true)} />
+            <Button
+              variant="ghost"
+              label={atHome ? 'Cancelar (pagas la visita)' : 'Cancelar pedido'}
+              onPress={() => setCancelling(true)}
+            />
           ))}
       </ScrollView>
     </SafeAreaView>
@@ -239,6 +290,15 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontFamily: fonts.body,
     fontSize: 16,
+  },
+  feeDue: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#5C4410',
+    backgroundColor: colors.amberSoft,
+    borderRadius: radii.md,
+    padding: 12,
   },
   error: {
     fontFamily: fonts.bodyMedium,

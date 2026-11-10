@@ -4,7 +4,11 @@ import {
   MAX_JOB_PRICE_CENTS,
   MIN_JOB_PRICE_CENTS,
   parseSolesToCents,
+  PRICING_UNIT_LABELS,
   tradePlural,
+  unitPriceLabel,
+  type PricingUnit,
+  type RateCard,
   type Tables,
 } from '@cerquita/shared';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,7 +22,7 @@ import { getCurrentPoint, type Point } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, radii } from '@/theme';
 
-type Trade = Pick<Tables<'trades'>, 'id' | 'name' | 'pro_name'>;
+type Trade = Pick<Tables<'trades'>, 'id' | 'name' | 'pro_name' | 'pricing_unit'>;
 const MAX_PHOTOS = 3;
 
 export default function NuevoPedido() {
@@ -30,6 +34,8 @@ export default function NuevoPedido() {
   const [reference, setReference] = useState('');
   const [price, setPrice] = useState('');
   const [hint, setHint] = useState<{ low: number; high: number } | null>(null);
+  const [rateCard, setRateCard] = useState<RateCard | null>(null);
+  const [units, setUnits] = useState(4);
   const [point, setPoint] = useState<Point | null>(null);
   const [locating, setLocating] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -40,10 +46,21 @@ export default function NuevoPedido() {
     if (!Number.isInteger(id)) return;
     supabase
       .from('trades')
-      .select('id, name, pro_name')
+      .select('id, name, pro_name, pricing_unit')
       .eq('id', id)
       .maybeSingle()
-      .then(({ data }) => setTrade(data));
+      .then(async ({ data }) => {
+        setTrade(data);
+        if (!data) return;
+        setUnits(data.pricing_unit === 'day' ? 1 : 4);
+        const { data: card } = await supabase
+          .from('trade_rate_cards')
+          .select('unit, min_cents, suggested_cents, max_cents, visit_fee_cents')
+          .eq('trade_id', data.id)
+          .eq('unit', data.pricing_unit)
+          .maybeSingle();
+        setRateCard(card ?? null);
+      });
     supabase.rpc('price_hint', { p_trade: id }).then(({ data }) => {
       const row = data?.[0];
       setHint(row ? { low: row.low_cents, high: row.high_cents } : null);
@@ -54,7 +71,10 @@ export default function NuevoPedido() {
     });
   }, [tradeParam]);
 
-  const priceCents = parseSolesToCents(price);
+  const unit: PricingUnit = trade?.pricing_unit ?? 'job';
+  const perUnitCents = parseSolesToCents(price);
+  // Por hora o por día: el precio que escribe el cliente es por unidad; el total = precio × unidades.
+  const priceCents = perUnitCents === null ? null : perUnitCents * (unit === 'job' ? 1 : units);
 
   async function addPhotos() {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -95,6 +115,7 @@ export default function NuevoPedido() {
         trade_id: trade.id,
         description: description.trim(),
         offered_price_cents: priceCents,
+        units: unit === 'job' ? 1 : units,
         approx_point: approxPointWkt(point.latitude, point.longitude),
         exact_address: exactAddress,
       })
@@ -210,8 +231,35 @@ export default function NuevoPedido() {
         </View>
 
         <View style={styles.field}>
+          {unit !== 'job' && (
+            <View style={styles.unitsRow}>
+              <Text style={[styles.label, styles.flex]}>
+                ¿Cuántas {PRICING_UNIT_LABELS[unit].plural}?
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Menos"
+                onPress={() => setUnits((u) => Math.max(1, u - 1))}
+              >
+                <Text style={styles.stepper}>−</Text>
+              </Pressable>
+              <Text
+                style={styles.unitsValue}
+                accessibilityLabel={`${units} ${PRICING_UNIT_LABELS[unit].plural}`}
+              >
+                {units}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Más"
+                onPress={() => setUnits((u) => Math.min(31, u + 1))}
+              >
+                <Text style={styles.stepper}>+</Text>
+              </Pressable>
+            </View>
+          )}
           <Text style={styles.label} nativeID="price-label">
-            Tu precio
+            Tu precio {unit === 'job' ? '' : PRICING_UNIT_LABELS[unit].per}
           </Text>
           <View style={styles.priceRow}>
             <Text style={styles.currency}>S/</Text>
@@ -226,9 +274,28 @@ export default function NuevoPedido() {
               maxLength={8}
             />
           </View>
-          {hint && (
+          {rateCard ? (
             <Text style={styles.secondary}>
-              Rango habitual en tu zona: {formatSoles(hint.low)} – {formatSoles(hint.high)}
+              Tarifa sugerida en Huancayo: {formatSoles(rateCard.min_cents)} –{' '}
+              {formatSoles(rateCard.max_cents)} {PRICING_UNIT_LABELS[unit].per} (sugerido{' '}
+              {formatSoles(rateCard.suggested_cents)}). Sin regateo: los profesionales cotizan
+              dentro de este rango.
+            </Text>
+          ) : (
+            hint && (
+              <Text style={styles.secondary}>
+                Rango habitual en tu zona: {formatSoles(hint.low)} – {formatSoles(hint.high)}
+              </Text>
+            )
+          )}
+          {unit !== 'job' && priceCents !== null && (
+            <Text style={styles.total}>
+              Total: {unitPriceLabel(priceCents, unit, units)} = {formatSoles(priceCents)}
+            </Text>
+          )}
+          {rateCard && perUnitCents !== null && perUnitCents < rateCard.min_cents && (
+            <Text style={styles.warn}>
+              Está por debajo de la tarifa mínima ({formatSoles(rateCard.min_cents)}).
             </Text>
           )}
         </View>
@@ -298,6 +365,23 @@ const styles = StyleSheet.create({
   },
   addPhotoText: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   secondary: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: colors.textSecondary },
+  flex: { flex: 1 },
+  unitsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
+  stepper: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.primary,
+    paddingHorizontal: 10,
+  },
+  unitsValue: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.text,
+    minWidth: 28,
+    textAlign: 'center',
+  },
+  total: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.text },
+  warn: { fontFamily: fonts.bodyMedium, fontSize: 13, color: '#7A5A12' },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',

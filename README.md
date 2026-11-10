@@ -3,7 +3,7 @@
 App de servicios del hogar (Android e iOS) con selector Cliente / Profesional, pedidos filtrados por oficio verificado y comisión de 10 % por trabajo completado.
 
 ## Estado
-MVP completo: las 8 fases del plan están terminadas. Lo que falta para publicar está en `docs/progreso.md` → “Checklist de publicación”. Detalle en `docs/progreso.md`. El código se construye por fases con Claude Code (ver `docs/documento-tecnico.md`, sección “Plan de trabajo”).
+MVP completo (8 fases) + módulo Piloto Huancayo (multicategoría, reevaluación en sitio, materiales sin comisión y antifraude GPS). Lo que falta para publicar está en `docs/progreso.md` → “Checklist de publicación”. Detalle en `docs/progreso.md`. El código se construye por fases con Claude Code (ver `docs/documento-tecnico.md`, sección “Plan de trabajo”).
 
 ## Estructura
 ```

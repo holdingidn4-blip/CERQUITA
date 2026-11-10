@@ -34,7 +34,8 @@ const executablePath = ['/opt/pw-browsers/chromium'].find(
 );
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
 const jsErrors = [];
-const GEO = { latitude: -12.121, longitude: -77.031 };
+// Huancayo (ciudad del piloto).
+const GEO = { latitude: -12.0651, longitude: -75.2049 };
 const phonePage = async () => {
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -294,7 +295,7 @@ try {
   check(
     sql(
       `select extensions.st_astext(approx_point::extensions.geometry) from public.jobs where id = '${jobId}'`,
-    ) === 'POINT(-77.031 -12.121)',
+    ) === 'POINT(-75.205 -12.065)',
     'el servidor guarda solo la zona aproximada',
   );
   check(

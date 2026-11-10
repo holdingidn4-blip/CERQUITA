@@ -3,6 +3,68 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      bypass_suspicions: {
+        Row: {
+          detected_at: string;
+          distance_m: number;
+          id: string;
+          job_id: string;
+          minutes_on_site: number;
+          note: string | null;
+          pro_id: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database['public']['Enums']['bypass_status'];
+        };
+        ComputedFields: never;
+        Insert: {
+          detected_at?: string;
+          distance_m: number;
+          id?: string;
+          job_id: string;
+          minutes_on_site: number;
+          note?: string | null;
+          pro_id: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database['public']['Enums']['bypass_status'];
+        };
+        Update: {
+          detected_at?: string;
+          distance_m?: number;
+          id?: string;
+          job_id?: string;
+          minutes_on_site?: number;
+          note?: string | null;
+          pro_id?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database['public']['Enums']['bypass_status'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bypass_suspicions_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: true;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'bypass_suspicions_pro_id_fkey';
+            columns: ['pro_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'bypass_suspicions_reviewed_by_fkey';
+            columns: ['reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       document_access_log: {
         Row: {
           document_id: string;
@@ -116,24 +178,43 @@ export type Database = {
           approx_point: unknown;
           arrived_at: string | null;
           cancel_reason: string | null;
+          cancelled_at: string | null;
           cancelled_by: string | null;
+          city_slug: string;
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
           created_at: string;
+          currency_code: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
           final_proposed_cents: number | null;
           finished_at: string | null;
           id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
           trade_id: number;
+          units: number;
           updated_at: string;
+          visit_fee_cents: number | null;
         };
         ComputedFields: never;
         Insert: {
@@ -141,48 +222,86 @@ export type Database = {
           approx_point: unknown;
           arrived_at?: string | null;
           cancel_reason?: string | null;
+          cancelled_at?: string | null;
           cancelled_by?: string | null;
+          city_slug?: string;
           client_id?: string;
           commission_rate_bps?: number | null;
           confirmed_at?: string | null;
           created_at?: string;
+          currency_code?: string;
           description: string;
           exact_address: string;
           final_price_cents?: number | null;
           final_proposed_cents?: number | null;
           finished_at?: string | null;
           id?: string;
+          labor_cents?: number | null;
+          materials_cents?: number;
+          materials_items?: NonNullable<Json>;
+          materials_provided_by?: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path?: string | null;
           offered_price_cents: number;
           photos?: string[];
+          pricing_unit?: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at?: string | null;
+          reeval_items?: Json | null;
+          reeval_labor_cents?: number | null;
+          reeval_materials_by?: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents?: number | null;
+          reeval_proposed_at?: string | null;
+          reeval_receipt_path?: string | null;
           security_code?: string | null;
           started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
+          total_cents?: never;
           trade_id: number;
+          units?: number;
           updated_at?: string;
+          visit_fee_cents?: number | null;
         };
         Update: {
           accepted_offer_id?: string | null;
           approx_point?: unknown;
           arrived_at?: string | null;
           cancel_reason?: string | null;
+          cancelled_at?: string | null;
           cancelled_by?: string | null;
+          city_slug?: string;
           client_id?: string;
           commission_rate_bps?: number | null;
           confirmed_at?: string | null;
           created_at?: string;
+          currency_code?: string;
           description?: string;
           exact_address?: string;
           final_price_cents?: number | null;
           final_proposed_cents?: number | null;
           finished_at?: string | null;
           id?: string;
+          labor_cents?: number | null;
+          materials_cents?: number;
+          materials_items?: NonNullable<Json>;
+          materials_provided_by?: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path?: string | null;
           offered_price_cents?: number;
           photos?: string[];
+          pricing_unit?: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at?: string | null;
+          reeval_items?: Json | null;
+          reeval_labor_cents?: number | null;
+          reeval_materials_by?: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents?: number | null;
+          reeval_proposed_at?: string | null;
+          reeval_receipt_path?: string | null;
           security_code?: string | null;
           started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
+          total_cents?: never;
           trade_id?: number;
+          units?: number;
           updated_at?: string;
+          visit_fee_cents?: number | null;
         };
         Relationships: [
           {
@@ -214,6 +333,52 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      materials_catalog: {
+        Row: {
+          active: boolean;
+          brand: string;
+          category: Database['public']['Enums']['trade_category'] | null;
+          city_slug: string;
+          currency_code: string;
+          id: string;
+          name: string;
+          reference_price_cents: number;
+          sku: string | null;
+          store: string;
+          unit: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          active?: boolean;
+          brand: string;
+          category?: Database['public']['Enums']['trade_category'] | null;
+          city_slug?: string;
+          currency_code?: string;
+          id?: string;
+          name: string;
+          reference_price_cents: number;
+          sku?: string | null;
+          store: string;
+          unit: string;
+          updated_at?: string;
+        };
+        Update: {
+          active?: boolean;
+          brand?: string;
+          category?: Database['public']['Enums']['trade_category'] | null;
+          city_slug?: string;
+          currency_code?: string;
+          id?: string;
+          name?: string;
+          reference_price_cents?: number;
+          sku?: string | null;
+          store?: string;
+          unit?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       offers: {
         Row: {
@@ -325,6 +490,7 @@ export type Database = {
           online: boolean;
           pro_id: string;
           radius_m: number;
+          still_since: string | null;
           updated_at: string;
         };
         ComputedFields: never;
@@ -333,6 +499,7 @@ export type Database = {
           online?: boolean;
           pro_id: string;
           radius_m?: number;
+          still_since?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -340,6 +507,7 @@ export type Database = {
           online?: boolean;
           pro_id?: string;
           radius_m?: number;
+          still_since?: string | null;
           updated_at?: string;
         };
         Relationships: [
@@ -418,6 +586,7 @@ export type Database = {
         Row: {
           active_role: Database['public']['Enums']['user_role'];
           avatar_url: string | null;
+          city_slug: string;
           created_at: string;
           deleted_at: string | null;
           full_name: string | null;
@@ -429,6 +598,7 @@ export type Database = {
         Insert: {
           active_role?: Database['public']['Enums']['user_role'];
           avatar_url?: string | null;
+          city_slug?: string;
           created_at?: string;
           deleted_at?: string | null;
           full_name?: string | null;
@@ -439,6 +609,7 @@ export type Database = {
         Update: {
           active_role?: Database['public']['Enums']['user_role'];
           avatar_url?: string | null;
+          city_slug?: string;
           created_at?: string;
           deleted_at?: string | null;
           full_name?: string | null;
@@ -591,26 +762,83 @@ export type Database = {
           },
         ];
       };
+      trade_rate_cards: {
+        Row: {
+          city_slug: string;
+          currency_code: string;
+          id: number;
+          label: string;
+          max_cents: number;
+          min_cents: number;
+          suggested_cents: number;
+          trade_id: number;
+          unit: Database['public']['Enums']['pricing_unit'];
+          updated_at: string;
+          visit_fee_cents: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          city_slug?: string;
+          currency_code?: string;
+          id?: never;
+          label: string;
+          max_cents: number;
+          min_cents: number;
+          suggested_cents: number;
+          trade_id: number;
+          unit: Database['public']['Enums']['pricing_unit'];
+          updated_at?: string;
+          visit_fee_cents?: number | null;
+        };
+        Update: {
+          city_slug?: string;
+          currency_code?: string;
+          id?: never;
+          label?: string;
+          max_cents?: number;
+          min_cents?: number;
+          suggested_cents?: number;
+          trade_id?: number;
+          unit?: Database['public']['Enums']['pricing_unit'];
+          updated_at?: string;
+          visit_fee_cents?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'trade_rate_cards_trade_id_fkey';
+            columns: ['trade_id'];
+            isOneToOne: false;
+            referencedRelation: 'trades';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       trades: {
         Row: {
           active: boolean;
+          category: Database['public']['Enums']['trade_category'];
           id: number;
           name: string;
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
           pro_name: string;
           slug: string;
         };
         ComputedFields: never;
         Insert: {
           active?: boolean;
+          category?: Database['public']['Enums']['trade_category'];
           id?: never;
           name: string;
+          pricing_unit?: Database['public']['Enums']['pricing_unit'];
           pro_name?: string;
           slug: string;
         };
         Update: {
           active?: boolean;
+          category?: Database['public']['Enums']['trade_category'];
           id?: never;
           name?: string;
+          pricing_unit?: Database['public']['Enums']['pricing_unit'];
           pro_name?: string;
           slug?: string;
         };
@@ -769,24 +997,95 @@ export type Database = {
           approx_point: unknown;
           arrived_at: string | null;
           cancel_reason: string | null;
+          cancelled_at: string | null;
           cancelled_by: string | null;
+          city_slug: string;
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
           created_at: string;
+          currency_code: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
           final_proposed_cents: number | null;
           finished_at: string | null;
           id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
           trade_id: number;
+          units: number;
           updated_at: string;
+          visit_fee_cents: number | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      answer_reevaluation: {
+        Args: { p_approve: boolean; p_job: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          city_slug: string;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          currency_code: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
+          offered_price_cents: number;
+          photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
+          trade_id: number;
+          units: number;
+          updated_at: string;
+          visit_fee_cents: number | null;
         };
         SetofOptions: {
           from: '*';
@@ -802,24 +1101,43 @@ export type Database = {
           approx_point: unknown;
           arrived_at: string | null;
           cancel_reason: string | null;
+          cancelled_at: string | null;
           cancelled_by: string | null;
+          city_slug: string;
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
           created_at: string;
+          currency_code: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
           final_proposed_cents: number | null;
           finished_at: string | null;
           id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
           trade_id: number;
+          units: number;
           updated_at: string;
+          visit_fee_cents: number | null;
         };
         SetofOptions: {
           from: '*';
@@ -828,6 +1146,22 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      bypass_queue: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          detected_at: string;
+          distance_m: number;
+          id: string;
+          job_description: string;
+          job_id: string;
+          minutes_on_site: number;
+          pro_id: string;
+          pro_name: string;
+          pro_suspended: boolean;
+          status: Database['public']['Enums']['bypass_status'];
+          week_count: number;
+        }[];
+      };
       cancel_service: {
         Args: { p_job: string; p_reason: string };
         Returns: {
@@ -835,24 +1169,43 @@ export type Database = {
           approx_point: unknown;
           arrived_at: string | null;
           cancel_reason: string | null;
+          cancelled_at: string | null;
           cancelled_by: string | null;
+          city_slug: string;
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
           created_at: string;
+          currency_code: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
           final_proposed_cents: number | null;
           finished_at: string | null;
           id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
           trade_id: number;
+          units: number;
           updated_at: string;
+          visit_fee_cents: number | null;
         };
         SetofOptions: {
           from: '*';
@@ -868,24 +1221,43 @@ export type Database = {
           approx_point: unknown;
           arrived_at: string | null;
           cancel_reason: string | null;
+          cancelled_at: string | null;
           cancelled_by: string | null;
+          city_slug: string;
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
           created_at: string;
+          currency_code: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
           final_proposed_cents: number | null;
           finished_at: string | null;
           id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
           trade_id: number;
+          units: number;
           updated_at: string;
+          visit_fee_cents: number | null;
         };
         SetofOptions: {
           from: '*';
@@ -902,24 +1274,43 @@ export type Database = {
           approx_point: unknown;
           arrived_at: string | null;
           cancel_reason: string | null;
+          cancelled_at: string | null;
           cancelled_by: string | null;
+          city_slug: string;
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
           created_at: string;
+          currency_code: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
           final_proposed_cents: number | null;
           finished_at: string | null;
           id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
           trade_id: number;
+          units: number;
           updated_at: string;
+          visit_fee_cents: number | null;
         };
         SetofOptions: {
           from: '*';
@@ -993,6 +1384,7 @@ export type Database = {
           client_name: string;
           client_rating: number;
           created_at: string;
+          currency_code: string;
           description: string;
           distance_m: number;
           id: string;
@@ -1001,8 +1393,10 @@ export type Database = {
           my_offer_status: Database['public']['Enums']['offer_status'];
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
           trade_id: number;
           trade_name: string;
+          units: number;
         }[];
       };
       nearby_pros_summary: {
@@ -1050,6 +1444,64 @@ export type Database = {
         }[];
       };
       pro_trade_missing: { Args: { p_pro_trade: string }; Returns: string[] };
+      propose_reevaluation: {
+        Args: {
+          p_items?: Json;
+          p_job: string;
+          p_labor_cents: number;
+          p_materials_by: Database['public']['Enums']['materials_provider'];
+          p_receipt_path?: string;
+        };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          city_slug: string;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          currency_code: string;
+          description: string;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
+          offered_price_cents: number;
+          photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
+          trade_id: number;
+          units: number;
+          updated_at: string;
+          visit_fee_cents: number | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       public_profiles: {
         Args: { p_ids: string[] };
         Returns: {
@@ -1057,6 +1509,27 @@ export type Database = {
           full_name: string;
           id: string;
         }[];
+      };
+      review_bypass: {
+        Args: { p_confirm: boolean; p_id: string; p_note: string };
+        Returns: {
+          detected_at: string;
+          distance_m: number;
+          id: string;
+          job_id: string;
+          minutes_on_site: number;
+          note: string | null;
+          pro_id: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database['public']['Enums']['bypass_status'];
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'bypass_suspicions';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       review_payment_proof: {
         Args: { p_approve: boolean; p_note?: string; p_proof: string };
@@ -1169,24 +1642,43 @@ export type Database = {
           approx_point: unknown;
           arrived_at: string | null;
           cancel_reason: string | null;
+          cancelled_at: string | null;
           cancelled_by: string | null;
+          city_slug: string;
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
           created_at: string;
+          currency_code: string;
           description: string;
           exact_address: string;
           final_price_cents: number | null;
           final_proposed_cents: number | null;
           finished_at: string | null;
           id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
           offered_price_cents: number;
           photos: string[];
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
           trade_id: number;
+          units: number;
           updated_at: string;
+          visit_fee_cents: number | null;
         };
         SetofOptions: {
           from: '*';
@@ -1223,6 +1715,15 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      trade_requirements: {
+        Args: { p_trade: number };
+        Returns: {
+          min_count: number;
+          requirement: string;
+        }[];
+      };
+      update_presence: { Args: { p_lat: number; p_lng: number }; Returns: undefined };
+      visit_fee_for_trade: { Args: { p_trade: number }; Returns: number };
       wallet_post_entry: {
         Args: {
           p_amount_cents: number;
@@ -1254,19 +1755,23 @@ export type Database = {
       };
     };
     Enums: {
+      bypass_status: 'open' | 'dismissed' | 'confirmed';
       job_status:
         | 'published'
         | 'with_offers'
         | 'accepted'
         | 'on_the_way'
         | 'at_home'
+        | 'price_renegotiated'
         | 'finished'
         | 'confirmed'
         | 'rated'
         | 'cancelled';
+      materials_provider: 'client' | 'pro';
       offer_status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
       payment_method: 'yape' | 'plin' | 'transfer';
       payment_proof_status: 'pending' | 'approved' | 'rejected';
+      pricing_unit: 'job' | 'hour' | 'day';
       pro_trade_status:
         | 'draft'
         | 'submitted'
@@ -1277,6 +1782,7 @@ export type Database = {
         | 'rejected'
         | 'suspended';
       sos_status: 'countdown' | 'open' | 'closed' | 'cancelled';
+      trade_category: 'technical' | 'construction' | 'domestic' | 'driver';
       user_role: 'client' | 'pro';
       verification_document_kind:
         | 'dni_front'
@@ -1286,7 +1792,11 @@ export type Database = {
         | 'work_photo'
         | 'certificate'
         | 'reference'
-        | 'quiz';
+        | 'quiz'
+        | 'driver_license'
+        | 'driver_record'
+        | 'police_record'
+        | 'criminal_record';
       wallet_entry_type:
         'commission_debit' | 'payment_credit' | 'promo_credit' | 'adjustment' | 'reversal';
     };
@@ -1400,20 +1910,24 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      bypass_status: ['open', 'dismissed', 'confirmed'],
       job_status: [
         'published',
         'with_offers',
         'accepted',
         'on_the_way',
         'at_home',
+        'price_renegotiated',
         'finished',
         'confirmed',
         'rated',
         'cancelled',
       ],
+      materials_provider: ['client', 'pro'],
       offer_status: ['pending', 'accepted', 'rejected', 'withdrawn', 'expired'],
       payment_method: ['yape', 'plin', 'transfer'],
       payment_proof_status: ['pending', 'approved', 'rejected'],
+      pricing_unit: ['job', 'hour', 'day'],
       pro_trade_status: [
         'draft',
         'submitted',
@@ -1425,6 +1939,7 @@ export const Constants = {
         'suspended',
       ],
       sos_status: ['countdown', 'open', 'closed', 'cancelled'],
+      trade_category: ['technical', 'construction', 'domestic', 'driver'],
       user_role: ['client', 'pro'],
       verification_document_kind: [
         'dni_front',
@@ -1435,6 +1950,10 @@ export const Constants = {
         'certificate',
         'reference',
         'quiz',
+        'driver_license',
+        'driver_record',
+        'police_record',
+        'criminal_record',
       ],
       wallet_entry_type: [
         'commission_debit',

@@ -2,6 +2,8 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 select plan(63);
+-- Las semillas traen un tarifario de ejemplo; cada prueba define el suyo (se revierte al final).
+delete from public.trade_rate_cards;
 
 -- ───────── Ayudantes ─────────
 create function pg_temp.as_user(p uuid, p_staff text default null) returns void

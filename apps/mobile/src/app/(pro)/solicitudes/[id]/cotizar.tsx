@@ -8,7 +8,11 @@ import {
   MIN_JOB_PRICE_CENTS,
   netCents,
   parseSolesToCents,
+  isWithinRateCard,
   quoteSuggestions,
+  rateCardSuggestions,
+  unitPriceLabel,
+  type RateCard,
 } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -38,12 +42,22 @@ export default function Cotizar() {
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [rateCard, setRateCard] = useState<RateCard | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.rpc('nearby_jobs').then(async ({ data }) => {
       const found = ((data ?? []) as NearbyJob[]).find((j) => j.id === id) ?? null;
       setJob(found);
+      if (found) {
+        const { data: card } = await supabase
+          .from('trade_rate_cards')
+          .select('unit, min_cents, suggested_cents, max_cents, visit_fee_cents')
+          .eq('trade_id', found.trade_id)
+          .eq('unit', found.pricing_unit)
+          .maybeSingle();
+        setRateCard(card ?? null);
+      }
       if (found)
         setAmount(
           String(
@@ -81,9 +95,23 @@ export default function Cotizar() {
   }
 
   const priceCents = parseSolesToCents(amount);
+  const withinCard = priceCents !== null && isWithinRateCard(priceCents, rateCard, job.units);
   const valid =
-    priceCents !== null && priceCents >= MIN_JOB_PRICE_CENTS && priceCents <= MAX_JOB_PRICE_CENTS;
-  const suggestions = quoteSuggestions(job.offered_price_cents);
+    priceCents !== null &&
+    priceCents >= MIN_JOB_PRICE_CENTS &&
+    priceCents <= MAX_JOB_PRICE_CENTS &&
+    withinCard;
+  // Con tarifario: mínimo, sugerido y máximo × unidades (sin regateo); sin tarifario: las de siempre.
+  const suggestions = rateCard
+    ? [
+        ...new Set([
+          ...quoteSuggestions(job.offered_price_cents),
+          ...rateCardSuggestions(rateCard, job.units),
+        ]),
+      ]
+        .filter((c) => isWithinRateCard(c, rateCard, job.units))
+        .sort((a, b) => a - b)
+    : quoteSuggestions(job.offered_price_cents);
 
   async function send() {
     if (!job || !valid || priceCents === null) {
@@ -124,6 +152,17 @@ export default function Cotizar() {
               <Text style={styles.secondary}>el cliente ofrece</Text>
             </View>
           </View>
+          {job.pricing_unit !== 'job' && (
+            <Text style={styles.secondary}>
+              {unitPriceLabel(job.offered_price_cents, job.pricing_unit, job.units)}
+            </Text>
+          )}
+          {rateCard && (
+            <Text style={styles.secondary}>
+              Tarifario Huancayo: {formatSoles(rateCard.min_cents * job.units)} –{' '}
+              {formatSoles(rateCard.max_cents * job.units)}
+            </Text>
+          )}
           <Text style={styles.body}>{job.description}</Text>
           {photoUrls.length > 0 && (
             <View style={styles.photos}>
