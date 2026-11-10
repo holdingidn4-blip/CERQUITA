@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>SOS activado</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0E5A4B}a:hover{color:#08382F}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;box-sizing:border-box;background:#7A1712;font-family:'Inter',system-ui,sans-serif;color:#fff;padding:64px 20px 20px;display:flex;flex-direction:column;gap:18px">
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+    <div style="position:relative;width:132px;height:132px;display:flex;align-items:center;justify-content:center">
+      <div style="position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.12)"></div>
+      <div style="width:104px;height:104px;border-radius:50%;background:#fff;color:#B3261E;display:flex;align-items:center;justify-content:center;font:700 52px/1 'Space Grotesk','Inter',system-ui,sans-serif">3</div>
+    </div>
+    <h1 style="margin:0;font:700 26px/1.2 'Space Grotesk','Inter',system-ui,sans-serif">Enviando alerta SOS</h1>
+    <p style="margin:0;font-size:15px;line-height:1.5;color:#FBE4E1">En 3 segundos avisaremos a tus contactos de confianza y al equipo de soporte con tu ubicación y los datos del servicio.</p>
+  </div>
+
+  <button style="height:56px;border:2px solid #fff;border-radius:16px;background:transparent;color:#fff;font:600 16px/1 'Inter',system-ui,sans-serif;cursor:pointer">Cancelar</button>
+
+  <div style="box-sizing:border-box;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.1);display:flex;flex-direction:column;gap:8px;font-size:14px;line-height:1.4">
+    <div style="font-weight:600">Se avisará a</div>
+    <div style="color:#FBE4E1">María Torres · Jorge Ruiz · Soporte Cerquita</div>
+    <div style="color:#FBE4E1">Tu ubicación se compartirá cada 10 s hasta que soporte cierre la alerta.</div>
+  </div>
+
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:13px;font-weight:600;color:#FBE4E1">Llamar con un toque</div>
+    <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+      <a href="tel:105" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:68px;border-radius:14px;background:#fff;color:#7A1712;text-decoration:none;font-size:13px;font-weight:600">Policía<span style="font:700 18px/1 'Space Grotesk','Inter',system-ui,sans-serif">105</span></a>
+      <a href="tel:116" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:68px;border-radius:14px;background:#fff;color:#7A1712;text-decoration:none;font-size:13px;font-weight:600">Bomberos<span style="font:700 18px/1 'Space Grotesk','Inter',system-ui,sans-serif">116</span></a>
+      <a href="tel:106" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:68px;border-radius:14px;background:#fff;color:#7A1712;text-decoration:none;font-size:13px;font-weight:600">SAMU<span style="font:700 18px/1 'Space Grotesk','Inter',system-ui,sans-serif">106</span></a>
+    </div>
+    <div style="font-size:12px;line-height:1.5;color:#FBE4E1;text-align:center">Te ayudamos a avisar. Cerquita no reemplaza a la policía ni a los servicios de emergencia.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body></html>

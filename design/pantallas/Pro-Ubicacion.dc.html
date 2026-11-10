@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Aviso de ubicación</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0E5A4B}a:hover{color:#08382F}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;box-sizing:border-box;background:#F6F3EC;font-family:'Inter',system-ui,sans-serif;color:#17231F;padding:72px 24px 20px;display:flex;flex-direction:column;gap:20px">
+
+  <div style="width:72px;height:72px;border-radius:22px;background:#0E5A4B;display:flex;align-items:center;justify-content:center">
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <h1 style="margin:0;font:700 26px/1.2 'Space Grotesk','Inter',system-ui,sans-serif">Cerquita usa tu ubicación</h1>
+    <p style="margin:0;font-size:15px;line-height:1.5;color:#2F3B36">Incluso con la app cerrada o en segundo plano, solo mientras tengas un servicio aceptado, para:</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="width:40px;height:40px;border-radius:12px;background:#E1EFE8;display:flex;align-items:center;justify-content:center;flex:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E5A4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg>
+      </div>
+      <div style="font-size:15px;line-height:1.45;padding-top:9px">Mostrar a clientes cercanos tu disponibilidad</div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="width:40px;height:40px;border-radius:12px;background:#E1EFE8;display:flex;align-items:center;justify-content:center;flex:none">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E5A4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19 19 5M19 5h-7M19 5v7"></path></svg>
+      </div>
+      <div style="font-size:15px;line-height:1.45;padding-top:9px">Que tu cliente te vea llegar</div>
+    </div>
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <div style="width:40px;height:40px;border-radius:12px;background:#FBE4E1;display:flex;align-items:center;justify-content:center;flex:none;font:700 11px/1 'Space Grotesk','Inter',system-ui,sans-serif;color:#B3261E">SOS</div>
+      <div style="font-size:15px;line-height:1.45;padding-top:9px">Activar el botón de emergencia</div>
+    </div>
+  </div>
+
+  <div style="box-sizing:border-box;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #E1DCCF;font-size:14px;line-height:1.5;color:#2F3B36">Solo se comparte durante un servicio y se detiene sola al terminar o cancelar. Puedes desactivarla en Ajustes.</div>
+
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+    <a href="Pro-Solicitudes.dc.html" style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:16px;background:#0E5A4B;color:#fff;text-decoration:none;font:600 16px/1 'Inter',system-ui,sans-serif">Continuar</a>
+    <a href="Pro-Solicitudes.dc.html" style="display:flex;align-items:center;justify-content:center;height:52px;border-radius:16px;color:#17231F;text-decoration:none;font:600 15px/1 'Inter',system-ui,sans-serif">Ahora no</a>
+    <div style="font-size:12px;line-height:1.5;color:#56625C;text-align:center">Después de “Continuar” verás el permiso de tu teléfono.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body></html>

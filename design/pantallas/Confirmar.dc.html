@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Confirmar monto final</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0E5A4B}a:hover{color:#08382F}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;box-sizing:border-box;background:#F6F3EC;font-family:'Inter',system-ui,sans-serif;color:#17231F;padding:56px 20px 20px;display:flex;flex-direction:column;gap:16px">
+
+  <div style="display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
+    <div style="width:64px;height:64px;border-radius:50%;background:#E1EFE8;display:flex;align-items:center;justify-content:center">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0E5A4B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+    </div>
+    <h1 style="margin:0;font:700 24px/1.2 'Space Grotesk','Inter',system-ui,sans-serif">Carlos marcó el trabajo como terminado</h1>
+    <p style="margin:0;font-size:15px;line-height:1.45;color:#2F3B36">Revisa el trabajo y confirma el monto antes de pagar.</p>
+  </div>
+
+  <div style="box-sizing:border-box;padding:16px;border-radius:16px;background:#fff;border:1px solid #E1DCCF;display:flex;flex-direction:column;gap:10px;font-size:14px">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:50%;background:#0E5A4B;color:#fff;display:flex;align-items:center;justify-content:center;font:700 15px/1 'Space Grotesk','Inter',system-ui,sans-serif">CM</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:600">Carlos Mendoza</div>
+        <div style="color:#56625C">Fuga bajo el lavadero · Gasfitero</div>
+      </div>
+    </div>
+    <div style="height:1px;background:#E1DCCF"></div>
+    <div style="display:flex;justify-content:space-between;color:#56625C"><span>Precio acordado</span><span style="color:#17231F">S/ 80.00</span></div>
+    <div style="display:flex;justify-content:space-between;color:#56625C"><span>Monto que indica Carlos</span><span style="color:#17231F">S/ 80.00</span></div>
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#E1EFE8;color:#0E5A4B;font-weight:500">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E5A4B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+      Coincide con lo acordado
+    </div>
+  </div>
+
+  <div style="box-sizing:border-box;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #E1DCCF;display:flex;gap:12px;font-size:14px;line-height:1.45;color:#2F3B36">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#56625C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><rect x="3" y="6" width="18" height="13" rx="2"></rect><path d="M3 10h18M7 15h3"></path></svg>
+    <span>Le pagas directamente a Carlos en efectivo, Yape o Plin. Cerquita no recibe este pago.</span>
+  </div>
+
+  <div style="font-size:13px;line-height:1.45;color:#56625C">Si el monto cambió, Carlos debe proponer el nuevo total y tú aprobarlo aquí. La garantía y tu calificación solo valen para trabajos confirmados en la app.</div>
+
+  <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+    <a href="Calificar.dc.html" style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:16px;background:#0E5A4B;color:#fff;text-decoration:none;font:600 16px/1 'Inter',system-ui,sans-serif">Confirmar S/ 80</a>
+    <button style="height:52px;border:1.5px solid #D5D0C3;border-radius:16px;background:#fff;color:#17231F;font:600 15px/1 'Inter',system-ui,sans-serif;cursor:pointer">El trabajo no está terminado</button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body></html>

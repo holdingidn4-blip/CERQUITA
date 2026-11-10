@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Solicitudes cercanas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0E5A4B}a:hover{color:#08382F}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;background:#ECE8DD;font-family:'Inter',system-ui,sans-serif;color:#17231F">
+  <img src="mapa.svg" alt="Mapa con los pedidos de clientes cerca de ti" style="position:absolute;left:0;top:0;width:390px;height:844px">
+
+  <div style="position:absolute;left:118px;top:204px;width:64px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#17231F;color:#fff;font:700 15px/1 'Space Grotesk','Inter',system-ui,sans-serif;border:3px solid #fff;box-sizing:content-box;margin:-3px;box-shadow:0 2px 8px rgba(23,35,31,.35)">S/ 80</div>
+  <div style="position:absolute;left:28px;top:314px;width:64px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#F2B33D;color:#17231F;font:700 14px/1 'Space Grotesk','Inter',system-ui,sans-serif;box-shadow:0 2px 6px rgba(23,35,31,.25)">S/ 60</div>
+  <div style="position:absolute;left:308px;top:184px;width:64px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:18px;background:#F2B33D;color:#17231F;font:700 14px/1 'Space Grotesk','Inter',system-ui,sans-serif;box-shadow:0 2px 6px rgba(23,35,31,.25)">S/ 120</div>
+
+  <div style="position:absolute;left:218px;top:298px;width:64px;height:64px;display:flex;align-items:center;justify-content:center">
+    <div style="position:absolute;width:64px;height:64px;border-radius:50%;background:rgba(14,90,75,.16)"></div>
+    <div style="width:20px;height:20px;border-radius:50%;background:#0E5A4B;border:3px solid #fff;box-sizing:border-box;box-shadow:0 1px 4px rgba(23,35,31,.35)"></div>
+  </div>
+
+  <div style="position:absolute;left:16px;right:16px;top:20px;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:6px 6px 6px 16px;background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(23,35,31,.16)">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:12px;color:#56625C;line-height:1.3">Modo profesional</div>
+      <div style="display:flex;align-items:center;gap:8px;font:700 16px/1.3 'Space Grotesk','Inter',system-ui,sans-serif">
+        <span style="width:8px;height:8px;border-radius:50%;background:#1F9D6B"></span>
+        Gasfitero · En línea
+      </div>
+    </div>
+    <button role="switch" aria-checked="true" aria-label="Estoy en línea" style="width:64px;height:44px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <span style="width:52px;height:30px;border-radius:15px;background:#0E5A4B;display:flex;align-items:center;justify-content:flex-end;padding:3px;box-sizing:border-box">
+        <span style="width:24px;height:24px;border-radius:50%;background:#fff"></span>
+      </span>
+    </button>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;box-sizing:border-box;background:#fff;border-radius:24px 24px 0 0;padding:12px 20px 20px;box-shadow:0 -4px 20px rgba(23,35,31,.14)">
+    <div style="width:40px;height:4px;border-radius:2px;background:#D5D0C3;margin:0 auto 14px"></div>
+    <h1 style="margin:0;font:700 20px/1.2 'Space Grotesk','Inter',system-ui,sans-serif">Solicitudes cerca de ti</h1>
+    <div style="margin:4px 0 12px;font-size:14px;color:#56625C">3 pedidos de gasfitería a menos de 1 km</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="box-sizing:border-box;padding:12px 14px;border:2px solid #0E5A4B;border-radius:16px;display:flex;flex-direction:column;gap:10px;background:#fff">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600">Fuga bajo el lavadero</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#56625C;margin-top:2px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#56625C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
+              Cocina · 850 m · 6 min</div><div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#0E5A4B;font-weight:500;margin-top:2px">Rosa V. · 4,8 · Verificada
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font:700 24px/1.1 'Space Grotesk','Inter',system-ui,sans-serif">S/ 80</div>
+            <div style="font-size:12px;color:#56625C">precio del cliente</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px">
+          <a href="Pro-Cotizar.dc.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;border:1.5px solid #D5D0C3;color:#17231F;text-decoration:none;font:600 14px/1 'Inter',system-ui,sans-serif">Cotizar</a>
+          <a href="Pro-Cotizar.dc.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;background:#0E5A4B;color:#fff;text-decoration:none;font:600 14px/1 'Inter',system-ui,sans-serif">Aceptar S/ 80</a>
+        </div>
+      </div>
+
+      <div style="box-sizing:border-box;padding:12px 14px;border:1px solid #E1DCCF;border-radius:16px;display:flex;flex-direction:column;gap:10px;background:#fff">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600">Cambio de llave del baño</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#56625C;margin-top:2px">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#56625C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z"></path><circle cx="12" cy="9.5" r="2.5"></circle></svg>
+              Baño · 760 m · 5 min</div><div style="display:flex;align-items:center;gap:5px;font-size:13px;color:#0E5A4B;font-weight:500;margin-top:2px">Marco T. · 4,6 · Verificado
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font:700 24px/1.1 'Space Grotesk','Inter',system-ui,sans-serif">S/ 60</div>
+            <div style="font-size:12px;color:#56625C">precio del cliente</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:8px">
+          <a href="Pro-Cotizar.dc.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;border:1.5px solid #D5D0C3;color:#17231F;text-decoration:none;font:600 14px/1 'Inter',system-ui,sans-serif">Cotizar</a>
+          <a href="Pro-Cotizar.dc.html" style="display:flex;align-items:center;justify-content:center;height:44px;border-radius:12px;background:#0E5A4B;color:#fff;text-decoration:none;font:600 14px/1 'Inter',system-ui,sans-serif">Aceptar S/ 60</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+
+
+</body></html>

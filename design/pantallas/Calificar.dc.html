@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Calificar servicio</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0E5A4B}a:hover{color:#08382F}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;box-sizing:border-box;background:#F6F3EC;font-family:'Inter',system-ui,sans-serif;color:#17231F">
+
+  <div style="display:flex;align-items:center;gap:12px;padding:28px 20px 16px">
+    <div style="flex:none;width:44px;height:44px;border-radius:50%;background:#0E5A4B;display:flex;align-items:center;justify-content:center">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+    </div>
+    <h1 style="margin:0;font:700 24px/1.15 'Space Grotesk','Inter',system-ui,sans-serif">Trabajo terminado</h1>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;padding:0 20px">
+
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid #E1DCCF">
+      <div style="flex:none;width:48px;height:48px;border-radius:50%;background:#E1EFE8;display:flex;align-items:center;justify-content:center;font:700 16px/1 'Space Grotesk','Inter',system-ui,sans-serif;color:#0E5A4B">CM</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:16px;font-weight:600">Carlos Mendoza</div>
+        <div style="font-size:13px;color:#56625C">Fuga bajo el lavadero · Gasfitero</div>
+      </div>
+    </div>
+
+    <div style="box-sizing:border-box;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #E1DCCF;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between">
+        <div style="font-size:14px;font-weight:600">Total a pagar</div>
+        <div style="font:700 32px/1 'Space Grotesk','Inter',system-ui,sans-serif">S/ 80</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+        <button aria-pressed="true" style="height:48px;border:0;border-radius:12px;background:#0E5A4B;color:#fff;font:600 14px/1 'Inter',system-ui,sans-serif;cursor:pointer">Efectivo</button>
+        <button aria-pressed="false" style="height:48px;border:1px solid #E1DCCF;border-radius:12px;background:#fff;color:#17231F;font:500 14px/1 'Inter',system-ui,sans-serif;cursor:pointer">Yape</button>
+        <button aria-pressed="false" style="height:48px;border:1px solid #E1DCCF;border-radius:12px;background:#fff;color:#17231F;font:500 14px/1 'Inter',system-ui,sans-serif;cursor:pointer">Plin</button>
+      </div>
+    </div>
+
+    <div style="box-sizing:border-box;padding:14px 16px 16px;border-radius:16px;background:#fff;border:1px solid #E1DCCF;display:flex;flex-direction:column;gap:12px">
+      <div style="font-size:14px;font-weight:600">¿Cómo fue el servicio?</div>
+      <div style="display:flex;justify-content:space-between">
+        <button aria-label="1 estrella" style="width:52px;height:52px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="40" height="40" viewBox="0 0 24 24" fill="#F2B33D" stroke="#B9801A" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>
+        <button aria-label="2 estrellas" style="width:52px;height:52px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="40" height="40" viewBox="0 0 24 24" fill="#F2B33D" stroke="#B9801A" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>
+        <button aria-label="3 estrellas" style="width:52px;height:52px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="40" height="40" viewBox="0 0 24 24" fill="#F2B33D" stroke="#B9801A" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>
+        <button aria-label="4 estrellas" style="width:52px;height:52px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="40" height="40" viewBox="0 0 24 24" fill="#F2B33D" stroke="#B9801A" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>
+        <button aria-label="5 estrellas" style="width:52px;height:52px;border:0;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#B9801A" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path></svg></button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button aria-pressed="true" style="height:44px;padding:0 14px;border:0;border-radius:22px;background:#E1EFE8;color:#0E5A4B;font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer">Puntual</button>
+        <button aria-pressed="true" style="height:44px;padding:0 14px;border:0;border-radius:22px;background:#E1EFE8;color:#0E5A4B;font:600 13px/1 'Inter',system-ui,sans-serif;cursor:pointer">Trabajo limpio</button>
+        <button aria-pressed="false" style="height:44px;padding:0 14px;border:1px solid #E1DCCF;border-radius:22px;background:#fff;color:#17231F;font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer">Buen trato</button>
+        <button aria-pressed="false" style="height:44px;padding:0 14px;border:1px solid #E1DCCF;border-radius:22px;background:#fff;color:#17231F;font:500 13px/1 'Inter',system-ui,sans-serif;cursor:pointer">Buen precio</button>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600">
+        Comentario (opcional)
+        <input type="text" placeholder="Cuéntanos cómo te fue" style="box-sizing:border-box;width:100%;height:48px;padding:0 14px;border:1px solid #E1DCCF;border-radius:12px;background:#fff;color:#17231F;font:400 15px/1 'Inter',system-ui,sans-serif">
+      </label>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:20px;right:20px;bottom:20px">
+    <a href="Main.dc.html" style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:16px;background:#0E5A4B;color:#fff;text-decoration:none;font:600 16px/1 'Inter',system-ui,sans-serif">Enviar calificación</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+
+
+</body></html>

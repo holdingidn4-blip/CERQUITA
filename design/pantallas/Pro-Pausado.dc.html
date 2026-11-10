@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<title>Ofertas pausadas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#0E5A4B}a:hover{color:#08382F}
+</style>
+</helmet>
+<div style="position:relative;width:390px;height:844px;overflow:hidden;box-sizing:border-box;background:#F6F3EC;font-family:'Inter',system-ui,sans-serif;color:#17231F">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;height:64px;padding:0 20px;box-sizing:border-box">
+    <h1 style="margin:0;font:700 20px/1.2 'Space Grotesk','Inter',system-ui,sans-serif">Solicitudes</h1>
+    <div style="font-size:12px;font-weight:600;color:#56625C;background:#F0EDE4;padding:6px 10px;border-radius:12px">Ofertas en pausa</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:14px;padding:4px 20px 0">
+
+    <div style="box-sizing:border-box;padding:18px;border-radius:20px;background:#FBEBC8;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6B4A07" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M10 9v6M14 9v6"></path></svg>
+        <div style="font:700 20px/1.2 'Space Grotesk','Inter',system-ui,sans-serif;color:#5C4306">Tus nuevas ofertas están en pausa</div>
+      </div>
+      <div style="font-size:15px;line-height:1.5;color:#5C4306">Tu comisión pendiente es S/ 34.00 y pasó el límite de S/ 30.00 hace más de 3 días. Paga para volver a cotizar.</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;padding-top:4px;border-top:1px solid rgba(107,74,7,.2)">
+        <span style="font-size:14px;color:#5C4306">Para reactivarte, paga más de</span>
+        <span style="font:700 22px/1 'Space Grotesk','Inter',system-ui,sans-serif;color:#5C4306">S/ 4.00</span>
+      </div>
+    </div>
+
+    <div style="box-sizing:border-box;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #E1DCCF;display:flex;flex-direction:column;gap:10px;font-size:14px;line-height:1.45;color:#2F3B36">
+      <div style="font-weight:600;color:#17231F">Mientras tanto</div>
+      <div style="display:flex;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E5A4B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>Puedes terminar los servicios que ya aceptaste.</div>
+      <div style="display:flex;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E5A4B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex:none;margin-top:1px"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>Tus calificaciones y oficios verificados se mantienen.</div>
+      <div style="display:flex;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B3261E" stroke-width="2.2" stroke-linecap="round" aria-hidden="true" style="flex:none;margin-top:1px"><path d="M6 6l12 12M18 6 6 18"></path></svg>No puedes enviar cotizaciones nuevas.</div>
+    </div>
+
+    <div aria-hidden="true" style="box-sizing:border-box;padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #E1DCCF;display:flex;flex-direction:column;gap:6px;opacity:.5">
+      <div style="display:flex;justify-content:space-between"><span style="font-size:15px;font-weight:600">Fuga bajo el lavadero</span><span style="font:700 18px/1 'Space Grotesk','Inter',system-ui,sans-serif">S/ 80</span></div>
+      <div style="font-size:13px;color:#56625C">850 m · Gasfitería · cotizar en pausa</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:20px;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px">
+    <a href="Pro-PagarComision.dc.html" style="display:flex;align-items:center;justify-content:center;height:56px;border-radius:16px;background:#0E5A4B;color:#fff;text-decoration:none;font:600 16px/1 'Inter',system-ui,sans-serif">Pagar comisión</a>
+    <a href="Pro-Comision.dc.html" style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:16px;color:#17231F;text-decoration:none;font:600 15px/1 'Inter',system-ui,sans-serif">Ver movimientos</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body></html>
