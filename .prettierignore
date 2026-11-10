@@ -1,0 +1,14 @@
+node_modules
+pnpm-lock.yaml
+.expo
+.next
+dist
+build
+design
+docs
+supabase/.temp
+apps/mobile/expo-env.d.ts
+apps/admin/next-env.d.ts
+CLAUDE.md
+README.md
+**/AGENTS.md

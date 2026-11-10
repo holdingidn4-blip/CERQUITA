@@ -1,0 +1,21 @@
+{
+  "name": "cerquita",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "mobile": "pnpm --filter @cerquita/mobile start",
+    "admin": "pnpm --filter @cerquita/admin dev",
+    "lint": "pnpm -r --parallel run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.10"
+  }
+}

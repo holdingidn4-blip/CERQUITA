@@ -1,0 +1,27 @@
+{
+  "name": "@cerquita/admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3001",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "echo 'sin pruebas a\u00fan en admin'"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "@cerquita/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.4.6",
+    "typescript": "~6.0.3"
+  }
+}

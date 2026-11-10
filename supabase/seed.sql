@@ -1,0 +1,2 @@
+-- Datos de prueba para `supabase db reset`. Se completa en la fase 2
+-- (catálogo de oficios, valores iniciales de `settings` y usuarios de prueba).
