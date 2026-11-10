@@ -1,27 +1,29 @@
 # supabase/
 
-- `migrations/` — esquema SQL y políticas RLS (fase 2 en adelante).
-- `tests/` — pruebas de base de datos con pgTAP (`supabase test db`), incluidas las de RLS.
-- `functions/` — Edge Functions en TypeScript (libro de comisiones, reparto, SOS).
-- `seed.sql` — datos de prueba que carga `supabase db reset`.
+- `migrations/` — esquema (15 tablas), seguridad (RLS, permisos por columna, triggers) y buckets.
+- `tests/` — pruebas pgTAP de RLS y reglas del servidor (`pnpm db:test`).
+- `functions/` — Edge Functions (desde la fase 4).
+- `seed.sql` — oficios, parámetros y usuarios de prueba (solo local).
 
-## Local
-
-Necesitas Docker para levantar Supabase en local:
+## Comandos (requieren Docker)
 
 ```bash
-pnpm dlx supabase@3 start      # levanta Postgres, Auth, Storage, Realtime y Studio
-pnpm dlx supabase@3 db reset   # aplica migraciones y seed
-pnpm dlx supabase@3 test db    # corre las pruebas de RLS
-pnpm dlx supabase@3 stop
+pnpm db:start   # levanta Postgres, Auth, Storage y REST
+pnpm db:reset   # aplica migraciones y seed
+pnpm db:test    # pruebas de RLS
+pnpm db:lint    # revisa funciones SQL
+pnpm db:types   # regenera packages/shared/src/database.types.ts
 ```
 
-`supabase start` imprime la URL y la anon key locales; cópialas en `apps/mobile/.env.local` y `apps/admin/.env.local`.
+## Decisiones de seguridad
 
-## Proyecto remoto
+| Regla | Cómo se cumple |
+| --- | --- |
+| 2. Libro inmutable | Sin INSERT/UPDATE/DELETE para nadie (ni service role). Solo `wallet_post_entry()` (service role), idempotente; saldo calculado en trigger con bloqueo por profesional. UPDATE/DELETE lanzan error. |
+| 4. Reparto | Política de `jobs` usa `private.pro_is_eligible`: oficio aprobado + en línea + `ST_DWithin` del radio. |
+| 5. Ubicación | `job_tracks` solo acepta al pro asignado con el pedido `on_the_way` o `at_home`. Borrado a 30 días con pg_cron. |
+| 6. Documentos | Bucket `verification` sin lectura para nadie desde la API. Soporte llama `log_document_access()` (registra la vista) y el servidor firma la URL. |
+| 7. Datos ocultos | `exact_address` sin permiso de SELECT; se lee con `job_exact_address()`. Teléfono con `job_counterpart_phone()`. Ambos solo tras aceptar. `approx_point` se redondea a ~110 m. |
+| Soporte | `app_metadata.staff_role` (`reviewer`, `support`, `admin`), que solo fija el service role. |
 
-```bash
-pnpm dlx supabase@3 login
-pnpm dlx supabase@3 link --project-ref <ref-del-proyecto>
-pnpm dlx supabase@3 db push
-```
+Consecuencia práctica: en `jobs` no uses `select('*')`; lista las columnas.

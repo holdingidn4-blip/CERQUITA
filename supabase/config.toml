@@ -273,8 +273,10 @@ max_frequency = "5s"
 
 # Use pre-defined map of phone number to OTP for testing.
 # Keys are the phone number with country code and without the + prefix.
-# [auth.sms.test_otp]
-# 14152127777 = "123456"
+[auth.sms.test_otp]
+51900000001 = "123456"
+51900000002 = "123456"
+51900000009 = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
