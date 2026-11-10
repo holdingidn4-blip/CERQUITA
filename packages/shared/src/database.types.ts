@@ -296,7 +296,7 @@ export type Database = {
           created_at?: string;
           good_ratings_count?: number;
           id?: string;
-          pro_id: string;
+          pro_id?: string;
           reason?: string | null;
           reviewed_at?: string | null;
           reviewed_by?: string | null;
@@ -513,6 +513,7 @@ export type Database = {
           active: boolean;
           id: number;
           name: string;
+          pro_name: string;
           slug: string;
         };
         ComputedFields: never;
@@ -520,12 +521,14 @@ export type Database = {
           active?: boolean;
           id?: never;
           name: string;
+          pro_name?: string;
           slug: string;
         };
         Update: {
           active?: boolean;
           id?: never;
           name?: string;
+          pro_name?: string;
           slug?: string;
         };
         Relationships: [];
@@ -692,6 +695,14 @@ export type Database = {
           staff_role: string;
         }[];
       };
+      my_verification: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          identity_missing: string[];
+          identity_verified: boolean;
+        }[];
+      };
+      pro_trade_missing: { Args: { p_pro_trade: string }; Returns: string[] };
       public_profiles: {
         Args: { p_ids: string[] };
         Returns: {
@@ -700,7 +711,49 @@ export type Database = {
           id: string;
         }[];
       };
+      review_pro_trade: {
+        Args: { p_decision: string; p_pro_trade: string; p_reason?: string };
+        Returns: {
+          created_at: string;
+          good_ratings_count: number;
+          id: string;
+          pro_id: string;
+          reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database['public']['Enums']['pro_trade_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'pro_trades';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       set_staff_role: { Args: { p_role: string; p_user: string }; Returns: undefined };
+      submit_pro_trade: {
+        Args: { p_pro_trade: string };
+        Returns: {
+          created_at: string;
+          good_ratings_count: number;
+          id: string;
+          pro_id: string;
+          reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database['public']['Enums']['pro_trade_status'];
+          trade_id: number;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'pro_trades';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       wallet_post_entry: {
         Args: {
           p_amount_cents: number;

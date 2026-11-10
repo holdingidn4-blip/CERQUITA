@@ -1,18 +1,6 @@
 -- Datos de prueba para `supabase db reset`. Solo local: no usar en producción.
 
-insert into public.trades (slug, name) values
-  ('gasfiteria', 'Gasfitería'),
-  ('electricidad', 'Electricidad'),
-  ('carpinteria', 'Carpintería'),
-  ('pintura', 'Pintura'),
-  ('hogar', 'Hogar');
-
--- Parámetros (regla 9). TODO(decidir): trabajos sin comisión de la promoción de lanzamiento.
-insert into public.settings (key, scope, value) values
-  ('commission_rate_bps', 'global', '1000'),
-  ('debt_limit_cents', 'global', '3000'),
-  ('grace_days', 'global', '3'),
-  ('launch_promo_jobs', 'global', '0');
+-- Oficios y parámetros vienen en las migraciones (existen también en producción).
 
 -- Usuarios de prueba (ingreso por SMS local: cualquier código con test_otp en config.toml).
 insert into auth.users (instance_id, id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -41,3 +29,19 @@ from public.trades where slug = 'gasfiteria';
 -- Miraflores, Lima.
 insert into public.pro_presence (pro_id, online, radius_m, last_point)
 values ('22222222-2222-2222-2222-222222222222', true, 5000, 'SRID=4326;POINT(-77.0300 -12.1200)');
+
+-- Identidad y evidencia del profesional de prueba (archivos ficticios, solo metadatos).
+insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path)
+select '22222222-2222-2222-2222-222222222222', null, k::public.verification_document_kind,
+       '22222222-2222-2222-2222-222222222222/seed-' || k || '.jpg'
+from unnest(array['dni_front', 'dni_back', 'selfie', 'background']) k;
+
+-- Electricidad enviado y esperando revisión, para ver la cola del panel.
+with pt as (
+  insert into public.pro_trades (pro_id, trade_id, status)
+  select '22222222-2222-2222-2222-222222222222', id, 'submitted' from public.trades where slug = 'electricidad'
+  returning id
+)
+insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path)
+select '22222222-2222-2222-2222-222222222222', pt.id, 'work_photo', '22222222-2222-2222-2222-222222222222/seed-luz-' || n || '.jpg'
+from pt, generate_series(1, 2) n;

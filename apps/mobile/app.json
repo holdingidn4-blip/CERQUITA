@@ -34,6 +34,13 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cerquita usa tus fotos para verificar tu identidad y tu oficio.",
+          "cameraPermission": "Cerquita usa la c\u00e1mara para tu selfie con DNI y fotos de tus trabajos."
+        }
       ]
     ],
     "experiments": {

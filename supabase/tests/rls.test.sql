@@ -178,7 +178,7 @@ select is((select count(*)::int from public.verification_documents), 0, 'cliente
 select pg_temp.as_user(:s, 'reviewer');
 select is((select public.log_document_access(id) from public.verification_documents where pro_id = :p),
   :p || '/dni.jpg', 'soporte obtiene la ruta para firmar');
-select is((select count(*)::int from public.document_access_log), 1, 'la vista queda registrada');
+select is((select count(*)::int from public.document_access_log l join public.verification_documents d on d.id = l.document_id where d.pro_id = :p), 1, 'la vista queda registrada');
 
 -- ───────── pro_trades ─────────
 select pg_temp.as_user(:p);

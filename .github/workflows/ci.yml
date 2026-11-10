@@ -46,3 +46,37 @@ jobs:
       - run: supabase db lint -s public,private --level warning --fail-on error
       - run: supabase test db
       - run: supabase db reset && bash supabase/tests/auth-smoke.sh
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: [check, database]
+    env:
+      SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID: ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      SUPABASE_AUTH_SMS_TWILIO_MESSAGE_SERVICE_SID: MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN: relleno-ci
+      EXPO_NO_TELEMETRY: 1
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,realtime
+      - name: Variables locales de Supabase
+        run: |
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          printf 'EXPO_PUBLIC_SUPABASE_URL=%s\nEXPO_PUBLIC_SUPABASE_ANON_KEY=%s\n' "$API_URL" "$ANON_KEY" > apps/mobile/.env.local
+          printf 'NEXT_PUBLIC_SUPABASE_URL=%s\nNEXT_PUBLIC_SUPABASE_ANON_KEY=%s\nSUPABASE_SERVICE_ROLE_KEY=%s\n' "$API_URL" "$ANON_KEY" "$SERVICE_ROLE_KEY" > apps/admin/.env.local
+      - run: pnpm --filter @cerquita/admin build
+      - run: pnpm --filter @cerquita/admin start &
+      - run: cd apps/mobile && npx expo export --platform web --output-dir dist
+      - run: npx serve -s apps/mobile/dist -l 8099 &
+      - run: npx wait-on http://127.0.0.1:3001/login http://127.0.0.1:8099
+      - run: pnpm e2e

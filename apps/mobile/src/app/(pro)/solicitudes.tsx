@@ -6,7 +6,10 @@ export default function Solicitudes() {
       screenNumber={7}
       title="Solicitudes cercanas"
       phase={5}
-      links={[{ href: '/ajustes', label: 'Cuenta y privacidad' }]}
+      links={[
+        { href: '/oficios', label: 'Mis oficios y verificación' },
+        { href: '/ajustes', label: 'Cuenta y privacidad' },
+      ]}
     />
   );
 }
