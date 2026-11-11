@@ -2,7 +2,7 @@ import { staffRoleFrom } from '@cerquita/shared';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { supabaseAnonKey, supabaseUrl } from '@/lib/env';
+import { authCookieName, supabaseAnonKey, supabaseUrl } from '@/lib/env';
 
 const PUBLIC_PATHS = ['/login', '/no-autorizado'];
 
@@ -10,6 +10,7 @@ const PUBLIC_PATHS = ['/login', '/no-autorizado'];
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: { name: authCookieName },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (list) => {

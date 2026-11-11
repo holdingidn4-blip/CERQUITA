@@ -5,12 +5,13 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { supabaseAnonKey, supabaseUrl } from '@/lib/env';
+import { authCookieName, supabaseAnonKey, supabaseUrl } from '@/lib/env';
 import type { Database } from '@cerquita/shared';
 
 export async function createClient() {
   const cookieStore = await cookies();
   return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: { name: authCookieName },
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (list) => {
