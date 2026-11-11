@@ -4,6 +4,7 @@ import {
   formatRating,
   formatSoles,
   debtMessage,
+  formatSchedule,
   proLevel,
   debtState,
   formatSolesShort,
@@ -31,6 +32,7 @@ import { confirm } from '@/lib/confirm';
 import type { NearbyJob } from '@/orders/types';
 import { useDebt } from '@/pro/use-debt';
 import { getCurrentPoint } from '@/lib/location';
+import { startPresence, stopPresence } from '@/service/tracking';
 import { supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
 import { colors, fonts, radii } from '@/theme';
@@ -109,6 +111,8 @@ export default function Solicitudes() {
       if (p) await supabase.rpc('update_presence', { p_lat: p.latitude, p_lng: p.longitude });
     };
     ping();
+    // En el teléfono, en segundo plano (ACCESS_BACKGROUND_LOCATION); el intervalo queda de respaldo.
+    startPresence().catch(() => undefined);
     const id = setInterval(ping, 60000);
     return () => clearInterval(id);
   }, [online]);
@@ -137,6 +141,7 @@ export default function Solicitudes() {
           .insert({ pro_id: uid, radius_m: status.radiusM, ...values });
     setSwitching(false);
     if (saveError) setError('No pudimos cambiar tu estado. Intenta de nuevo.');
+    if (!next) await stopPresence();
     await load();
   }
 
@@ -310,6 +315,11 @@ export default function Solicitudes() {
                 {job.video_path && (
                   <Text style={styles.secondary}>
                     🎥 Video de {job.video_seconds} s · expira en 48 h
+                  </Text>
+                )}
+                {job.schedule_kind !== 'now' && (
+                  <Text style={styles.secondary}>
+                    🗓 {formatSchedule(job.scheduled_for, job.schedule_kind)}
                   </Text>
                 )}
                 {job.diagnostic_visit && (

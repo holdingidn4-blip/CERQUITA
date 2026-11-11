@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/auth-provider';
 import { OffAppWarning } from '@/components/off-app-warning';
+import { ReportBlock } from '@/components/report-block';
 import { supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
 import { colors, fonts, radii } from '@/theme';
@@ -28,6 +29,7 @@ export default function Chat() {
   const me = session?.user.id;
   const [messages, setMessages] = useState<Message[]>([]);
   const [other, setOther] = useState<string>('');
+  const [otherId, setOtherId] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const list = useRef<ComponentRef<typeof FlatList<Message>>>(null);
@@ -44,9 +46,10 @@ export default function Chat() {
   usePolling(load, 8000);
 
   useEffect(() => {
-    supabase
-      .rpc('job_counterpart', { p_job: id })
-      .then(({ data }) => setOther(data?.[0]?.name ?? ''));
+    supabase.rpc('job_counterpart', { p_job: id }).then(({ data }) => {
+      setOther(data?.[0]?.name ?? '');
+      setOtherId(data?.[0]?.id ?? null);
+    });
     const channel = supabase
       .channel(`chat:${id}`)
       .on(
@@ -100,6 +103,9 @@ export default function Chat() {
             <Text style={styles.back}>‹</Text>
           </Pressable>
           <Text style={styles.title}>{other || 'Mensajes'}</Text>
+        </View>
+        <View style={styles.warning}>
+          {otherId && <ReportBlock userId={otherId} name={other} jobId={id} />}
         </View>
         <View style={styles.warning}>
           <OffAppWarning />

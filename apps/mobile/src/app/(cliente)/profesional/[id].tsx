@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
+import { ReportBlock } from '@/components/report-block';
 import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, radii } from '@/theme';
@@ -105,6 +106,13 @@ export default function PerfilProfesional() {
           <Text style={styles.error} accessibilityRole="alert">
             {error}
           </Text>
+        )}
+        {profile.full_name && (
+          <ReportBlock
+            userId={id}
+            name={profile.full_name.split(' ')[0] ?? 'este profesional'}
+            jobId={jobId}
+          />
         )}
         {offer && (
           <View style={styles.footer}>

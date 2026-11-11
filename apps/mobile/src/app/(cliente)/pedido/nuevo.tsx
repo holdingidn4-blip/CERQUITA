@@ -4,7 +4,14 @@ import {
   MAX_JOB_PRICE_CENTS,
   MIN_JOB_PRICE_CENTS,
   parseSolesToCents,
+  formatSchedule,
+  laterTodayOptions,
+  limaDate,
   MAX_VIDEO_SECONDS,
+  SCHEDULE_HOURS,
+  SCHEDULE_LABELS,
+  scheduleDayOptions,
+  type ScheduleKind,
   PRICING_UNIT_LABELS,
   TEMP_VIDEO_NOTICE,
   tradePlural,
@@ -34,6 +41,9 @@ export default function NuevoPedido() {
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [video, setVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [diagnostic, setDiagnostic] = useState(false);
+  const [scheduleKind, setScheduleKind] = useState<ScheduleKind>('now');
+  const [scheduledFor, setScheduledFor] = useState<Date | null>(null);
+  const [dayIndex, setDayIndex] = useState(0);
   const [diagnosticFee, setDiagnosticFee] = useState<number | null>(null);
   const [address, setAddress] = useState('');
   const [reference, setReference] = useState('');
@@ -112,6 +122,8 @@ export default function NuevoPedido() {
   }
 
   async function publish() {
+    if (scheduleKind !== 'now' && !scheduledFor)
+      return setError('Elige el día y la hora del servicio.');
     setError(null);
     if (!trade) return;
     if (description.trim().length < 10)
@@ -142,6 +154,8 @@ export default function NuevoPedido() {
         offered_price_cents: priceCents,
         units: unit === 'job' ? 1 : units,
         diagnostic_visit: diagnostic,
+        schedule_kind: scheduleKind,
+        scheduled_for: scheduleKind === 'now' ? null : (scheduledFor?.toISOString() ?? null),
         approx_point: approxPointWkt(point.latitude, point.longitude),
         exact_address: exactAddress,
       })
@@ -282,6 +296,101 @@ export default function NuevoPedido() {
           </Text>
         </Pressable>
 
+        <View style={styles.field}>
+          <Text style={styles.label}>¿Cuándo?</Text>
+          <View
+            style={styles.scheduleRow}
+            accessibilityRole="radiogroup"
+            accessibilityLabel="Cuándo"
+          >
+            {(['now', 'later_today', 'scheduled'] as const).map((k) => (
+              <Pressable
+                key={k}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: scheduleKind === k }}
+                onPress={() => {
+                  setScheduleKind(k);
+                  setScheduledFor(null);
+                }}
+                style={[styles.scheduleChip, scheduleKind === k && styles.scheduleChipOn]}
+              >
+                <Text style={[styles.scheduleText, scheduleKind === k && styles.scheduleTextOn]}>
+                  {SCHEDULE_LABELS[k]}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {scheduleKind === 'later_today' && (
+            <View style={styles.scheduleRow}>
+              {laterTodayOptions().length === 0 && (
+                <Text style={styles.secondary}>Ya es tarde para hoy: programa para mañana.</Text>
+              )}
+              {laterTodayOptions().map((d) => (
+                <Pressable
+                  key={d.toISOString()}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: scheduledFor?.getTime() === d.getTime() }}
+                  onPress={() => setScheduledFor(d)}
+                  style={[
+                    styles.hourChip,
+                    scheduledFor?.getTime() === d.getTime() && styles.scheduleChipOn,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.scheduleText,
+                      scheduledFor?.getTime() === d.getTime() && styles.scheduleTextOn,
+                    ]}
+                  >
+                    {formatSchedule(d, 'later_today').replace('Hoy, ', '')}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+          {scheduleKind === 'scheduled' && (
+            <>
+              <View style={styles.scheduleRow}>
+                {scheduleDayOptions().map((day, i) => (
+                  <Pressable
+                    key={`${day.m}-${day.d}`}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: dayIndex === i }}
+                    onPress={() => setDayIndex(i)}
+                    style={[styles.hourChip, dayIndex === i && styles.scheduleChipOn]}
+                  >
+                    <Text style={[styles.scheduleText, dayIndex === i && styles.scheduleTextOn]}>
+                      {formatSchedule(limaDate(day.y, day.m, day.d, 12)).split(',')[0]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View style={styles.scheduleRow}>
+                {SCHEDULE_HOURS.map((h) => {
+                  const day = scheduleDayOptions()[dayIndex]!;
+                  const d = limaDate(day.y, day.m, day.d, h);
+                  const on = scheduledFor?.getTime() === d.getTime();
+                  return (
+                    <Pressable
+                      key={h}
+                      accessibilityRole="radio"
+                      accessibilityState={{ selected: on }}
+                      onPress={() => setScheduledFor(d)}
+                      style={[styles.hourChip, on && styles.scheduleChipOn]}
+                    >
+                      <Text style={[styles.scheduleText, on && styles.scheduleTextOn]}>
+                        {String(h).padStart(2, '0')}:00
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          )}
+          {scheduledFor && (
+            <Text style={styles.secondary}>🗓 {formatSchedule(scheduledFor, scheduleKind)}</Text>
+          )}
+        </View>
         <View style={styles.field}>
           <Text style={styles.label} nativeID="addr-label">
             Dirección
@@ -450,6 +559,31 @@ const styles = StyleSheet.create({
   addPhotoText: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   secondary: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: colors.textSecondary },
   flex: { flex: 1 },
+  scheduleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  scheduleChip: {
+    flexGrow: 1,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    borderColor: '#D5D0C3',
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  hourChip: {
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#D5D0C3',
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+  },
+  scheduleChipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  scheduleText: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.text },
+  scheduleTextOn: { color: colors.surface },
   videoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   diagnostic: {
     borderWidth: 1.5,

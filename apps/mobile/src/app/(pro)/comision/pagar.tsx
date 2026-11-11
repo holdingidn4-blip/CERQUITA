@@ -16,7 +16,14 @@ import { supabase } from '@/lib/supabase';
 import { useDebt } from '@/pro/use-debt';
 import { colors, fonts, radii } from '@/theme';
 
-type Company = { yape: string; plin: string; holder: string; bank: string };
+type Company = {
+  yape: string;
+  plin: string;
+  holder: string;
+  bank: string;
+  yapeQr: string;
+  plinQr: string;
+};
 
 /**
  * Pantalla 15: el pago se hace FUERA de la app (Yape, Plin o transferencia a la empresa) y aquí solo se
@@ -28,7 +35,14 @@ export default function PagarComision() {
   const [amount, setAmount] = useState('');
   const [operation, setOperation] = useState('');
   const [photo, setPhoto] = useState<ImagePicker.ImagePickerAsset | null>(null);
-  const [company, setCompany] = useState<Company>({ yape: '', plin: '', holder: '', bank: '' });
+  const [company, setCompany] = useState<Company>({
+    yape: '',
+    plin: '',
+    holder: '',
+    bank: '',
+    yapeQr: '',
+    plinQr: '',
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,28 +51,34 @@ export default function PagarComision() {
       .from('settings')
       .select('key, value')
       .in('key', [
-        'company_yape_number',
-        'company_plin_number',
-        'company_account_holder',
-        'company_bank_account',
+        'yape_number',
+        'plin_number',
+        'account_holder',
+        'bank_account',
+        'yape_qr_url',
+        'plin_qr_url',
       ])
       .then(({ data }) => {
         const get = (k: string) => String(data?.find((r) => r.key === k)?.value ?? '');
         setCompany({
-          yape: get('company_yape_number'),
-          plin: get('company_plin_number'),
-          holder: get('company_account_holder'),
-          bank: get('company_bank_account'),
+          yape: get('yape_number'),
+          plin: get('plin_number'),
+          holder: get('account_holder'),
+          bank: get('bank_account'),
+          yapeQr: get('yape_qr_url'),
+          plinQr: get('plin_qr_url'),
         });
       });
   }, []);
 
+  // Datos dinámicos de settings (los edita un administrador en el panel → Parámetros).
   const destination =
     method === 'yape'
-      ? company.yape || '[NÚMERO]'
+      ? company.yape || 'Número no configurado'
       : method === 'plin'
-        ? company.plin || '[NÚMERO]'
-        : company.bank || '[CUENTA]';
+        ? company.plin || 'Número no configurado'
+        : company.bank || 'Cuenta no configurada';
+  const qr = method === 'yape' ? company.yapeQr : method === 'plin' ? company.plinQr : '';
 
   async function pick() {
     const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
@@ -133,7 +153,14 @@ export default function PagarComision() {
         <View style={styles.card}>
           <Text style={styles.label}>Paga a Cerquita por {PAYMENT_METHOD_LABELS[method]}</Text>
           <Text style={styles.big}>{destination}</Text>
-          <Text style={styles.secondary}>Titular: {company.holder || '[TITULAR]'}</Text>
+          <Text style={styles.secondary}>Titular: {company.holder || 'por configurar'}</Text>
+          {qr !== '' && (
+            <Image
+              source={{ uri: qr }}
+              style={styles.qr}
+              accessibilityLabel={`QR de ${PAYMENT_METHOD_LABELS[method]}`}
+            />
+          )}
           <Text style={styles.secondary}>
             Luego sube aquí la constancia. Soporte la revisa y la descuenta de tu comisión.
           </Text>
@@ -214,6 +241,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 16,
   },
+  qr: { width: 180, height: 180, alignSelf: 'center', borderRadius: radii.md },
   photo: { width: '100%', height: 200, borderRadius: radii.md },
   error: {
     fontFamily: fonts.bodyMedium,

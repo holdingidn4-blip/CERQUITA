@@ -14,6 +14,9 @@ import { supabase } from '@/lib/supabase';
  */
 export const TRACKING_TASK = 'cerquita-tracking';
 const JOB_KEY = 'cerquita:tracking-job';
+const MODE_KEY = 'cerquita:tracking-mode';
+/** Modo presencia: pro en línea sin servicio. Solo la última posición va al servidor (antifraude), sin historial. */
+const PRESENCE = 'presence';
 
 let webWatch: Location.LocationSubscription | null = null;
 let pending: { latitude: number; longitude: number } | null = null;
@@ -67,6 +70,7 @@ export async function startTracking(
   const fg = await Location.requestForegroundPermissionsAsync();
   if (fg.status !== 'granted') return false;
   await AsyncStorage.setItem(JOB_KEY, jobId);
+  await AsyncStorage.setItem(MODE_KEY, 'job');
 
   if (Platform.OS === 'web') {
     webWatch?.remove();
@@ -118,4 +122,44 @@ export async function stopTracking(): Promise<void> {
 export async function hasLocationPermission(): Promise<boolean> {
   const { status } = await Location.getForegroundPermissionsAsync();
   return status === 'granted';
+}
+
+/**
+ * Pro en línea sin servicio: comparte su última posición SOLO con el servidor cada ~2 min o 100 m
+ * (ACCESS_BACKGROUND_LOCATION), para el reparto por radio y la detección de bypass. Se detiene al desconectarse.
+ */
+export async function startPresence(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
+  if ((await AsyncStorage.getItem(MODE_KEY)) === 'job' && (await AsyncStorage.getItem(JOB_KEY)))
+    return true; // ya hay un servicio
+  const fg = await Location.requestForegroundPermissionsAsync();
+  if (fg.status !== 'granted') return false;
+  const bg = await Location.requestBackgroundPermissionsAsync().catch(() => ({ status: 'denied' }));
+  if (bg.status !== 'granted') return false;
+  await AsyncStorage.setItem(MODE_KEY, PRESENCE);
+  if (await Location.hasStartedLocationUpdatesAsync(TRACKING_TASK))
+    await Location.stopLocationUpdatesAsync(TRACKING_TASK);
+  await Location.startLocationUpdatesAsync(TRACKING_TASK, {
+    accuracy: Location.Accuracy.Balanced,
+    timeInterval: 120000,
+    distanceInterval: 100,
+    pausesUpdatesAutomatically: true,
+    foregroundService: {
+      notificationTitle: 'Estás en línea en Cerquita',
+      notificationBody: 'Recibes pedidos cerca. Desconéctate para dejar de compartir tu ubicación.',
+      notificationColor: '#0E5A4B',
+    },
+  });
+  return true;
+}
+
+export async function stopPresence(): Promise<void> {
+  if ((await AsyncStorage.getItem(MODE_KEY)) !== PRESENCE) return;
+  await AsyncStorage.removeItem(MODE_KEY);
+  if (
+    Platform.OS !== 'web' &&
+    (await Location.hasStartedLocationUpdatesAsync(TRACKING_TASK).catch(() => false))
+  ) {
+    await Location.stopLocationUpdatesAsync(TRACKING_TASK);
+  }
 }

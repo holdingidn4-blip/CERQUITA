@@ -8,6 +8,7 @@
     "@expo-google-fonts/space-grotesk": "^0.4.1",
     "@expo/ui": "~58.0.27",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@sentry/react-native": "~8.28.0",
     "@supabase/supabase-js": "^2.119.0",
     "expo": "~58.0.23",
     "expo-battery": "~58.0.3",
@@ -19,12 +20,14 @@
     "expo-image-picker": "~58.0.10",
     "expo-linking": "~58.0.16",
     "expo-location": "~58.0.20",
+    "expo-notifications": "~58.1.9",
     "expo-router": "~58.0.30",
     "expo-splash-screen": "~58.0.13",
     "expo-status-bar": "~58.0.4",
     "expo-symbols": "~58.0.4",
     "expo-system-ui": "~58.0.7",
     "expo-task-manager": "~58.0.13",
+    "expo-updates": "~58.0.22",
     "expo-video": "~58.0.14",
     "expo-web-browser": "~58.0.7",
     "react": "19.3.0",
@@ -53,8 +56,9 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'sin pruebas aún en mobile'",
-    "doctor": "expo-doctor"
+    "test": "echo 'sin pruebas a\u00fan en mobile'",
+    "doctor": "expo-doctor",
+    "dev": "expo start"
   },
   "private": true
 }

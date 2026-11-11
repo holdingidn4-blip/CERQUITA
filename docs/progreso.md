@@ -1,6 +1,6 @@
 # Cerquita · Progreso del MVP
 
-Última actualización: **MVP completo + Piloto Huancayo + módulo de confianza (video, chat interno, lista negra, puntos)** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
+Última actualización: **pre-lanzamiento: push, reportes, soporte, programación, panel completo e infraestructura de producción** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
 
 | Fase | Estado | Criterio de cierre | Cómo se comprueba |
 | --- | --- | --- | --- |
@@ -17,13 +17,38 @@
 
 | Tipo | Cantidad | Comando |
 | --- | --- | --- |
-| Unitarias (`packages/shared`) | 145 | `pnpm test` |
-| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro, privacidad, SOS, piloto y confianza) | 333 | `pnpm db:test` |
+| Unitarias (`packages/shared`, cobertura 97,5 % de sentencias) | 153 | `pnpm test` |
+| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro, privacidad, SOS, piloto, confianza y pre-lanzamiento) | 378 | `pnpm db:test` |
 | Humo del ingreso por SMS (Auth local) | 7 | `pnpm db:smoke` |
 | Navegación de punta a punta (app web + panel) | 92 | `pnpm e2e` |
 
 Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && next start --port 3001` y la app con
 `expo export --platform web` servida en el puerto 8099 (ver `e2e/flujos.mjs`). El CI hace todo esto en el job `e2e`.
+
+## Pre-lanzamiento (bloqueantes de tiendas e infraestructura)
+
+Migración `20261112000100_prelaunch.sql`; pruebas en `supabase/tests/prelaunch.test.sql`; runbook en `docs/produccion.md`.
+
+| Bloque | Cómo quedó |
+| --- | --- |
+| Push | `expo-notifications` en la app (token en `push_tokens`, tocar la notificación abre su pantalla). Triggers encolan en `notification_outbox`: pedido nuevo → pros cercanos (PostGIS, oficio aprobado, en línea, sin bloqueo); oferta → cliente; mensaje → la otra parte; aceptado, en camino, llegó, reevaluado, precio aprobado, terminado, confirmado y cancelado. Edge Function `send-push` (Expo Push, lotes de 100, borra tokens dados de baja, 3 reintentos) invocada por pg_cron cada minuto. |
+| Identidad visual | Ícono, ícono adaptativo (fondo, frente y monocromo), splash y favicon propios (pin con casa, `#0E5A4B`); se eliminaron los assets de la plantilla de Expo. |
+| Reportar y bloquear | En el chat, el perfil del profesional y el servicio del pro. `report_user` y `block_user` exigen un pedido en común; el bloqueo corta chat, ofertas, pedidos visibles y notificaciones. Panel → Reportes. |
+| Ayuda y soporte | Cuenta → Ayuda y soporte (`support_tickets`): categorías, historial y respuestas; soporte responde en el panel y el usuario recibe un push. |
+| Monitoreo | `@sentry/react-native` (se activa con `EXPO_PUBLIC_SENTRY_DSN`; sin IP ni datos personales). Panel: errores del servidor en JSON (`instrumentation.ts`). |
+| OTA | `expo-updates` con `runtimeVersion` por versión de la app y canales en `eas.json`; `app.config.ts` agrega `updates.url` con `EAS_PROJECT_ID`. |
+| GPS en segundo plano | Pro en línea: tarea en segundo plano (`ACCESS_BACKGROUND_LOCATION`, notificación visible) que envía solo la última posición al servidor cada ~2 min o 100 m (antifraude y reparto); se detiene al desconectarse. |
+| Programación | `jobs.schedule_kind` (Ahora, Hoy más tarde, Programado) + `scheduled_for` (validado: hoy o hasta 30 días). Selector en el nuevo pedido; el pro ve el horario. |
+| Panel | Buscador global (usuarios y pedidos), ficha de usuario con suspensión manual (bloquea en Auth, auditado en `admin_actions`) y reversión de asientos (idempotente), ficha de pedido, Reportes, Soporte, y tarifario y catálogo editables. |
+| Producción | `scripts/deploy-production.sh` (migraciones con confirmación, Edge Function, secretos, Vault, seed y usuarios de soporte), `.env.production.example`, `supabase/seed_huancayo_production.sql`, `apps/admin/scripts/seed-staff.mjs`, `eas.json` con builds y submit para Android y iOS (TestFlight). |
+| Anti-abuso SMS | Hook “before user created” (`hook_before_user_created`): solo celulares +51 9XXXXXXXX (probado contra Auth local). Rate limits y captcha (Turnstile/hCaptcha) documentados para el Dashboard. |
+| Pagos | La pantalla 15 lee `yape_number`, `plin_number`, `yape_qr_url`, `plin_qr_url`, `account_holder` y `bank_account` de `settings` (panel → Parámetros); ya no hay placeholders. |
+
+### Decisiones y límites
+- **reCAPTCHA v3** no es compatible con Supabase Auth: se dejó preparado Turnstile/hCaptcha y se agregó el filtro por país, que corta el bombeo de SMS internacional.
+- **Tarifario y catálogo de producción:** valores **estimados de referencia**, no relevados en campo ni cotizados en tienda. Hay que validarlos antes de publicar.
+- **Edge Function:** no se puede ejecutar en este entorno (sin edge-runtime). Su lógica pura tiene pruebas unitarias y los destinatarios de cada evento, pgTAP.
+- **Sentry en el panel:** se usa el registro estructurado de Next.js; `@sentry/nextjs` se puede sumar después si se contrata.
 
 ## Módulo de confianza: diagnóstico exprés, chat interno, lista negra y gamificación
 

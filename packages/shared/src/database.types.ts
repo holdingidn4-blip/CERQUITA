@@ -3,6 +3,52 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      admin_actions: {
+        Row: {
+          action: string;
+          actor_id: string;
+          created_at: string;
+          id: number;
+          note: string;
+          target_entry: string | null;
+          target_user: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: string;
+          actor_id: string;
+          created_at?: string;
+          id?: never;
+          note: string;
+          target_entry?: string | null;
+          target_user?: string | null;
+        };
+        Update: {
+          action?: string;
+          actor_id?: string;
+          created_at?: string;
+          id?: never;
+          note?: string;
+          target_entry?: string | null;
+          target_user?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'admin_actions_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'admin_actions_target_user_fkey';
+            columns: ['target_user'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       blacklisted_locations: {
         Row: {
           active: boolean;
@@ -361,6 +407,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -411,6 +459,8 @@ export type Database = {
           reeval_materials_cents?: number | null;
           reeval_proposed_at?: string | null;
           reeval_receipt_path?: string | null;
+          schedule_kind?: string;
+          scheduled_for?: string | null;
           security_code?: string | null;
           started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
@@ -460,6 +510,8 @@ export type Database = {
           reeval_materials_cents?: number | null;
           reeval_proposed_at?: string | null;
           reeval_receipt_path?: string | null;
+          schedule_kind?: string;
+          scheduled_for?: string | null;
           security_code?: string | null;
           started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
@@ -548,6 +600,57 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      notification_outbox: {
+        Row: {
+          attempts: number;
+          body: string;
+          created_at: string;
+          data: NonNullable<Json>;
+          error: string | null;
+          id: number;
+          kind: string;
+          sent_at: string | null;
+          status: string;
+          title: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempts?: number;
+          body: string;
+          created_at?: string;
+          data?: NonNullable<Json>;
+          error?: string | null;
+          id?: never;
+          kind: string;
+          sent_at?: string | null;
+          status?: string;
+          title: string;
+          user_id: string;
+        };
+        Update: {
+          attempts?: number;
+          body?: string;
+          created_at?: string;
+          data?: NonNullable<Json>;
+          error?: string | null;
+          id?: never;
+          kind?: string;
+          sent_at?: string | null;
+          status?: string;
+          title?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_outbox_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       offers: {
         Row: {
@@ -810,6 +913,8 @@ export type Database = {
           full_name: string | null;
           id: string;
           phone: string | null;
+          suspended_at: string | null;
+          suspended_reason: string | null;
           updated_at: string;
         };
         ComputedFields: never;
@@ -822,6 +927,8 @@ export type Database = {
           full_name?: string | null;
           id: string;
           phone?: string | null;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           updated_at?: string;
         };
         Update: {
@@ -833,9 +940,41 @@ export type Database = {
           full_name?: string | null;
           id?: string;
           phone?: string | null;
+          suspended_at?: string | null;
+          suspended_reason?: string | null;
           updated_at?: string;
         };
         Relationships: [];
+      };
+      push_tokens: {
+        Row: {
+          platform: string;
+          token: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          platform: string;
+          token: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          platform?: string;
+          token?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_tokens_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       ratings: {
         Row: {
@@ -980,6 +1119,71 @@ export type Database = {
           },
         ];
       };
+      support_tickets: {
+        Row: {
+          body: string;
+          category: string;
+          created_at: string;
+          id: string;
+          job_id: string | null;
+          replied_at: string | null;
+          replied_by: string | null;
+          staff_reply: string | null;
+          status: string;
+          subject: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          category: string;
+          created_at?: string;
+          id?: string;
+          job_id?: string | null;
+          replied_at?: string | null;
+          replied_by?: string | null;
+          staff_reply?: string | null;
+          status?: string;
+          subject: string;
+          user_id?: string;
+        };
+        Update: {
+          body?: string;
+          category?: string;
+          created_at?: string;
+          id?: string;
+          job_id?: string | null;
+          replied_at?: string | null;
+          replied_by?: string | null;
+          staff_reply?: string | null;
+          status?: string;
+          subject?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'support_tickets_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'support_tickets_replied_by_fkey';
+            columns: ['replied_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'support_tickets_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       trade_rate_cards: {
         Row: {
           city_slug: string;
@@ -1092,6 +1296,112 @@ export type Database = {
           {
             foreignKeyName: 'trusted_contacts_user_id_fkey';
             columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user_blocks: {
+        Row: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          blocked_id: string;
+          blocker_id: string;
+          created_at?: string;
+        };
+        Update: {
+          blocked_id?: string;
+          blocker_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_blocks_blocked_id_fkey';
+            columns: ['blocked_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_blocks_blocker_id_fkey';
+            columns: ['blocker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user_reports: {
+        Row: {
+          created_at: string;
+          details: string | null;
+          id: string;
+          job_id: string | null;
+          note: string | null;
+          reason: string;
+          reported_id: string;
+          reporter_id: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          details?: string | null;
+          id?: string;
+          job_id?: string | null;
+          note?: string | null;
+          reason: string;
+          reported_id: string;
+          reporter_id: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: string;
+        };
+        Update: {
+          created_at?: string;
+          details?: string | null;
+          id?: string;
+          job_id?: string | null;
+          note?: string | null;
+          reason?: string;
+          reported_id?: string;
+          reporter_id?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_reports_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_reports_reported_id_fkey';
+            columns: ['reported_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_reports_reporter_id_fkey';
+            columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_reports_reviewed_by_fkey';
+            columns: ['reviewed_by'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -1247,6 +1557,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1265,6 +1577,41 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      admin_reverse_entry: {
+        Args: { p_entry: string; p_note: string };
+        Returns: {
+          amount_cents: number;
+          balance_after_cents: number;
+          created_at: string;
+          created_by: string | null;
+          external_ref: string | null;
+          id: string;
+          idempotency_key: string;
+          job_id: string | null;
+          professional_id: string;
+          type: Database['public']['Enums']['wallet_entry_type'];
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'wallet_entries';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      admin_search: {
+        Args: { p_query: string };
+        Returns: {
+          created_at: string;
+          id: string;
+          kind: string;
+          subtitle: string;
+          title: string;
+        }[];
+      };
+      admin_set_suspension: {
+        Args: { p_reason: string; p_suspend: boolean; p_user: string };
+        Returns: undefined;
       };
       answer_reevaluation: {
         Args: { p_approve: boolean; p_job: string };
@@ -1305,6 +1652,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1363,6 +1712,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1421,6 +1772,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1479,6 +1832,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1498,6 +1853,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      block_user: { Args: { p_user: string }; Returns: undefined };
       bypass_queue: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -1553,6 +1909,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1626,6 +1984,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1707,6 +2067,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1726,6 +2088,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      hook_before_user_created: { Args: { event: Json }; Returns: Json };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       job_caution: { Args: { p_job: string }; Returns: boolean };
@@ -1805,6 +2168,8 @@ export type Database = {
           offered_price_cents: number;
           photos: string[];
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          schedule_kind: string;
+          scheduled_for: string;
           trade_id: number;
           trade_name: string;
           units: number;
@@ -1821,6 +2186,7 @@ export type Database = {
           trade_id: number;
         }[];
       };
+      outbox_mark_failed: { Args: { p_error: string; p_ids: number[] }; Returns: undefined };
       price_hint: {
         Args: { p_trade: number };
         Returns: {
@@ -1915,6 +2281,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
@@ -1941,6 +2309,57 @@ export type Database = {
           full_name: string;
           id: string;
         }[];
+      };
+      register_push_token: { Args: { p_platform: string; p_token: string }; Returns: undefined };
+      reply_ticket: {
+        Args: { p_close?: boolean; p_reply: string; p_ticket: string };
+        Returns: {
+          body: string;
+          category: string;
+          created_at: string;
+          id: string;
+          job_id: string | null;
+          replied_at: string | null;
+          replied_by: string | null;
+          staff_reply: string | null;
+          status: string;
+          subject: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'support_tickets';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      report_user: {
+        Args: {
+          p_block?: boolean;
+          p_details?: string;
+          p_job?: string;
+          p_reason: string;
+          p_user: string;
+        };
+        Returns: {
+          created_at: string;
+          details: string | null;
+          id: string;
+          job_id: string | null;
+          note: string | null;
+          reason: string;
+          reported_id: string;
+          reporter_id: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'user_reports';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       resolve_claim: {
         Args: { p_claim: string; p_resolution: string; p_status: string };
@@ -2023,6 +2442,28 @@ export type Database = {
         SetofOptions: {
           from: '*';
           to: 'pro_trades';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      review_report: {
+        Args: { p_note: string; p_report: string; p_status: string };
+        Returns: {
+          created_at: string;
+          details: string | null;
+          id: string;
+          job_id: string | null;
+          note: string | null;
+          reason: string;
+          reported_id: string;
+          reporter_id: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'user_reports';
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -2128,6 +2569,8 @@ export type Database = {
           reeval_materials_cents: number | null;
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];

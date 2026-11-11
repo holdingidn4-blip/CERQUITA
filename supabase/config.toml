@@ -213,10 +213,12 @@ token_verifications = 30
 web3 = 30
 
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
+# Captcha contra bots en el envío de SMS. Supabase Auth soporta hCaptcha y Cloudflare Turnstile
+# (no reCAPTCHA v3). TODO(decidir): activarlo en producción exige enviar captchaToken desde la app y el panel.
 # [auth.captcha]
 # enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# provider = "turnstile"
+# secret = "env(SUPABASE_AUTH_CAPTCHA_SECRET)"
 
 [auth.email]
 # Allow/disallow the email provider. When false, users can't sign up or sign in with email.
@@ -289,9 +291,10 @@ max_frequency = "60s"
 # inactivity_timeout = "8h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
-# [auth.hook.before_user_created]
-# enabled = true
-# uri = "pg-functions://postgres/auth/before-user-created-hook"
+# Anti-abuso de SMS: solo celulares peruanos (+51 9XXXXXXXX). Ver public.hook_before_user_created.
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_before_user_created"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
 # [auth.hook.custom_access_token]

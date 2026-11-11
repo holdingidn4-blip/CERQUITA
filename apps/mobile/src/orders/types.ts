@@ -1,4 +1,4 @@
-import type { OfferStatus, PricingUnit } from '@cerquita/shared';
+import type { OfferStatus, PricingUnit, ScheduleKind } from '@cerquita/shared';
 
 /** Fila de public.nearby_jobs(): nunca trae dirección exacta, teléfono ni coordenadas. */
 export type NearbyJob = {
@@ -22,4 +22,6 @@ export type NearbyJob = {
   video_expires_at: string | null;
   diagnostic_visit: boolean;
   caution: boolean;
+  schedule_kind: ScheduleKind;
+  scheduled_for: string | null;
 };

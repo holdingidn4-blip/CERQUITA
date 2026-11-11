@@ -15,6 +15,14 @@ const INTEGER_KEYS = new Set([
   'full_approval_min_stars',
   'min_trade_evidence',
   'reject_retry_days',
+  'diagnostic_visit_fee_cents',
+  'default_visit_fee_cents',
+  'points_per_sol',
+  'point_value_cents',
+  'max_points_discount_pct',
+  'bypass_minutes',
+  'bypass_radius_m',
+  'bypass_max_per_week',
 ]);
 
 export async function saveParam(

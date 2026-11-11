@@ -25,6 +25,7 @@ import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
 import { CautionBadge } from '@/components/caution-badge';
 import { OffAppWarning } from '@/components/off-app-warning';
+import { ReportBlock } from '@/components/report-block';
 import { Stars } from '@/components/stars';
 import { BreakdownCard } from '@/service/breakdown-card';
 import { ReevaluatePanel } from '@/service/reevaluate-panel';
@@ -296,6 +297,7 @@ export default function Trabajo() {
           </Text>
         )}
         {job.status !== 'cancelled' && <OffAppWarning />}
+        {other && <ReportBlock userId={other.id} name={other.name} jobId={job.id} />}
 
         {['accepted', 'on_the_way', 'at_home', 'price_renegotiated'].includes(job.status) &&
           (cancelling ? (

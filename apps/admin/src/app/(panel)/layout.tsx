@@ -23,6 +23,14 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
   const sos = sosAlerts?.length ?? 0;
   const { data: bypass } = await supabase.rpc('bypass_queue');
   const suspicions = (bypass ?? []).filter((b) => b.status === 'open').length;
+  const { count: tickets } = await supabase
+    .from('support_tickets')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'open');
+  const { count: reportsOpen } = await supabase
+    .from('user_reports')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'open');
   const { data: me } = await supabase
     .from('profiles')
     .select('full_name')
@@ -34,6 +42,9 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
       <aside className={styles.sidebar}>
         <div className={styles.brand}>Cerquita · Admin</div>
         <nav className={styles.nav} aria-label="Secciones">
+          <Link href="/buscar" className={styles.navItem}>
+            Buscar
+          </Link>
           <Link href="/verificacion" className={styles.navItem}>
             Verificación <span className={styles.count}>{count ?? 0}</span>
           </Link>
@@ -45,6 +56,12 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           </Link>
           <Link href="/sospechas" className={styles.navItem}>
             Sospechas <span className={styles.count}>{suspicions}</span>
+          </Link>
+          <Link href="/soporte" className={styles.navItem}>
+            Soporte <span className={styles.count}>{tickets ?? 0}</span>
+          </Link>
+          <Link href="/reportes" className={styles.navItem}>
+            Reportes <span className={styles.count}>{reportsOpen ?? 0}</span>
           </Link>
           <Link href="/reclamos" className={styles.navItem}>
             Reclamos

@@ -16,10 +16,14 @@ const LABELS: Record<string, string> = {
   full_approval_min_stars: 'Estrellas mínimas que cuentan',
   min_trade_evidence: 'Evidencias mínimas por oficio',
   reject_retry_days: 'Días para reintentar tras rechazo',
-  company_yape_number: 'Yape de la empresa',
-  company_plin_number: 'Plin de la empresa',
-  company_account_holder: 'Titular de la cuenta',
-  company_bank_account: 'Cuenta bancaria (transferencias)',
+  yape_number: 'Yape de la empresa (número)',
+  plin_number: 'Plin de la empresa (número)',
+  yape_qr_url: 'QR de Yape (URL de imagen)',
+  plin_qr_url: 'QR de Plin (URL de imagen)',
+  account_holder: 'Titular de la cuenta',
+  bank_account: 'Cuenta bancaria (transferencias)',
+  push_function_url: 'URL de la Edge Function send-push',
+  diagnostic_visit_fee_cents: 'Visita de diagnóstico (céntimos)',
 };
 
 export default async function Parametros() {

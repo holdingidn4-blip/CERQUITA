@@ -7,6 +7,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from '@/auth/auth-provider';
+import { withMonitoring } from '@/lib/monitoring';
+import { listenToNotificationTaps, registerForPush } from '@/lib/notifications';
 // Registra la tarea de ubicación en segundo plano al arrancar (expo-task-manager lo exige).
 import '@/service/tracking';
 import { colors } from '@/theme';
@@ -14,7 +16,14 @@ import { colors } from '@/theme';
 SplashScreen.preventAutoHideAsync();
 
 function Navigator() {
-  const { loading } = useAuth();
+  const { loading, session } = useAuth();
+  const userId = session?.user.id;
+
+  // Push: registra el token al iniciar sesión y abre la pantalla de la notificación al tocarla.
+  useEffect(() => {
+    if (userId) registerForPush().catch(() => undefined);
+  }, [userId]);
+  useEffect(() => listenToNotificationTaps(), []);
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -39,10 +48,12 @@ function Navigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   return (
     <AuthProvider>
       <Navigator />
     </AuthProvider>
   );
 }
+
+export default withMonitoring(RootLayout);
