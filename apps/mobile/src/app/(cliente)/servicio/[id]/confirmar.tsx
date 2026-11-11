@@ -1,6 +1,6 @@
 import { formatSoles, formatSolesShort, jobTitle } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,9 +15,14 @@ import { colors, fonts, radii } from '@/theme';
 /** Pantalla 11: el cliente aprueba el monto que marcó el profesional. */
 export default function Confirmar() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { job, other } = useService(id);
+  const { job, other, reload } = useService(id);
   const [busy, setBusy] = useState<'yes' | 'no' | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [points, setPoints] = useState(0);
+  const [applying, setApplying] = useState(false);
+  useEffect(() => {
+    supabase.rpc('my_points').then(({ data }) => setPoints(data ?? 0));
+  }, []);
 
   if (!job) {
     return (
@@ -96,6 +101,40 @@ export default function Confirmar() {
             currency={job.currency_code}
           />
         )}
+        {job.diagnostic_visit && (
+          <Text style={styles.secondary}>
+            La visita de diagnóstico ya está incluida: se descuenta de la mano de obra.
+          </Text>
+        )}
+        <View style={styles.card} testID="puntos">
+          <Text style={styles.name}>Puntos Cerquita: {points}</Text>
+          {job.points_discount_cents > 0 ? (
+            <Text style={styles.body}>
+              Descuento aplicado: −{formatSoles(job.points_discount_cents)} ({job.points_redeemed}{' '}
+              puntos). Cerquita se lo paga al profesional.
+            </Text>
+          ) : (
+            <Button
+              variant="outline"
+              label="Usar mis puntos"
+              loading={applying}
+              disabled={points === 0}
+              onPress={async () => {
+                setApplying(true);
+                const { error: e } = await supabase.rpc('apply_points', {
+                  p_job: id,
+                  p_points: points,
+                });
+                setApplying(false);
+                if (e) setError(e.message);
+                reload();
+              }}
+            />
+          )}
+          <Text style={styles.secondary}>
+            Ganas 1 punto por cada S/ 1 de mano de obra en trabajos confirmados en la app.
+          </Text>
+        </View>
         <OffAppWarning />
         <View style={styles.note}>
           <Text style={styles.noteText}>
@@ -112,7 +151,7 @@ export default function Confirmar() {
           </Text>
         )}
         <Button
-          label={`Confirmar ${formatSolesShort(proposed)}`}
+          label={`Confirmar ${formatSolesShort(proposed - job.points_discount_cents)}`}
           loading={busy === 'yes'}
           onPress={() => answer(true)}
         />

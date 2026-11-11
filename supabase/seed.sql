@@ -10,17 +10,20 @@ values
   ('00000000-0000-0000-0000-000000000000', '22222222-2222-2222-2222-222222222222', 'authenticated', 'authenticated',
    '51900000002', now(), '{"provider":"phone","providers":["phone"]}', '{}', now(), now()),
   ('00000000-0000-0000-0000-000000000000', '99999999-9999-9999-9999-999999999999', 'authenticated', 'authenticated',
-   '51900000009', now(), '{"provider":"phone","providers":["phone"],"staff_role":"reviewer"}', '{}', now(), now());
+   '51900000009', now(), '{"provider":"phone","providers":["phone"],"staff_role":"reviewer"}', '{}', now(), now()),
+  ('00000000-0000-0000-0000-000000000000', '88888888-8888-8888-8888-888888888888', 'authenticated', 'authenticated',
+   '51900000008', now(), '{"provider":"phone","providers":["phone"],"staff_role":"admin"}', '{}', now(), now());
 
 -- GoTrue no acepta NULL en las columnas de tokens.
 update auth.users set
   confirmation_token = '', recovery_token = '', email_change = '', email_change_token_new = '',
   email_change_token_current = '', phone_change = '', phone_change_token = '', reauthentication_token = ''
-where id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '99999999-9999-9999-9999-999999999999');
+where id in ('11111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '99999999-9999-9999-9999-999999999999', '88888888-8888-8888-8888-888888888888');
 
 update public.profiles set full_name = 'Carla Cliente' where id = '11111111-1111-1111-1111-111111111111';
 update public.profiles set full_name = 'Pedro Gasfitero', active_role = 'pro' where id = '22222222-2222-2222-2222-222222222222';
 update public.profiles set full_name = 'Rita Revisora' where id = '99999999-9999-9999-9999-999999999999';
+update public.profiles set full_name = 'Andrés Admin' where id = '88888888-8888-8888-8888-888888888888';
 
 insert into public.pro_trades (pro_id, trade_id, status, reviewed_by, reviewed_at)
 select '22222222-2222-2222-2222-222222222222', id, 'approved_observation', '99999999-9999-9999-9999-999999999999', now()
@@ -66,4 +69,6 @@ insert into public.materials_catalog (store, brand, name, unit, category, refere
   ('promart', 'Genérico', 'Cinta teflón 3/4" (ejemplo)', 'rollo', 'technical', 350),
   ('sodimac', 'Indeco', 'Cable THW 14 AWG x 100 m (ejemplo)', 'rollo', 'technical', 18900),
   ('ferreteria', 'Sol', 'Cemento Portland Tipo I 42.5 kg (ejemplo)', 'bolsa', 'construction', 3290),
-  ('promart', 'Cpp', 'Pintura látex 1 gl (ejemplo)', 'galón', 'construction', 4590);
+  ('promart', 'Cpp', 'Pintura látex 1 gl (ejemplo)', 'galón', 'construction', 4590),
+  ('maestro', 'Aceros Arequipa', 'Fierro corrugado 1/2" x 9 m (ejemplo)', 'varilla', 'construction', 3490),
+  ('maestro', 'Trébol', 'Grifería para lavadero (ejemplo)', 'unidad', 'technical', 8990);

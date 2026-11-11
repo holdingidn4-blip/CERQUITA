@@ -4,7 +4,7 @@ name: Limpieza de Storage
 # Requiere los secretos SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el repositorio.
 on:
   schedule:
-    - cron: '37 8 * * *' # 03:37 en Lima
+    - cron: '17 * * * *' # cada hora: los videos de temp_media vencen a las 48 h
   workflow_dispatch:
 
 permissions:

@@ -29,6 +29,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { CautionBadge } from '@/components/caution-badge';
+import { TempVideo } from '@/components/temp-video';
 import { useSettingInt } from '@/lib/settings';
 import { supabase } from '@/lib/supabase';
 import type { NearbyJob } from '@/orders/types';
@@ -152,6 +154,20 @@ export default function Cotizar() {
               <Text style={styles.secondary}>el cliente ofrece</Text>
             </View>
           </View>
+          {job.caution && <CautionBadge />}
+          {job.diagnostic_visit && (
+            <Text style={styles.secondary}>
+              Visita de diagnóstico presencial: si el cliente hace el trabajo contigo, se descuenta
+              de la mano de obra.
+            </Text>
+          )}
+          {job.video_path && (
+            <TempVideo
+              path={job.video_path}
+              seconds={job.video_seconds}
+              expiresAt={job.video_expires_at}
+            />
+          )}
           {job.pricing_unit !== 'job' && (
             <Text style={styles.secondary}>
               {unitPriceLabel(job.offered_price_cents, job.pricing_unit, job.units)}

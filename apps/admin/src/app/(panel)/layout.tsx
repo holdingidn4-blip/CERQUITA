@@ -46,6 +46,12 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           <Link href="/sospechas" className={styles.navItem}>
             Sospechas <span className={styles.count}>{suspicions}</span>
           </Link>
+          <Link href="/reclamos" className={styles.navItem}>
+            Reclamos
+          </Link>
+          <Link href="/lista-negra" className={styles.navItem}>
+            Lista negra
+          </Link>
           <Link href="/tarifario" className={styles.navItem}>
             Tarifario
           </Link>

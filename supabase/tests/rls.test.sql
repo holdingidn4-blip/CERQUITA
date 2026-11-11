@@ -114,9 +114,9 @@ update public.jobs set status = 'accepted', accepted_offer_id = (select id from 
   final_price_cents = 9000, commission_rate_bps = 1000 where id = :job_a;
 select pg_temp.as_user(:p);
 select is(public.job_exact_address(:job_a), 'Av. Larco 123, dpto 4', 'pro asignado ve la dirección');
-select is(public.job_counterpart_phone(:job_a), '51911111111', 'pro asignado ve el teléfono del cliente');
+select is(public.job_counterpart_phone(:job_a), null, 'chat 100 % interno: ni el pro asignado ve el teléfono del cliente');
 select pg_temp.as_user(:a);
-select is(public.job_counterpart_phone(:job_a), '51933333333', 'cliente ve el teléfono del pro asignado');
+select is(public.job_counterpart_phone(:job_a), null, 'ni el cliente ve el teléfono del pro');
 
 -- ───────── job_tracks: regla 5 ─────────
 select pg_temp.as_user(:p);

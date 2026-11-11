@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts, radii } from '@/theme';
 
-/** Llamar (abre el marcador, nunca llama solo) y Mensaje (chat del servicio). */
+/** Comunicación 100 % interna: solo el chat del servicio (no se comparten teléfonos). */
 export function ContactActions({
   jobId,
   phone,
@@ -15,11 +15,6 @@ export function ContactActions({
 }) {
   return (
     <View style={styles.row}>
-      <Action
-        label="Llamar"
-        disabled={!phone}
-        onPress={() => phone && Linking.openURL(`tel:+${phone.replace(/^\+/, '')}`)}
-      />
       <Action
         label="Mensaje"
         onPress={() => router.push({ pathname: '/chat/[id]', params: { id: jobId } })}

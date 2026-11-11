@@ -4,6 +4,7 @@ import {
   formatRating,
   formatSoles,
   debtMessage,
+  proLevel,
   debtState,
   formatSolesShort,
   jobTitle,
@@ -25,6 +26,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { CautionBadge } from '@/components/caution-badge';
 import { confirm } from '@/lib/confirm';
 import type { NearbyJob } from '@/orders/types';
 import { useDebt } from '@/pro/use-debt';
@@ -48,6 +50,13 @@ export default function Solicitudes() {
     [],
   );
   const [switching, setSwitching] = useState(false);
+  const [rank, setRank] = useState<{ position: number; score: number } | null>(null);
+  useEffect(() => {
+    supabase.rpc('pro_ranking', { p_limit: 5 }).then(({ data }) => {
+      const me = (data ?? []).find((r) => r.is_me);
+      setRank(me ? { position: me.rank_position, score: me.score } : null);
+    });
+  }, []);
   const { debt } = useDebt();
   const paused = debt?.paused ?? false;
   const [busy, setBusy] = useState<string | null>(null);
@@ -170,7 +179,14 @@ export default function Solicitudes() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topRow}>
-          <Text style={styles.kicker}>Modo profesional</Text>
+          <View>
+            <Text style={styles.kicker}>Modo profesional</Text>
+            {rank && (
+              <Text style={styles.rank} testID="mi-ranking">
+                🏆 #{rank.position} en Huancayo · {proLevel(rank.score).name} · {rank.score} pts
+              </Text>
+            )}
+          </View>
           <View style={styles.links}>
             <Link href="/oficios" style={styles.link}>
               Oficios
@@ -290,6 +306,15 @@ export default function Solicitudes() {
             <View style={styles.jobHeader}>
               <View style={styles.flex}>
                 <Text style={styles.jobTitle}>{jobTitle(job.description)}</Text>
+                {job.caution && <CautionBadge />}
+                {job.video_path && (
+                  <Text style={styles.secondary}>
+                    🎥 Video de {job.video_seconds} s · expira en 48 h
+                  </Text>
+                )}
+                {job.diagnostic_visit && (
+                  <Text style={styles.secondary}>Visita de diagnóstico</Text>
+                )}
                 <Text style={styles.secondary}>
                   {job.trade_name} · {distanceAndEta(job.distance_m, 'a')}
                 </Text>
@@ -349,6 +374,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   links: { flexDirection: 'row', gap: 16 },
+  rank: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   kicker: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.textSecondary },
   link: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
   refresh: { textAlign: 'center', paddingVertical: 8 },

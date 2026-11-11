@@ -1,3 +1,4 @@
+import { CHAT_BLOCK_MESSAGES, chatViolation, type ChatViolation } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ComponentRef } from 'react';
 import {
@@ -13,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/auth-provider';
+import { OffAppWarning } from '@/components/off-app-warning';
 import { supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
 import { colors, fonts, radii } from '@/theme';
@@ -65,11 +67,23 @@ export default function Chat() {
     const body = text.trim();
     if (!body) return;
     setError(null);
+    // Aviso inmediato; el servidor es quien decide y registra el intento.
+    const local = chatViolation(body);
+    if (local) return setError(CHAT_BLOCK_MESSAGES[local]);
     setText('');
-    const { error: sendError } = await supabase.from('job_messages').insert({ job_id: id, body });
-    if (sendError) {
+    const { data, error: sendError } = await supabase.rpc('send_job_message', {
+      p_job: id,
+      p_body: body,
+    });
+    const result = data as { blocked: boolean; reason?: ChatViolation } | null;
+    if (sendError || !result) {
       setText(body);
       setError('No se pudo enviar. El chat se cierra cuando el servicio termina.');
+      return;
+    }
+    if (result.blocked) {
+      setText(body);
+      setError(CHAT_BLOCK_MESSAGES[result.reason ?? 'keyword']);
       return;
     }
     await load();
@@ -86,6 +100,9 @@ export default function Chat() {
             <Text style={styles.back}>‹</Text>
           </Pressable>
           <Text style={styles.title}>{other || 'Mensajes'}</Text>
+        </View>
+        <View style={styles.warning}>
+          <OffAppWarning />
         </View>
         <FlatList
           ref={list}
@@ -148,6 +165,7 @@ const styles = StyleSheet.create({
   },
   back: { fontSize: 32, color: colors.text },
   title: { fontFamily: fonts.display, fontSize: 20, color: colors.text },
+  warning: { paddingHorizontal: 20 },
   list: { padding: 20, gap: 8, flexGrow: 1 },
   empty: {
     fontFamily: fonts.body,

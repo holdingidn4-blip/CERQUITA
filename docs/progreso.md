@@ -1,6 +1,6 @@
 # Cerquita · Progreso del MVP
 
-Última actualización: **MVP completo + módulo Piloto Huancayo** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
+Última actualización: **MVP completo + Piloto Huancayo + módulo de confianza (video, chat interno, lista negra, puntos)** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
 
 | Fase | Estado | Criterio de cierre | Cómo se comprueba |
 | --- | --- | --- | --- |
@@ -17,13 +17,35 @@
 
 | Tipo | Cantidad | Comando |
 | --- | --- | --- |
-| Unitarias (`packages/shared`) | 130 | `pnpm test` |
-| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro, privacidad, SOS y piloto) | 286 | `pnpm db:test` |
+| Unitarias (`packages/shared`) | 145 | `pnpm test` |
+| Base de datos (pgTAP: RLS, ingreso, verificación, pedidos, servicio, libro, privacidad, SOS, piloto y confianza) | 333 | `pnpm db:test` |
 | Humo del ingreso por SMS (Auth local) | 7 | `pnpm db:smoke` |
-| Navegación de punta a punta (app web + panel) | 91 | `pnpm e2e` |
+| Navegación de punta a punta (app web + panel) | 92 | `pnpm e2e` |
 
 Para `pnpm e2e`: `pnpm db:start && pnpm db:reset`, el panel con `next build && next start --port 3001` y la app con
 `expo export --platform web` servida en el puerto 8099 (ver `e2e/flujos.mjs`). El CI hace todo esto en el job `e2e`.
+
+## Módulo de confianza: diagnóstico exprés, chat interno, lista negra y gamificación
+
+Migración `20261111000300_express_trust.sql`; pruebas en `supabase/tests/express.test.sql` y `packages/shared/src/trust.test.ts`.
+
+| Tema | Cómo quedó |
+| --- | --- |
+| Catálogo | Se agrega **Maestro** a Promart, Sodimac y ferretería. |
+| Lista negra | `blacklisted_locations` (punto PostGIS, dirección, motivo). Solo soporte la gestiona (panel **Lista negra**). Los técnicos ven un aviso discreto (“⚠ Precaución en esta dirección”) en pedidos a ≤ 100 m, sin el motivo; el cliente no ve nada. |
+| Diagnóstico exprés | Bucket privado `temp_media`: el cliente sube un video de ≤ 15 s (`attach_job_video`). El técnico lo ve con “⏱️ Video temporal: expira en 48 hrs”; a las 48 h deja de poder abrirse (RLS) y la limpieza de Storage lo borra (ahora cada hora). |
+| Visita de diagnóstico | Opción “Visita de diagnóstico presencial” (S/ 20, `diagnostic_visit_fee_cents`). Si el cliente cancela tras la llegada, debe S/ 20; si hace el trabajo, la visita se descuenta de la mano de obra. |
+| Chat 100 % interno | Ya no se revela el teléfono a ninguna de las partes (sin botón “Llamar”). Solo se escribe con `send_job_message()`, que bloquea teléfonos (7+ dígitos aunque tengan espacios o guiones), correos (también escritos como “arroba … punto com”) y palabras clave (WhatsApp, Wsp, “Llámame al”, “págame por fuera”…). Cada intento queda en `chat_flags` para soporte. La app avisa antes de enviar con la misma regla (`chatViolation`). |
+| Puntos Cerquita | Libro inmutable `points_entries`: 1 punto por S/ 1 de mano de obra confirmada; 1 punto = S/ 0.05; tope 20 % de la mano de obra (todo en `settings`). El descuento lo paga Cerquita: se abona al pro como `promo_credit`. No se compran (regla 3). |
+| Ranking | `pro_ranking()`: puntaje = trabajos × 10 + calificación × 20 − sospechas de bypass × 50, niveles Nuevo, Bronce, Plata y Oro. El pro ve su posición en Solicitudes. |
+| Reclamos | `file_claim()` solo para servicios de la app. Panel **Reclamos**: soporte ve los documentos verificados del técnico (cada vista registrada) y resuelve. |
+| Términos | Borrador en `docs/legal/terminos-borrador.md` y resumen en la app (Cuenta → Términos). Intermediario tecnológico, responsabilidad civil del técnico, acceso auditado a la identidad para reclamos. |
+
+### Decisiones y pendientes
+- **“Llamar” eliminado:** el pedido de comunicación 100 % interna se impone sobre la regla 7 (que permitía ver el teléfono tras aceptar). El SOS sigue llamando a 105, 116 y 106.
+- **“Pagar en app da acceso a datos auditados”:** en Cerquita el pago va directo al pro, así que se interpretó como “servicio contratado y confirmado en la app”. El cliente **no** recibe el DNI directamente: soporte lo entrega por el canal formal del reclamo (Ley 29733).
+- **Duración del video:** la app limita la grabación a 15 s y declara la duración; el servidor rechaza más de 15 s, pero no puede medir el archivo. TODO(decidir): verificar la duración en el servidor (Edge Function con ffprobe).
+- **Términos:** borrador, TODO(decidir) con un abogado; también las condiciones del Seguro y la Garantía.
 
 ## Piloto Huancayo · multicategoría, reevaluación, materiales y antifraude
 

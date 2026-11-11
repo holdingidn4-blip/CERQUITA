@@ -403,6 +403,13 @@ try {
 
   await client.click('text=Mensaje');
   await client.waitForURL('**/chat/**');
+  await client.fill(
+    '[aria-label="Escribe un mensaje"]',
+    'Pásame tu WhatsApp, mi número es 987 654 321',
+  );
+  await client.click('[aria-label="Enviar"]');
+  await client.waitForSelector('text=no se pueden compartir números de teléfono');
+  ok('el chat bloquea teléfonos y WhatsApp');
   await client.fill('[aria-label="Escribe un mensaje"]', 'Toca el timbre 302');
   await client.click('[aria-label="Enviar"]');
   await client.waitForSelector('[data-testid=mensaje]:has-text("Toca el timbre 302")');

@@ -136,6 +136,8 @@ export default function Ajustes() {
             onPress={() => WebBrowser.openBrowserAsync(legalUrls.terms)}
           />
           <View style={styles.divider} />
+          <Row label="Términos (resumen)" onPress={() => router.push('/ajustes/terminos')} />
+          <View style={styles.divider} />
           <Row
             label="Mis datos personales"
             onPress={() => WebBrowser.openBrowserAsync(legalUrls.personalData)}

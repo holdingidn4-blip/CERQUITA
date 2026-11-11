@@ -41,6 +41,9 @@ export default function Seguimiento() {
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [visitFee, setVisitFee] = useState<number | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [claimSent, setClaimSent] = useState(false);
+  const [claimText, setClaimText] = useState('');
 
   useEffect(() => {
     if (!job?.trade_id) return;
@@ -179,6 +182,47 @@ export default function Seguimiento() {
             {formatSoles(job.visit_fee_cents ?? 0)} en efectivo, Yape o Plin.
           </Text>
         )}
+        {['confirmed', 'rated'].includes(job.status) &&
+          (claimSent ? (
+            <Text style={styles.secondary}>
+              Recibimos tu reclamo. Soporte revisará el caso con los datos verificados del
+              profesional.
+            </Text>
+          ) : claiming ? (
+            <View style={styles.field}>
+              <TextInput
+                accessibilityLabel="Describe el problema"
+                style={styles.input}
+                value={claimText}
+                onChangeText={setClaimText}
+                placeholder="¿Qué pasó con el trabajo?"
+                placeholderTextColor={colors.textSecondary}
+                multiline
+                maxLength={2000}
+              />
+              <Button
+                variant="outline"
+                label="Enviar reclamo"
+                onPress={async () => {
+                  const { error: e } = await supabase.rpc('file_claim', {
+                    p_job: id,
+                    p_description: claimText,
+                  });
+                  if (e)
+                    setError(
+                      e.code === '23505' ? 'Ya enviaste un reclamo por este servicio.' : e.message,
+                    );
+                  else setClaimSent(true);
+                }}
+              />
+            </View>
+          ) : (
+            <Button
+              variant="ghost"
+              label="Reportar un problema"
+              onPress={() => setClaiming(true)}
+            />
+          ))}
         {job.status === 'confirmed' && (
           <Button
             label="Calificar el servicio"

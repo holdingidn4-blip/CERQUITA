@@ -56,20 +56,20 @@ select is((select count(*)::int from public.job_live_location(:job)), 0, 'nadie 
 
 select pg_temp.as_user(:c);
 select is((select name from public.job_counterpart(:job)), 'Usuario', 'el cliente ve el nombre corto del pro');
-select is((select phone from public.job_counterpart(:job)), '51966000002', 'y su teléfono con el servicio activo');
+select is((select phone from public.job_counterpart(:job)), null, 'pero no su teléfono (chat 100 % interno)');
 select pg_temp.as_user(:x);
 select is((select count(*)::int from public.job_counterpart(:job)), 0, 'un tercero no ve a nadie');
 select pg_temp.as_user(:c);
 
 -- ───────── Chat ─────────
 select pg_temp.as_user(:c);
-select lives_ok(format('insert into public.job_messages (job_id, body) values (%L, %L)', :job, 'Toca el timbre 302'), 'el cliente escribe');
+select is((public.send_job_message(:job, 'Toca el timbre 302') ->> 'blocked'), 'false', 'el cliente escribe');
 select pg_temp.as_user(:p);
-select lives_ok(format('insert into public.job_messages (job_id, body) values (%L, %L)', :job, 'Llego en 5 min'), 'el pro responde');
+select is((public.send_job_message(:job, 'Llego en 5 min') ->> 'blocked'), 'false', 'el pro responde');
 select is((select count(*)::int from public.job_messages where job_id = :job), 2, 'ambos ven la conversación');
 select pg_temp.as_user(:x);
 select is((select count(*)::int from public.job_messages where job_id = :job), 0, 'un tercero no ve el chat');
-select throws_ok(format('insert into public.job_messages (job_id, body) values (%L, %L)', :job, 'hola'), '42501', null,
+select throws_ok(format('select public.send_job_message(%L, %L)', :job, 'hola'), '42501', null,
   'ni puede escribir');
 
 -- ───────── Llegué ─────────

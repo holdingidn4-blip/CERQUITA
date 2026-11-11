@@ -30,6 +30,9 @@ export type ServiceJob = {
   reeval_proposed_at: string | null;
   reeval_answered_at: string | null;
   visit_fee_cents: number | null;
+  points_redeemed: number;
+  points_discount_cents: number;
+  diagnostic_visit: boolean;
   trade: { name: string; pro_name: string } | null;
 };
 export type Counterpart = { id: string; name: string; rating: number | null; phone: string | null };
@@ -44,7 +47,8 @@ const COLUMNS =
   'id, status, description, client_id, final_price_cents, final_proposed_cents, commission_rate_bps, cancel_reason, ' +
   'trade_id, pricing_unit, units, currency_code, labor_cents, materials_cents, materials_provided_by, materials_items, ' +
   'materials_receipt_path, reeval_labor_cents, reeval_materials_cents, reeval_materials_by, reeval_items, ' +
-  'reeval_receipt_path, reeval_proposed_at, reeval_answered_at, visit_fee_cents, trade:trades(name, pro_name)';
+  'reeval_receipt_path, reeval_proposed_at, reeval_answered_at, visit_fee_cents, points_redeemed, ' +
+  'points_discount_cents, diagnostic_visit, trade:trades(name, pro_name)';
 
 /**
  * Estado del servicio para cliente y profesional. El estado del pedido se consulta cada 4 s

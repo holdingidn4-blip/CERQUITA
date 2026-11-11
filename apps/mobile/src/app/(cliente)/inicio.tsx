@@ -51,6 +51,7 @@ export default function Inicio() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [nearby, setNearby] = useState<Map<number, number>>(new Map());
   const [jobs, setJobs] = useState<MyJob[]>([]);
+  const [points, setPoints] = useState(0);
 
   const load = useCallback(async () => {
     const { data: session } = await supabase.auth.getSession();
@@ -71,6 +72,7 @@ export default function Inicio() {
         : Promise.resolve({ data: [] as MyJob[] }),
     ]);
     setTrades(t.data ?? []);
+    supabase.rpc('my_points').then(({ data }) => setPoints(data ?? 0));
     setJobs((j.data ?? []) as MyJob[]);
     if (point) {
       const { data } = await supabase.rpc('nearby_pros_summary', {
@@ -100,6 +102,9 @@ export default function Inicio() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topRow}>
           <Text style={styles.brand}>Cerquita</Text>
+          <Text style={styles.points} testID="mis-puntos">
+            ⭐ {points} pts
+          </Text>
           <Link href="/ajustes" style={styles.link}>
             Cuenta
           </Link>
@@ -193,6 +198,7 @@ const styles = StyleSheet.create({
   content: { padding: 20, gap: 18 },
   flex: { flex: 1 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  points: { fontFamily: fonts.bodySemibold, fontSize: 14, color: '#7A5A12' },
   brand: { fontFamily: fonts.display, fontSize: 24, color: colors.primary },
   link: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
   locate: { backgroundColor: '#ECE8DD', borderRadius: 20, padding: 20, gap: 12 },

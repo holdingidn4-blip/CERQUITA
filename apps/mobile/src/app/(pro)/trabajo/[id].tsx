@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
+import { CautionBadge } from '@/components/caution-badge';
 import { OffAppWarning } from '@/components/off-app-warning';
 import { Stars } from '@/components/stars';
 import { BreakdownCard } from '@/service/breakdown-card';
@@ -46,6 +47,10 @@ export default function Trabajo() {
   const [reason, setReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [reevaluating, setReevaluating] = useState(false);
+  const [caution, setCaution] = useState(false);
+  useEffect(() => {
+    supabase.rpc('job_caution', { p_job: id }).then(({ data }) => setCaution(data === true));
+  }, [id]);
   const [stars, setStars] = useState(0);
   const [rated, setRated] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -147,6 +152,7 @@ export default function Trabajo() {
           <Text style={styles.back}>‹ Solicitudes</Text>
         </Pressable>
         {step >= 0 && <StepBar steps={STEPS} current={step} />}
+        {caution && <CautionBadge />}
         <Text style={styles.title} accessibilityRole="header">
           {headline[job.status] ?? SERVICE_LABELS[job.status]}
         </Text>

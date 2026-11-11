@@ -4,7 +4,9 @@ import {
   MAX_JOB_PRICE_CENTS,
   MIN_JOB_PRICE_CENTS,
   parseSolesToCents,
+  MAX_VIDEO_SECONDS,
   PRICING_UNIT_LABELS,
+  TEMP_VIDEO_NOTICE,
   tradePlural,
   unitPriceLabel,
   type PricingUnit,
@@ -30,6 +32,9 @@ export default function NuevoPedido() {
   const [trade, setTrade] = useState<Trade | null>(null);
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [video, setVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [diagnostic, setDiagnostic] = useState(false);
+  const [diagnosticFee, setDiagnosticFee] = useState<number | null>(null);
   const [address, setAddress] = useState('');
   const [reference, setReference] = useState('');
   const [price, setPrice] = useState('');
@@ -53,6 +58,7 @@ export default function NuevoPedido() {
         setTrade(data);
         if (!data) return;
         setUnits(data.pricing_unit === 'day' ? 1 : 4);
+        supabase.rpc('diagnostic_visit_fee').then(({ data: fee }) => setDiagnosticFee(fee ?? null));
         const { data: card } = await supabase
           .from('trade_rate_cards')
           .select('unit, min_cents, suggested_cents, max_cents, visit_fee_cents')
@@ -74,7 +80,11 @@ export default function NuevoPedido() {
   const unit: PricingUnit = trade?.pricing_unit ?? 'job';
   const perUnitCents = parseSolesToCents(price);
   // Por hora o por día: el precio que escribe el cliente es por unidad; el total = precio × unidades.
-  const priceCents = perUnitCents === null ? null : perUnitCents * (unit === 'job' ? 1 : units);
+  const priceCents = diagnostic
+    ? diagnosticFee
+    : perUnitCents === null
+      ? null
+      : perUnitCents * (unit === 'job' ? 1 : units);
 
   async function addPhotos() {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -84,6 +94,21 @@ export default function NuevoPedido() {
       selectionLimit: MAX_PHOTOS - photos.length,
     });
     if (!result.canceled) setPhotos((prev) => [...prev, ...result.assets].slice(0, MAX_PHOTOS));
+  }
+
+  async function pickVideo() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      videoMaxDuration: MAX_VIDEO_SECONDS,
+      quality: 0.6,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    if ((asset.duration ?? 0) > MAX_VIDEO_SECONDS * 1000 + 500) {
+      setError(`El video debe durar como máximo ${MAX_VIDEO_SECONDS} segundos.`);
+      return;
+    }
+    setVideo(asset);
   }
 
   async function publish() {
@@ -116,6 +141,7 @@ export default function NuevoPedido() {
         description: description.trim(),
         offered_price_cents: priceCents,
         units: unit === 'job' ? 1 : units,
+        diagnostic_visit: diagnostic,
         approx_point: approxPointWkt(point.latitude, point.longitude),
         exact_address: exactAddress,
       })
@@ -138,6 +164,27 @@ export default function NuevoPedido() {
       if (!upError) paths.push(path);
     }
     if (paths.length > 0) await supabase.from('jobs').update({ photos: paths }).eq('id', job.id);
+
+    // Diagnóstico exprés: video temporal (48 h) en temp_media/<pedido>/…
+    if (video) {
+      const ext = (video.mimeType?.split('/')[1] ?? 'mp4').replace('quicktime', 'mov');
+      const path = `${job.id}/video-${Date.now().toString(36)}.${ext}`;
+      const body = await (await fetch(video.uri)).arrayBuffer();
+      const up = await supabase.storage
+        .from('temp_media')
+        .upload(path, body, { contentType: video.mimeType ?? 'video/mp4' });
+      if (!up.error) {
+        const seconds = Math.max(
+          1,
+          Math.round((video.duration ?? MAX_VIDEO_SECONDS * 1000) / 1000),
+        );
+        await supabase.rpc('attach_job_video', {
+          p_job: job.id,
+          p_path: path,
+          p_seconds: Math.min(seconds, MAX_VIDEO_SECONDS),
+        });
+      }
+    }
 
     setBusy(false);
     router.replace({ pathname: '/pedido/[id]/ofertas', params: { id: job.id } });
@@ -197,6 +244,43 @@ export default function NuevoPedido() {
           )}
         </View>
         <Text style={styles.secondary}>Una foto ayuda al profesional a cotizar mejor.</Text>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Diagnóstico exprés por video (opcional)</Text>
+          {video ? (
+            <View style={styles.videoRow}>
+              <Text style={[styles.secondary, styles.flex]}>
+                🎥 Video de {Math.round((video.duration ?? 0) / 1000)} s · {TEMP_VIDEO_NOTICE}
+              </Text>
+              <Button variant="ghost" label="Quitar" onPress={() => setVideo(null)} />
+            </View>
+          ) : (
+            <Button
+              variant="outline"
+              label={`Grabar o elegir video (máx. ${MAX_VIDEO_SECONDS} s)`}
+              onPress={pickVideo}
+            />
+          )}
+          <Text style={styles.secondary}>
+            El profesional lo ve para cotizar desde su celular. Se borra a las 48 horas.
+          </Text>
+        </View>
+
+        <Pressable
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: diagnostic }}
+          onPress={() => setDiagnostic((d) => !d)}
+          style={[styles.diagnostic, diagnostic && styles.diagnosticOn]}
+        >
+          <Text style={styles.label}>
+            {diagnostic ? '☑' : '☐'} Visita de diagnóstico presencial
+            {diagnosticFee !== null ? ` (${formatSoles(diagnosticFee)})` : ''}
+          </Text>
+          <Text style={styles.secondary}>
+            El profesional va, revisa y te cotiza en el sitio. Si haces el trabajo con él, la visita
+            se descuenta de la mano de obra.
+          </Text>
+        </Pressable>
 
         <View style={styles.field}>
           <Text style={styles.label} nativeID="addr-label">
@@ -366,6 +450,16 @@ const styles = StyleSheet.create({
   addPhotoText: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   secondary: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: colors.textSecondary },
   flex: { flex: 1 },
+  videoRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  diagnostic: {
+    borderWidth: 1.5,
+    borderColor: '#D5D0C3',
+    borderRadius: radii.md,
+    padding: 12,
+    gap: 4,
+    backgroundColor: colors.surface,
+  },
+  diagnosticOn: { borderColor: colors.primary, backgroundColor: '#E7F0EC' },
   unitsRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
   stepper: {
     fontFamily: fonts.display,

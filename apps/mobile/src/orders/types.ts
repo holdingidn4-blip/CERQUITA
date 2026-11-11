@@ -17,4 +17,9 @@ export type NearbyJob = {
   pricing_unit: PricingUnit;
   units: number;
   currency_code: string;
+  video_path: string | null;
+  video_seconds: number | null;
+  video_expires_at: string | null;
+  diagnostic_visit: boolean;
+  caution: boolean;
 };
