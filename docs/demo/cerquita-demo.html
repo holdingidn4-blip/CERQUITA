@@ -1,0 +1,1644 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cerquita Demo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+/* Layout: guía del recorrido a la izquierda; dos celulares (cliente y profesional) y debajo el panel de soporte. En móvil, un dispositivo a la vez. */
+:root{
+  --primary:#0E5A4B; --primary-ink:#FFFFFF; --primary-soft:#DCEBE5;
+  --bg:#F6F3EC; --surface:#FFFFFF; --surface-2:#EDE8DC; --text:#17231F; --muted:#56625C; --border:#E1DCCF;
+  --amber:#F2B33D; --amber-soft:#FBEBC8; --amber-ink:#6B4A00;
+  --danger:#B3261E; --danger-ink:#FFFFFF; --danger-soft:#FBE4E1;
+  --ok:#1E7A4F; --ok-soft:#DDF1E6; --info:#1F4E8C; --info-soft:#E1EAF6;
+  --frame:#1B2622; --map:#E6E0D1; --map-road:#FBF9F4; --shadow:rgba(23,35,31,.18);
+  --font-display:'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body:'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --primary:#5CC3A6; --primary-ink:#06221B; --primary-soft:#173A31;
+    --bg:#0F1613; --surface:#18211D; --surface-2:#212C27; --text:#E7EEEA; --muted:#9AA9A2; --border:#2C3833;
+    --amber:#F2B33D; --amber-soft:#3A2E12; --amber-ink:#F5D28A;
+    --danger:#F08A80; --danger-ink:#2A0D0A; --danger-soft:#3D1F1C;
+    --ok:#6FD3A0; --ok-soft:#173A2A; --info:#9CC0F0; --info-soft:#1C2B40;
+    --frame:#050807; --map:#1F2924; --map-road:#2E3B35; --shadow:rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --primary:#5CC3A6; --primary-ink:#06221B; --primary-soft:#173A31;
+  --bg:#0F1613; --surface:#18211D; --surface-2:#212C27; --text:#E7EEEA; --muted:#9AA9A2; --border:#2C3833;
+  --amber:#F2B33D; --amber-soft:#3A2E12; --amber-ink:#F5D28A;
+  --danger:#F08A80; --danger-ink:#2A0D0A; --danger-soft:#3D1F1C;
+  --ok:#6FD3A0; --ok-soft:#173A2A; --info:#9CC0F0; --info-soft:#1C2B40;
+  --frame:#050807; --map:#1F2924; --map-road:#2E3B35; --shadow:rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg)}
+body{font-family:var(--font-body);color:var(--text);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
+p{margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.ic{width:1em;height:1em;fill:currentColor;vertical-align:-.15em;flex:none}
+.muted{color:var(--muted)}
+.center{text-align:center}
+
+/* Encabezado de la página */
+.top{max-width:1440px;margin:0 auto;padding-block:20px 8px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px}
+.brand{font:700 26px/1 var(--font-display);color:var(--primary);letter-spacing:-.01em}
+.brand small{display:block;font:500 13px/1.3 var(--font-body);color:var(--muted);letter-spacing:0;margin-top:4px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs a{padding:8px 14px;border-radius:999px;text-decoration:none;color:var(--text);font-weight:600;font-size:14px;border:1px solid var(--border);background:var(--surface)}
+.tabs a[aria-current="page"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.sim-note{margin-left:auto;font-size:13px;color:var(--muted);max-width:380px}
+.wrap{max-width:1440px;margin:0 auto;padding-block:12px 56px}
+
+/* Demo */
+.demo{display:grid;grid-template-columns:300px minmax(0,1fr);gap:24px;align-items:start}
+.guide{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.guide h2{font-size:18px}
+.guide-actions{display:flex;gap:8px;flex-wrap:wrap}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;counter-reset:st}
+.steps li{counter-increment:st;display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;padding:7px 8px;border-radius:10px;font-size:14px;line-height:1.35}
+.steps li::before{content:counter(st);width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:600 12px/1 var(--font-body);background:var(--surface-2);color:var(--muted)}
+.steps li.done::before{content:"✓";background:var(--ok-soft);color:var(--ok)}
+.steps li.done{color:var(--muted)}
+.steps li.cur{background:var(--primary-soft)}
+.steps li.cur::before{background:var(--primary);color:var(--primary-ink)}
+.who{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.step-do{margin-top:6px}
+.log{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.log li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:6px;color:var(--muted)}
+.log li b{font-weight:500;color:var(--text)}
+.log time{font-variant-numeric:tabular-nums}
+details.try summary{cursor:pointer;font-weight:600;font-size:14px}
+details.try ul{margin:8px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:4px;color:var(--muted)}
+
+.dev-tabs{display:none;gap:6px;margin-bottom:12px}
+.dev-tabs button{flex:1;padding:10px 6px;border-radius:12px;border:1px solid var(--border);background:var(--surface);font-weight:600;font-size:14px;cursor:pointer;position:relative}
+.dev-tabs button[aria-selected="true"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.dev-tabs .dot{position:absolute;top:6px;right:8px;width:8px;height:8px;border-radius:50%;background:var(--amber)}
+.devices{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+.device{display:flex;flex-direction:column;gap:8px;min-width:0}
+.device-label{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:baseline}
+.device-label b{color:var(--text);font-weight:600}
+.device-admin{flex-basis:100%}
+
+/* Celular */
+.phone{width:360px;height:740px;border-radius:46px;background:var(--frame);padding:10px;box-shadow:0 24px 48px -24px var(--shadow)}
+.screen{position:relative;height:100%;border-radius:36px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.sbar{display:flex;justify-content:space-between;align-items:center;padding:12px 26px 4px;font:600 12px/1 var(--font-body);font-variant-numeric:tabular-nums;flex:none}
+.sbar .bat{width:22px;height:11px;border:1.5px solid currentColor;border-radius:3px;position:relative}
+.sbar .bat::after{content:"";position:absolute;inset:1.5px 5px 1.5px 1.5px;background:currentColor;border-radius:1px}
+.view{flex:1;min-height:0;display:flex;flex-direction:column}
+.scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+.pad{padding:8px 18px 20px;display:flex;flex-direction:column;gap:16px}
+.appbar{display:flex;align-items:center;gap:8px;padding:6px 14px 8px;min-height:46px;flex:none}
+.appbar h1{font-size:17px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:none;background:transparent;display:grid;place-items:center;font-size:18px;cursor:pointer}
+.iconbtn:hover{background:var(--surface-2)}
+.logo{font:700 22px/1 var(--font-display);color:var(--primary)}
+.logo.big{font-size:40px}
+.pts{display:inline-flex;align-items:center;gap:4px;font-weight:600;font-size:14px;color:var(--amber-ink);background:var(--amber-soft);padding:4px 10px;border-radius:999px;margin-left:auto}
+.pts .ic{color:var(--amber)}
+.link{background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;padding:6px 4px;display:inline-flex;align-items:center;gap:4px}
+.footer{flex:none;padding:12px 16px 18px;border-top:1px solid var(--border);background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.tabbar{flex:none;display:flex;border-top:1px solid var(--border);background:var(--surface);padding-bottom:10px}
+.tabbar button{flex:1;border:none;background:none;padding:10px 4px 6px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar button.is-on{color:var(--primary)}
+.tabbar .ic{font-size:20px}
+
+/* Controles */
+.btn{font:600 15px/1.2 var(--font-body);border-radius:12px;padding:13px 16px;border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.btn-full{width:100%}
+.btn-primary{background:var(--primary);color:var(--primary-ink)}
+.btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border)}
+.btn-danger{background:var(--danger);color:var(--danger-ink)}
+.btn-sm{padding:8px 12px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.is-tapped{outline:3px solid var(--amber)!important;outline-offset:2px;transform:scale(.98);transition:transform .15s}
+input,textarea{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;width:100%}
+textarea{resize:vertical;min-height:84px}
+input:focus,textarea:focus{border-color:var(--primary);outline:none;box-shadow:0 0 0 3px var(--primary-soft)}
+.lbl{font-weight:600;font-size:14px}
+.stack{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.phone-field,.money-field{display:flex;align-items:stretch;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}
+.phone-field:focus-within,.money-field:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.phone-field .cc,.money-field span{display:grid;place-items:center;padding:0 12px;background:var(--surface-2);font-weight:600;color:var(--muted)}
+.phone-field input,.money-field input{border:none;border-radius:0;box-shadow:none!important}
+.chip-hint{align-self:flex-start;border:1px dashed var(--primary);color:var(--primary);background:var(--primary-soft);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.otp{font:600 26px/1 var(--font-mono);letter-spacing:.4em;text-align:center}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.role{border:1.5px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px;background:var(--surface)}
+.role b{font-size:14px}
+.role span{font-size:12px;color:var(--muted)}
+.role.is-on{border-color:var(--primary);background:var(--primary-soft)}
+.role.is-off{opacity:.5}
+.fine{font-size:12px;color:var(--muted)}
+.err{background:var(--danger-soft);color:var(--danger);border-radius:10px;padding:10px 12px;font-size:14px;font-weight:500}
+.note{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:flex-start}
+.note .ic{margin-top:2px;color:var(--primary)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:7px 12px;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"],.chip[aria-checked="true"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);font-size:18px;cursor:pointer}
+.qty b{min-width:24px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* Tarjetas y contenido */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;text-align:left}
+.card.soft{background:var(--surface-2);border-color:transparent}
+.card.warn{background:var(--amber-soft);border-color:transparent;color:var(--text)}
+.card.okc{background:var(--ok-soft);border-color:transparent}
+button.card{cursor:pointer;width:100%}
+.h2{font-size:22px}
+.h3{font-size:16px}
+.group{font:600 15px/1.2 var(--font-body);margin-top:4px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{border:1px solid var(--border);background:var(--surface);border-radius:16px;min-height:68px;padding:10px 6px;font-weight:600;font-size:14px;cursor:pointer}
+.tile:hover{border-color:var(--primary)}
+.loc{flex-direction:row;align-items:center;gap:12px}
+.loc .ic{font-size:22px;color:var(--primary)}
+.photos{display:flex;gap:8px;flex-wrap:wrap}
+.ph-tile{width:72px;height:72px;border-radius:12px;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary);font-size:11px;font-weight:600;flex-direction:column}
+.ph-tile svg{width:28px;height:28px;fill:var(--primary)}
+.add-photo{width:72px;height:72px;border-radius:12px;border:1.5px dashed var(--border);background:transparent;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.info{background:var(--info-soft);color:var(--info)}
+.pill.warn{background:var(--amber-soft);color:var(--amber-ink)}
+.pill.bad{background:var(--danger-soft);color:var(--danger)}
+.pill.plain{background:var(--surface-2);color:var(--muted)}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font:700 16px/1 var(--font-display);flex:none}
+.avatar.big{width:72px;height:72px;font-size:26px}
+.offer-top{display:flex;gap:12px;align-items:center}
+.offer-top .who-col{flex:1;min-width:0}
+.offer-top b{display:block}
+.meta{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.price{font:700 20px/1 var(--font-display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.quote{font-size:14px;color:var(--text);background:var(--surface-2);border-radius:10px;padding:8px 10px}
+.radar{display:grid;place-items:center;padding:28px 0 8px;gap:10px;text-align:center}
+.radar .pulse{width:72px;height:72px;border-radius:50%;background:var(--primary);position:relative}
+.radar .pulse::before,.radar .pulse::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--primary);animation:ping 2s infinite}
+.radar .pulse::after{animation-delay:1s}
+@keyframes ping{from{transform:scale(1);opacity:.7}to{transform:scale(2.2);opacity:0}}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;margin:0;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.kv .total{font-weight:700;color:var(--text)}
+.kv .neg{color:var(--danger)}
+.stepper{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.stepper span{font-size:11px;font-weight:600;color:var(--muted);border-top:4px solid var(--border);padding-top:6px}
+.stepper span.on{color:var(--primary);border-color:var(--primary)}
+.code-box{background:var(--primary);color:var(--primary-ink);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.code-box b{font:700 34px/1 var(--font-mono);letter-spacing:.3em}
+.code-box small{opacity:.85}
+.map{width:100%;height:auto;border-radius:14px;display:block}
+.m-bg{fill:var(--map)} .m-road{stroke:var(--map-road);fill:none} .m-route{stroke:var(--primary);fill:none}
+.m-home{fill:var(--amber)} .m-pro{fill:var(--primary);stroke:var(--surface)} .m-txt{fill:var(--text);font:600 10px var(--font-body)}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--ok)}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+.sos-btn{align-self:flex-start;background:var(--danger);color:var(--danger-ink);border:none;border-radius:999px;padding:10px 18px;font:700 15px/1 var(--font-display);letter-spacing:.06em;cursor:pointer}
+.stars{display:flex;gap:6px}
+.stars button{border:none;background:none;font-size:34px;line-height:1;cursor:pointer;color:var(--border);padding:0}
+.stars button.on{color:var(--amber)}
+.msgs{display:flex;flex-direction:column;gap:8px}
+.bubble{max-width:80%;padding:9px 12px;border-radius:16px;font-size:14px;background:var(--surface);border:1px solid var(--border);align-self:flex-start}
+.bubble.me{align-self:flex-end;background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.bubble time{display:block;font-size:11px;opacity:.7;margin-top:2px}
+.chatbar{display:flex;gap:8px}
+.chatbar input{flex:1;min-width:0}
+.mov{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+.mov:last-child{border-bottom:none}
+.mov .amt{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.mov .amt.neg{color:var(--danger)} .mov .amt.pos{color:var(--ok)}
+.mov small{display:block;color:var(--muted);font-size:12px}
+.bar{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--amber);border-radius:999px}
+.big-amt{font:700 34px/1.1 var(--font-display);font-variant-numeric:tabular-nums}
+.switch{display:inline-flex;align-items:center;gap:8px;border:none;background:none;cursor:pointer;font-weight:600;font-size:14px;margin-left:auto}
+.switch .track{width:44px;height:26px;border-radius:999px;background:var(--border);position:relative;transition:background .2s}
+.switch .track::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);transition:left .2s}
+.switch[aria-checked="true"] .track{background:var(--ok)}
+.switch[aria-checked="true"] .track::after{left:21px}
+.item-btn{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;text-align:left;border:1px solid var(--border);border-radius:12px;padding:10px;background:var(--surface);cursor:pointer;font-size:14px}
+.item-btn .box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);display:grid;place-items:center;font-size:13px;color:var(--primary-ink)}
+.item-btn[aria-pressed="true"]{border-color:var(--primary)}
+.item-btn[aria-pressed="true"] .box{background:var(--primary);border-color:var(--primary)}
+.item-btn small{display:block;color:var(--muted);font-size:12px}
+.empty{display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center;padding:28px 10px;color:var(--muted)}
+.empty b{color:var(--text);font-size:16px}
+.sos-screen{flex:1;background:var(--danger);color:var(--danger-ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center}
+.sos-screen .count{font:700 96px/1 var(--font-display);font-variant-numeric:tabular-nums}
+.sos-screen .btn{background:var(--danger-ink);color:var(--danger)}
+.sos-screen ul{list-style:none;padding:0;margin:0;font-size:14px;display:flex;flex-direction:column;gap:4px}
+
+/* Avisos dentro del celular */
+.push{position:absolute;top:34px;left:10px;right:10px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:10px 12px;box-shadow:0 10px 24px -10px var(--shadow);display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:center;animation:drop .3s ease-out;z-index:5}
+.push .app-ic{width:30px;height:30px;border-radius:8px;background:var(--primary);color:var(--primary-ink);display:grid;place-items:center;font:700 14px/1 var(--font-display)}
+.push b{display:block;font-size:13px}
+.push span{font-size:13px;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toast{position:absolute;bottom:96px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;white-space:nowrap;z-index:5;animation:rise .25s ease-out}
+@keyframes drop{from{transform:translateY(-16px);opacity:0}}
+@keyframes rise{from{transform:translate(-50%,10px);opacity:0}}
+
+/* Panel de soporte */
+.browser{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--bg);height:640px;display:flex;flex-direction:column;box-shadow:0 24px 48px -28px var(--shadow)}
+.browser-bar{display:flex;align-items:center;gap:6px;padding:10px 14px;background:var(--surface-2);border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);flex:none}
+.browser-bar i{width:10px;height:10px;border-radius:50%;background:var(--border)}
+.browser-bar span{margin-left:10px}
+.browser-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.panel{display:grid;grid-template-columns:210px minmax(0,1fr);grid-template-rows:minmax(0,1fr);flex:1;min-height:0}
+.pnav{background:var(--surface);border-right:1px solid var(--border);padding:16px 10px;display:flex;flex-direction:column;gap:2px;overflow:auto}
+.pbrand{font:700 16px/1.2 var(--font-display);color:var(--primary);padding:4px 10px 14px}
+.pnav-item{display:flex;justify-content:space-between;align-items:center;border:none;background:none;padding:9px 10px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;text-align:left}
+.pnav-item:hover{background:var(--surface-2)}
+.pnav-item.is-on{background:var(--primary-soft);color:var(--primary)}
+.count{min-width:22px;height:22px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:12px;display:grid;place-items:center;padding:0 6px}
+.count.has{background:var(--amber-soft);color:var(--amber-ink)}
+.pnav-foot{margin-top:auto;padding:12px 10px 0;font-size:12px;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.pmain{overflow:auto;padding:24px 28px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.ph{font-size:24px}
+.row-card{flex-direction:row;justify-content:space-between;align-items:center;gap:12px}
+.row-card > div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.doc{margin:0;display:flex;flex-direction:column;gap:6px;font-size:13px}
+.doc-img{aspect-ratio:4/3;max-width:100%;border-radius:12px;background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 8px,var(--border) 8px,var(--border) 9px);display:grid;place-items:center;overflow:hidden}
+.fake-id{width:82%;height:70%;border-radius:8px;background:var(--surface);border:1px solid var(--border);display:grid;grid-template-columns:34% 1fr;gap:8px;padding:8px}
+.fake-id i{border-radius:4px;background:var(--primary-soft)}
+.fake-id div{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.fake-id div span{height:6px;border-radius:3px;background:var(--border)}
+.fake-id div span:nth-child(2){width:70%}
+.fake-shot{width:62%;height:86%;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px}
+.fake-shot b{color:var(--primary)}
+.fake-shot span{font:700 16px/1 var(--font-display)}
+.work-art{width:100%;height:100%}
+.work-art rect{fill:var(--primary-soft)} .work-art path{stroke:var(--primary);fill:none}
+.proof{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px}
+.proof-img{aspect-ratio:3/4;max-width:100%;border-radius:12px;background:var(--surface-2);display:grid;place-items:center}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;background:var(--surface-2)}
+tr:last-child td{border-bottom:none}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.params{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.alogin{flex:1;display:grid;place-items:center;padding:24px;overflow:auto}
+.alogin-card{width:min(380px,100%)}
+.example{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--amber-ink);background:var(--amber-soft);border-radius:6px;padding:2px 8px;align-self:flex-start}
+
+/* Flujos y alojamiento */
+.doc-page{max-width:1040px;display:flex;flex-direction:column;gap:28px}
+.doc-page > header{display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.doc-page h2{font-size:28px}
+.doc-page section{display:flex;flex-direction:column;gap:10px}
+.doc-page section h3{font-size:19px}
+.doc-page section > p{max-width:70ch}
+pre.mermaid{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;overflow-x:auto;margin:0;font-size:13px}
+.cards2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.cards2 .card b{font-family:var(--font-display);font-size:17px}
+.big-num{font:700 28px/1 var(--font-display);color:var(--primary);font-variant-numeric:tabular-nums}
+ol.seq{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;max-width:75ch}
+ol.seq li::marker{font-weight:700;color:var(--primary)}
+.code{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow-x:auto}
+.code pre{margin:0;padding:16px 18px;font:13px/1.6 var(--font-mono)}
+.code .btn{position:absolute;top:8px;right:8px}
+
+@media (max-width:1120px){
+  .demo{grid-template-columns:1fr}
+  .guide{position:static;max-height:none}
+  .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+}
+@media (max-width:820px){
+  .dev-tabs{display:flex}
+  .devices[data-show="client"] .device:not([data-dev="client"]),
+  .devices[data-show="pro"] .device:not([data-dev="pro"]),
+  .devices[data-show="admin"] .device:not([data-dev="admin"]){display:none}
+  .device{width:100%;align-items:center}
+  .device-label{align-self:flex-start}
+  .phone{width:100%;max-width:390px;height:720px}
+  .device-admin .browser{height:680px;width:100%}
+  .panel{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}
+  .pnav{flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border);padding:8px;gap:4px}
+  .pbrand,.pnav-foot{display:none}
+  .pnav-item{white-space:nowrap;gap:6px}
+  .pmain{padding:16px}
+  .proof{grid-template-columns:1fr}
+  .proof-img{max-width:180px}
+  .sim-note{margin-left:0}
+}
+@media (max-width:380px){ .phone{border-radius:34px;padding:6px} .screen{border-radius:28px} }
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="brand">Cerquita<small>Servicios del hogar · piloto Huancayo</small></div>
+  <nav class="tabs" aria-label="Secciones">
+    <a href="#demo" data-view="demo">Demo</a>
+    <a href="#flujos" data-view="flujos">Flujos</a>
+    <a href="#alojamiento" data-view="alojamiento">Dónde alojarla</a>
+  </nav>
+  <p class="sim-note">Simulación interactiva con datos de ejemplo. Usa las mismas reglas que la app real, pero no se conecta a la base ni envía SMS.</p>
+</header>
+
+<main class="wrap">
+  <!-- ═════════ DEMO ═════════ -->
+  <section id="v-demo">
+    <div class="demo">
+      <aside class="guide" id="guide" aria-label="Recorrido de la demo"></aside>
+      <div>
+        <div class="dev-tabs" role="tablist" aria-label="Dispositivo">
+          <button role="tab" data-show="client" aria-selected="true">Cliente</button>
+          <button role="tab" data-show="pro" aria-selected="false">Profesional</button>
+          <button role="tab" data-show="admin" aria-selected="false">Soporte</button>
+        </div>
+        <div class="devices" id="devices" data-show="client">
+          <div class="device" data-dev="client">
+            <div class="device-label"><b>Celular de Carla</b> cliente · +51 900 000 001</div>
+            <div class="phone"><div class="screen" id="scr-client"></div></div>
+          </div>
+          <div class="device" data-dev="pro">
+            <div class="device-label"><b>Celular de Pedro</b> gasfitero verificado · +51 900 000 002</div>
+            <div class="phone"><div class="screen" id="scr-pro"></div></div>
+          </div>
+          <div class="device device-admin" data-dev="admin">
+            <div class="device-label"><b>Panel de soporte</b> en la computadora del equipo · +51 900 000 008</div>
+            <div class="browser">
+              <div class="browser-bar"><i></i><i></i><i></i><span>Panel de soporte · Cerquita</span></div>
+              <div class="browser-body" id="scr-admin"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ FLUJOS ═════════ -->
+  <section id="v-flujos" hidden>
+    <div class="doc-page">
+      <header>
+        <h2>Cómo fluye Cerquita</h2>
+        <p class="muted">Estos son los flujos que ya están construidos y probados en el proyecto. La demo sigue exactamente estos pasos.</p>
+      </header>
+
+      <section>
+        <h3>1. De un pedido al pago de la comisión</h3>
+        <p>El cliente pone su precio y solo comparte su zona aproximada. Los profesionales cotizan si tienen ese oficio aprobado, están en línea y dentro de su radio. El teléfono y la dirección exacta se muestran recién al aceptar una oferta.</p>
+<pre class="mermaid">
+flowchart TD
+  A["Cliente publica su pedido con precio y zona aproximada"] --> B{"¿Hay profesionales del oficio en línea y cerca?"}
+  B -- "No" --> W["Queda publicado y se avisa cuando alguien se conecta"]
+  B -- "Sí" --> C["Profesionales verificados cotizan"]
+  C --> D["Cliente compara precio, calificación y distancia"]
+  D -- "Acepta una oferta" --> E["Se muestran teléfono y dirección exacta"]
+  E --> F["Ir al domicilio: comparte ubicación en vivo"]
+  F --> G["Llega y valida el código de 4 dígitos"]
+  G --> H{"¿Cambia el trabajo en sitio?"}
+  H -- "Sí" --> I["Reevaluación: mano de obra y materiales con boleta"]
+  I -- "Cliente responde" --> J
+  H -- "No" --> J["Profesional termina"]
+  J --> K["Cliente confirma y califica"]
+  K --> L["Comisión del 10 % sobre la mano de obra"]
+  K --> M["Cliente gana puntos para su próximo pedido"]
+</pre>
+      </section>
+
+      <section>
+        <h3>2. Estados de un pedido</h3>
+        <p>Cada cambio de estado lo valida el servidor. Por ejemplo, solo el profesional asignado puede marcar que llegó, y solo con el código correcto.</p>
+<pre class="mermaid">
+stateDiagram-v2
+  state "Publicado" as published
+  state "Con ofertas" as with_offers
+  state "Aceptado" as accepted
+  state "En camino" as on_the_way
+  state "En el domicilio" as at_home
+  state "Precio en revisión" as price_renegotiated
+  state "Terminado" as finished
+  state "Confirmado" as confirmed
+  state "Calificado" as rated
+  state "Cancelado" as cancelled
+  [*] --> published
+  published --> with_offers: llega una oferta
+  with_offers --> accepted: el cliente acepta
+  accepted --> on_the_way: ir al domicilio
+  on_the_way --> at_home: código validado
+  at_home --> price_renegotiated: reevaluación
+  price_renegotiated --> at_home: el cliente responde
+  at_home --> finished: terminar
+  finished --> at_home: algo falta
+  finished --> confirmed: el cliente confirma
+  confirmed --> rated: califica
+  published --> cancelled
+  with_offers --> cancelled
+  accepted --> cancelled
+  on_the_way --> cancelled
+  rated --> [*]
+  cancelled --> [*]
+</pre>
+      </section>
+
+      <section>
+        <h3>3. Verificación del profesional</h3>
+        <p>Por cada oficio: identidad (DNI, selfie y antecedentes) y al menos dos evidencias. Los documentos van a un almacenamiento privado y cada vista del equipo de soporte queda registrada.</p>
+<pre class="mermaid">
+stateDiagram-v2
+  state "Borrador" as draft
+  state "Enviado" as submitted
+  state "En revisión" as in_review
+  state "Faltan datos" as needs_info
+  state "Aprobado con observación" as approved_observation
+  state "Aprobado" as approved_full
+  state "Rechazado" as rejected
+  [*] --> draft
+  draft --> submitted: identidad y 2 evidencias
+  submitted --> in_review: soporte abre el caso
+  in_review --> approved_observation: aprueba
+  in_review --> needs_info: pide datos
+  needs_info --> submitted: reenvía
+  in_review --> rejected: rechaza
+  rejected --> submitted: después de 30 días
+  approved_observation --> approved_full: 3 calificaciones de 4 o más estrellas
+</pre>
+      </section>
+
+      <section>
+        <h3>4. Comisión y pagos</h3>
+        <p>La comisión se anota en un libro de cuentas que no se puede editar. No hay compras ni recargas dentro de la app: el profesional paga por Yape, Plin o transferencia y sube su constancia.</p>
+<pre class="mermaid">
+sequenceDiagram
+  participant C as Cliente
+  participant S as Cerquita
+  participant P as Profesional
+  participant A as Soporte
+  C->>S: Confirma el trabajo
+  S->>P: Anota la comisión del 10 % de la mano de obra
+  Note over S,P: Si la deuda pasa de S/ 30 hay 3 días de gracia
+  Note over S,P: Luego se pausan sus cotizaciones
+  P->>S: Paga por Yape o Plin y sube la constancia
+  A->>S: Revisa y aprueba la constancia
+  S->>P: Abona el pago y lo reactiva
+</pre>
+      </section>
+
+      <section>
+        <h3>5. Cómo está armado por dentro</h3>
+<pre class="mermaid">
+flowchart LR
+  APP["App Cerquita (Expo) para Android y iOS"]
+  PANEL["Panel de soporte (Next.js en Vercel)"]
+  subgraph SB["Supabase · São Paulo"]
+    AUTH["Ingreso por SMS"]
+    DB["Postgres + PostGIS con reglas de acceso por fila"]
+    ST["Archivos privados: DNI, fotos y boletas"]
+    RT["Tiempo real: ofertas, chat y ubicación"]
+    FN["Función de notificaciones push"]
+    CRON["Tareas programadas: limpieza y antifraude"]
+  end
+  PUSH["Expo Push"]
+  SEN["Sentry: errores"]
+  APP --> AUTH
+  APP --> DB
+  APP --> ST
+  APP --> RT
+  PANEL --> DB
+  PANEL --> ST
+  CRON --> FN
+  FN --> PUSH
+  PUSH --> APP
+  APP -.-> SEN
+</pre>
+      </section>
+    </div>
+  </section>
+
+  <!-- ═════════ ALOJAMIENTO ═════════ -->
+  <section id="v-alojamiento" hidden>
+    <div class="doc-page">
+      <header>
+        <h2>Dónde alojar Cerquita</h2>
+        <p class="muted">Mi recomendación: GitHub para el código, Supabase en São Paulo para la base, Vercel para el panel y Expo EAS para la app. Es lo que el proyecto ya usa, así que no hay que reescribir nada.</p>
+      </header>
+
+      <section>
+        <h3>Qué está construido</h3>
+        <div class="cards2">
+          <div class="card"><span class="big-num">4</span><b>Módulos completos</b><p class="muted">MVP en 8 fases, piloto Huancayo, confianza (chat, puntos, lista negra) y pre-lanzamiento (push, SOS, panel).</p></div>
+          <div class="card"><span class="big-num">378</span><b>Pruebas de seguridad de la base</b><p class="muted">Comprueban que nadie lea datos ajenos y que las reglas de comisión, estados y ubicación se cumplan.</p></div>
+          <div class="card"><span class="big-num">153</span><b>Pruebas de lógica</b><p class="muted">Dinero en céntimos, comisión, puntos, filtros del chat y textos legales.</p></div>
+          <div class="card"><span class="big-num">92</span><b>Pasos de recorrido completo</b><p class="muted">Un navegador automático usa la app y el panel como lo haría una persona, de punta a punta.</p></div>
+        </div>
+      </section>
+
+      <section>
+        <h3>Dónde vive cada pieza</h3>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Pieza</th><th>Dónde</th><th>Por qué</th><th>Ahora (pruebas)</th><th>Al lanzar</th></tr></thead>
+            <tbody>
+              <tr><td>Código</td><td>GitHub privado</td><td>Ya está ahí, con historial y revisiones automáticas</td><td>Gratis</td><td>Gratis</td></tr>
+              <tr><td>Base, ingreso y archivos</td><td>Supabase · São Paulo</td><td>Región más cercana a Perú; reglas de acceso ya probadas</td><td>Gratis (se pausa tras 1 semana sin uso)</td><td>Pro: USD 25 al mes, con copias diarias</td></tr>
+              <tr><td>Panel de soporte</td><td>Vercel</td><td>Hecho para Next.js; publica solo en cada cambio</td><td>Gratis (plan Hobby, uso no comercial)</td><td>Pro: USD 20 al mes por persona</td></tr>
+              <tr><td>App Android e iOS</td><td>Expo EAS</td><td>Compila en la nube sin Mac y corrige sin pasar por la tienda</td><td>Gratis con cupo mensual</td><td>Gratis o plan pago si compilas mucho</td></tr>
+              <tr><td>Tiendas</td><td>Google Play y App Store</td><td>Donde la gente la descarga</td><td>No hace falta</td><td>USD 25 una vez · USD 99 al año</td></tr>
+              <tr><td>Códigos SMS</td><td>Twilio u otro con remitente en Perú</td><td>Ingreso con celular</td><td>Números de prueba</td><td>Se paga por mensaje enviado</td></tr>
+              <tr><td>Errores</td><td>Sentry</td><td>Ver fallas reales en los celulares</td><td>Gratis</td><td>Gratis al inicio</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fine">Precios de referencia; confírmalos en la web de cada servicio antes de contratar. Al lanzar, lo fijo serían unos USD 45 al mes más el SMS.</p>
+      </section>
+
+      <section>
+        <h3>Orden para publicar</h3>
+        <ol class="seq">
+          <li><b>Base en Supabase:</b> proyecto en São Paulo y <code>pnpm deploy:prod</code>, que aplica las 13 migraciones, la función de notificaciones y los datos del piloto.</li>
+          <li><b>Panel en Vercel:</b> conectar el repositorio, carpeta <code>apps/admin</code>, y cargar las variables del bloque “Panel admin” de <code>.env.production.example</code>.</li>
+          <li><b>App en tu celular:</b> un build interno de Android con EAS. Te llega un enlace para instalarla y probarla con datos reales.</li>
+          <li><b>SMS y anti-abuso:</b> contratar el proveedor de SMS, activar el captcha y los límites de envío.</li>
+          <li><b>Prueba cerrada en Google Play:</b> 12 personas durante 14 días seguidos. Es requisito de Google.</li>
+          <li><b>Legal en Perú:</b> términos revisados por un abogado, registro del banco de datos personales (Ley 29733) y Libro de Reclamaciones.</li>
+          <li><b>Publicación</b> en Google Play y App Store.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h3>Ver el proyecto real en tu computadora</h3>
+        <p>Necesitas Node.js 22, pnpm 10 y Docker Desktop. Con esto se levantan la base local con datos de prueba, el panel en <code>localhost:3001</code> y la app con Expo.</p>
+        <div class="code"><button class="btn btn-secondary btn-sm" type="button" id="copy-cmd">Copiar</button><pre id="cmd">git clone https://github.com/holdingidn4-blip/cerquita.git
+cd cerquita
+pnpm install
+cp apps/mobile/.env.example apps/mobile/.env.local
+cp apps/admin/.env.example apps/admin/.env.local
+cp supabase/.env.example supabase/.env
+pnpm db:start &amp;&amp; pnpm db:reset
+pnpm dev</pre></div>
+        <p class="fine">Ingresa con los mismos números de la demo y el código 123456. En el celular, abre la app con Expo Go escaneando el QR.</p>
+      </section>
+
+      <section>
+        <h3>Lo que haría después</h3>
+        <ol class="seq">
+          <li><b>Probar con 5 a 10 profesionales reales de Huancayo</b> usando el build interno, y validar con ellos el tarifario.</li>
+          <li><b>Registro guiado del profesional</b> con fotos de ejemplo de lo que se pide como evidencia, para que menos casos vuelvan con “faltan datos”.</li>
+          <li><b>Métricas del piloto en el panel:</b> pedidos por día, tiempo hasta la primera oferta y porcentaje de pedidos contratados.</li>
+          <li><b>Definir la Garantía por 30 días y el Seguro Cerquita</b> antes de mostrarlos como beneficio.</li>
+        </ol>
+      </section>
+    </div>
+  </section>
+</main>
+
+<script>
+'use strict';
+/* ───────── Iconos ───────── */
+const I = {
+  star:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.8l2.5 5.2 5.7.8-4.1 4 1 5.6L10 14.8 4.9 17.4l1-5.6-4.1-4 5.7-.8z"/></svg>',
+  lock:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M6 8V6a4 4 0 1 1 8 0v2h1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zm2 0h4V6a2 2 0 1 0-4 0z"/></svg>',
+  pin:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1a6 6 0 0 1 6 6c0 4.5-6 12-6 12S4 11.5 4 7a6 6 0 0 1 6-6zm0 3.5A2.5 2.5 0 1 0 10 9.5 2.5 2.5 0 0 0 10 4.5z"/></svg>',
+  check:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M8 13.6 4.4 10 3 11.4l5 5 9-9L15.6 6z"/></svg>',
+  back:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.7 4.3 11.3 2.9 4.2 10l7.1 7.1 1.4-1.4L7 10z"/></svg>',
+  shield:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1 3 4v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V4zm-1 12.4L5.6 10 7 8.6l2 2 4-4L14.4 8z"/></svg>',
+  list:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4h14v2H3zm0 5h14v2H3zm0 5h14v2H3z"/></svg>',
+  wallet:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5a2 2 0 0 1 2-2h10v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2zm2 0v1h8V5zm9 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>',
+  badge:'<svg class="ic" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1 3 4v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V4z"/></svg>',
+  drop:'<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 5c6 8 10 13 10 18.5a10 10 0 0 1-20 0C10 18 14 13 20 5z"/></svg>'
+};
+
+/* ───────── Datos del piloto (tarifario estimado de Huancayo, céntimos) ───────── */
+const tr = (slug,name,pro,plural,cat,unit,min,sug,max,sample) => ({slug,name,pro,plural,cat,unit,min,sug,max,sample});
+const TRADES = [
+  tr('gasfiteria','Gasfitería','Gasfitero','gasfiteros','Técnicos','job',3500,8000,25000,'Se filtra agua debajo del lavadero de la cocina, gotea desde ayer.'),
+  tr('electricidad','Electricidad','Electricista','electricistas','Técnicos','job',3500,9000,30000,'El tomacorriente de la sala hace chispas y se bajó la llave.'),
+  tr('hogar','Hogar','Hogar','profesionales de hogar','Técnicos','job',3000,7000,20000,'Instalar dos repisas y una cortina en el dormitorio.'),
+  tr('carpinteria','Carpintería','Carpintero','carpinteros','Construcción','job',4000,12000,80000,'La puerta del baño no cierra; hay que cepillarla y cambiar bisagras.'),
+  tr('pintura','Pintura','Pintor','pintores','Construcción','job',6000,25000,120000,'Pintar la sala y el comedor, unos 40 m² de pared.'),
+  tr('albanileria','Albañilería','Albañil','albañiles','Construcción','job',6000,18000,150000,'Resanar una pared con humedad y tarrajear 3 m².'),
+  tr('limpieza','Limpieza','Limpieza','personas de limpieza','Servicio del hogar','hour',1000,1300,2000,'Limpieza general de un departamento de 2 dormitorios.'),
+  tr('cuidado','Cuidado de personas','Cuidador','cuidadores','Servicio del hogar','day',5000,7000,12000,'Cuidar a mi mamá de 78 años el sábado durante el día.'),
+  tr('chofer','Chofer','Chofer','choferes','Choferes','hour',1500,2000,3500,'Chofer con mi auto para ir y volver de Jauja.')
+];
+const tradeOf = s => TRADES.find(x => x.slug === s);
+const mat = (id,name,brand,store,price) => ({id,name,brand,store,price});
+const MATERIALS = {
+  gasfiteria:[mat('m1','Llave de paso 1/2"','Vainsa','Promart',2500),mat('m2','Tubo PVC agua 1/2" x 5 m','Pavco','Promart',1500),mat('m3','Cinta teflón 3/4"','Genérico','Promart',350),mat('m4','Grifo para lavadero cromado','Trébol','Sodimac',6990)],
+  electricidad:[mat('m5','Tomacorriente doble con línea a tierra','Bticino','Sodimac',1690),mat('m6','Interruptor termomagnético 2x20 A','Schneider','Maestro',3990),mat('m7','Cable THW 14 AWG x 100 m','Indeco','Sodimac',19900)],
+  obra:[mat('m8','Cemento Portland Tipo I 42.5 kg','Sol','Maestro',3300),mat('m9','Pintura látex lavable 1 gl','Cpp','Promart',4900),mat('m10','Arena gruesa (saco)','Genérico','Maestro',700)]
+};
+const matsFor = s => MATERIALS[s] || (['hogar','carpinteria','pintura','albanileria'].includes(s) ? MATERIALS.obra : []);
+const OTHERS = {gasfiteria:['Jorge R.','Jorge Rivera'],electricidad:['Rosa M.','Rosa Mendoza'],hogar:['Luis Q.','Luis Quispe'],carpinteria:['Marco T.','Marco Torres'],pintura:['Elena S.','Elena Soto'],albanileria:['Raúl H.','Raúl Huamán'],limpieza:['Nancy P.','Nancy Paredes'],cuidado:['Gloria V.','Gloria Vilca'],chofer:['César L.','César Lazo']};
+const LABEL = {published:'Buscando profesionales',with_offers:'Tienes ofertas',accepted:'Contratado',on_the_way:'En camino',at_home:'En tu domicilio',price_renegotiated:'Nuevo precio por revisar',finished:'Por confirmar',confirmed:'Por calificar',rated:'Calificado',cancelled:'Cancelado'};
+const VLABEL = {submitted:['Enviado','info'],in_review:['En revisión','info'],approved_observation:['Aprobado con observación','ok'],approved_full:['Aprobado','ok'],needs_info:['Faltan datos','warn'],rejected:['Rechazado','bad']};
+
+/* Mismo filtro que private.chat_violation() de la base */
+function chatViolation(body){
+  const lower = body.toLowerCase();
+  const digits = body.replace(/[\s.\-()/+]/g,'');
+  if (/\d{7,}/.test(digits)) return 'phone';
+  if (/[a-z0-9._%+-]+\s*(@|\(at\)|\[at\]| arroba )\s*[a-z0-9.-]+\s*(\.|punto)\s*[a-z]{2,}/.test(lower)) return 'email';
+  if (/(whats\s*app|whatsapp|wasap|wassap|guasap|\bwsp\b|\bwpp\b|\bwa\.me|telegram|\btelegrama\b|signal|messenger|facebook|instagram|\big\b:|ll[aá]ma(me)?\s+al|escr[ií]beme\s+al|mi\s+(n[uú]mero|cel|celular|correo|telf?|tel[eé]fono)|p[aá]game\s+(por\s+)?(fuera|aparte|directo)|sin\s+la\s+app|fuera\s+de\s+la\s+app)/.test(lower)) return 'keyword';
+  return null;
+}
+const BLOCK = {
+  phone:'Por tu seguridad no se pueden compartir números de teléfono. Coordinen todo por este chat.',
+  email:'Por tu seguridad no se pueden compartir correos. Coordinen todo por este chat.',
+  keyword:'Mantén la conversación dentro de Cerquita: los acuerdos y pagos fuera de la app pierden el Seguro Cerquita y la Garantía por 30 días.'
+};
+
+/* ───────── Utilidades ───────── */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const soles = c => 'S/ ' + (c/100).toFixed(2);
+const solesShort = c => c % 100 === 0 ? 'S/ ' + (c/100) : soles(c);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const fmtPhone = d => String(d).replace(/\D/g,'').replace(/^(\d{3})(\d{3})(\d{3})$/, '$1 $2 $3');
+const toCents = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return Number.isFinite(n) ? Math.round(n*100) : NaN; };
+const clock = () => new Date().toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'});
+const round5 = c => Math.round(c/500)*500;
+const unitTxt = t => t.unit === 'hour' ? ' por hora' : t.unit === 'day' ? ' por día' : '';
+const initials = n => n.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
+const first = n => n.split(' ')[0];
+
+/* ───────── Estado ───────── */
+function fresh(){
+  return {
+    settings:{commissionPct:10, debtLimit:3000, graceDays:3, diagFee:2000, pointsPerSol:1, pointValue:5, yape:'900 000 100', holder:'Cerquita S.A.C.'},
+    client:{name:'Carla Campos', short:'Carla C.', phone:'900000001', points:0, located:false, logged:false},
+    pro:{name:'Pedro Gutiérrez', short:'Pedro G.', phone:'900000002', rating:4.8, jobs:23, online:false, logged:false,
+      trades:[{slug:'gasfiteria', status:'approved_observation', good:0, reason:''},{slug:'electricidad', status:'submitted', good:0, reason:''}]},
+    admin:{logged:false},
+    verif:[{id:'V-31', pro:'Pedro Gutiérrez', trade:'electricidad', status:'submitted', sent:'hace 2 h', evidence:2, reason:''}],
+    job:null, history:[], wallet:[], proofs:[], sos:[], accessLog:[], log:[]
+  };
+}
+let S = fresh();
+const blankUi = () => ({screen:'login', form:{}, err:null, push:null, toast:null, sos:null, chatBlock:null});
+const ui = {client:blankUi(), pro:blankUi(), admin:blankUi(), show:'client', unseen:{client:false,pro:false,admin:false}};
+const timers = {};
+
+function log(who, text){ S.log.unshift({who, text, at:clock()}); if (S.log.length > 40) S.log.pop(); }
+const reached = st => (S.job && S.job.reached.has(st)) || S.history.some(j => j.reached.has(st));
+const anyJob = fn => (S.job && fn(S.job)) || S.history.some(fn);
+function setStatus(st){ S.job.status = st; S.job.reached.add(st); }
+const commission = p => Math.floor((p * S.settings.commissionPct * 100 + 4999) / 10000);
+const balance = () => S.wallet.reduce((a,e) => a + e.amount, 0);
+const pending = () => Math.max(0, -balance());
+const proApproved = slug => S.pro.trades.some(t => t.slug === slug && (t.status === 'approved_observation' || t.status === 'approved_full'));
+const proSees = () => !!S.job && ['published','with_offers'].includes(S.job.status) && S.pro.online && proApproved(S.job.trade);
+const pedroJob = () => S.job && S.job.accepted && S.job.accepted.who === 'pedro' ? S.job : null;
+const hired = () => S.job && S.job.accepted ? S.job.accepted : null;
+
+function go(dev, screen){ ui[dev].screen = screen; ui[dev].err = null; }
+function fail(dev, msg){ ui[dev].err = msg; }
+function notify(dev, title, body){
+  if (!S[dev].logged) return;
+  const id = Math.random();
+  ui[dev].push = {title, body, id};
+  if (ui.show !== dev) ui.unseen[dev] = true;
+  setTimeout(() => { if (ui[dev].push && ui[dev].push.id === id){ ui[dev].push = null; renderDev(dev); } }, 3800);
+}
+function toast(dev, msg){
+  const id = Math.random();
+  ui[dev].toast = {msg, id};
+  setTimeout(() => { if (ui[dev].toast && ui[dev].toast.id === id){ ui[dev].toast = null; renderDev(dev); } }, 2600);
+}
+
+/* ───────── Piezas de interfaz ───────── */
+function btn(dev, act, label, o = {}){
+  const kind = o.kind || 'primary';
+  return `<button type="button" class="btn btn-${kind}${o.full === false ? '' : ' btn-full'}${o.sm ? ' btn-sm' : ''}" data-dev="${dev}" data-act="${act}" data-arg="${esc(o.arg ?? '')}"${o.disabled ? ' disabled' : ''}>${label}</button>`;
+}
+const err = dev => ui[dev].err ? `<p class="err" role="alert">${esc(ui[dev].err)}</p>` : '';
+const appbar = (dev, title, backAct, backArg = '', extra = '') =>
+  `<div class="appbar">${backAct ? `<button type="button" class="iconbtn" aria-label="Volver" data-dev="${dev}" data-act="${backAct}" data-arg="${esc(backArg)}">${I.back}</button>` : ''}<h1>${esc(title)}</h1>${extra}</div>`;
+const chip = (dev, act, val, on, label) => `<button type="button" class="chip" aria-pressed="${on}" data-dev="${dev}" data-act="${act}" data-arg="${esc(val)}">${esc(label ?? val)}</button>`;
+const pill = (text, kind) => `<span class="pill ${kind}">${esc(text)}</span>`;
+const field = (dev, key, o = {}) => {
+  const v = ui[dev].form[key] ?? '';
+  const attrs = `id="${dev}-${key}" data-bind="${dev}:${key}"${o.live ? ' data-live="1"' : ''}${o.inputmode ? ` inputmode="${o.inputmode}"` : ''}${o.ac ? ` autocomplete="${o.ac}"` : ''}${o.aria ? ` aria-label="${esc(o.aria)}"` : ''}${o.max ? ` maxlength="${o.max}"` : ''}${o.enter ? ` data-enter="${o.enter}"` : ''} placeholder="${esc(o.ph || '')}"`;
+  return o.area ? `<textarea ${attrs} rows="${o.rows || 3}">${esc(v)}</textarea>` : `<input ${attrs} class="${o.cls || ''}" value="${esc(v)}">`;
+};
+const photoTile = i => `<div class="ph-tile">${I.drop}<span>Foto ${i+1}</span></div>`;
+const stepper = st => {
+  const idx = {accepted:0,on_the_way:1,at_home:2,price_renegotiated:2,finished:3,confirmed:3,rated:3}[st] ?? 0;
+  return `<div class="stepper">${['Contratado','En camino','Llegó','Terminado'].map((l,i) => `<span class="${i <= idx ? 'on' : ''}">${l}</span>`).join('')}</div>`;
+};
+function mapSvg(dist){
+  const pts = [[30,40],[150,40],[150,120],[248,120]];
+  const segs = []; let total = 0;
+  for (let i = 1; i < pts.length; i++){ const l = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); segs.push(l); total += l; }
+  let d = total * (1 - Math.max(0, Math.min(650, dist)) / 650), x = pts[0][0], y = pts[0][1];
+  for (let i = 1; i < pts.length; i++){
+    if (d <= segs[i-1]){ const r = d / segs[i-1]; x = pts[i-1][0] + (pts[i][0]-pts[i-1][0]) * r; y = pts[i-1][1] + (pts[i][1]-pts[i-1][1]) * r; break; }
+    d -= segs[i-1]; x = pts[i][0]; y = pts[i][1];
+  }
+  return `<svg class="map" viewBox="0 0 280 160" role="img" aria-label="Mapa: el profesional se acerca a tu casa">
+    <rect class="m-bg" width="280" height="160"/>
+    <path class="m-road" stroke-width="12" d="M0 40H280M150 0V160M0 120H280M60 0V160M232 0V160"/>
+    <polyline class="m-route" stroke-width="4" stroke-dasharray="2 8" stroke-linecap="round" points="30,40 150,40 150,120 248,120"/>
+    <circle class="m-home" cx="248" cy="120" r="10"/><text class="m-txt" x="232" y="146">Tu casa</text>
+    <circle class="m-pro" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" stroke-width="3"/>
+  </svg>`;
+}
+const fakeId = () => '<div class="fake-id"><i></i><div><span></span><span></span><span></span></div></div>';
+const workArt = i => `<svg class="work-art" viewBox="0 0 160 120" aria-hidden="true"><rect width="160" height="120"/><path stroke-width="8" stroke-linecap="round" d="${i === 1 ? 'M20 30H90V90H140' : 'M20 90H70V30H140'}"/><path stroke-width="3" d="M${i === 1 ? '90 50h14M90 70h14' : '70 50h14M70 70h14'}"/></svg>`;
+
+/* ───────── Celular: ingreso (cliente y profesional) ───────── */
+function vLogin(dev){
+  const isC = dev === 'client', test = isC ? '900 000 001' : '900 000 002';
+  return `<div class="view"><div class="scroll pad">
+    <div class="stack" style="padding-top:28px"><div class="logo big">Cerquita</div><p class="muted">Profesionales verificados, cerca de ti.</p></div>
+    <div class="stack"><label class="lbl" for="${dev}-phone">Tu celular</label>
+      <div class="phone-field"><span class="cc">+51</span>${field(dev,'phone',{inputmode:'numeric', ac:'tel-national', ph:'9XX XXX XXX', max:11})}</div>
+      <button type="button" class="chip-hint" data-dev="${dev}" data-act="fillPhone">Usar número de prueba · ${test}</button></div>
+    <div class="stack"><span class="lbl">¿Cómo usarás Cerquita?</span>
+      <div class="roles"><div class="role ${isC ? 'is-on' : 'is-off'}"><b>Necesito un servicio</b><span>Pide y compara ofertas</span></div>
+      <div class="role ${!isC ? 'is-on' : 'is-off'}"><b>Ofrezco mis servicios</b><span>Recibe pedidos cerca</span></div></div>
+      <p class="fine">En esta demo, este es el celular de ${isC ? 'Carla, que busca un servicio' : 'Pedro, gasfitero verificado'}.</p></div>
+    ${err(dev)}
+    ${btn(dev,'sendCode','Recibir código por SMS')}
+    <p class="fine center">Al continuar aceptas los Términos y la Política de privacidad.</p>
+  </div></div>`;
+}
+function vCode(dev){
+  return `<div class="view">${appbar(dev,'',`backLogin`)}<div class="scroll pad">
+    <div class="stack"><h2 class="h2">Código que te enviamos</h2><p class="muted">Lo enviamos por SMS al +51 ${fmtPhone(ui[dev].form.phone)}.</p></div>
+    ${field(dev,'otp',{inputmode:'numeric', ac:'one-time-code', ph:'······', max:6, cls:'otp', aria:'Código de 6 dígitos'})}
+    <button type="button" class="chip-hint" data-dev="${dev}" data-act="fillOtp">Código de prueba · 123456</button>
+    ${err(dev)}
+    ${btn(dev,'verify','Ingresar')}
+    <p class="fine">¿No llegó? Podrás pedir otro en 45 segundos.</p>
+  </div></div>`;
+}
+
+/* ───────── Celular de Carla (cliente) ───────── */
+function vClient(){
+  const s = ui.client.screen;
+  if (!S.client.logged) return s === 'code' ? vCode('client') : vLogin('client');
+  if (ui.client.sos) return vSos('client');
+  return ({home:vClientHome, newjob:vNew, offers:vOffers, profile:vProfile, service:vService, chat:() => vChat('client'), confirm:vConfirm, rate:vRate, account:vAccount}[s] || vClientHome)();
+}
+function activeJobCard(){
+  const j = S.job, t = tradeOf(j.trade);
+  return `<button type="button" class="card warn" data-dev="client" data-act="openJob"><div class="row between"><b>Tu pedido de ${esc(t.name.toLowerCase())}</b>${pill(LABEL[j.status],'plain')}</div><span class="meta">${j.id} · ${solesShort(j.offered)} · toca para ver</span></button>`;
+}
+function vClientHome(){
+  const near = S.pro.online ? 2 : 1;
+  const j = S.job, active = j && !['rated','cancelled'].includes(j.status);
+  const groups = ['Técnicos','Construcción','Servicio del hogar','Choferes'];
+  return `<div class="view"><div class="appbar"><span class="logo">Cerquita</span><span class="pts">${I.star} ${S.client.points} pts</span><button type="button" class="link" data-dev="client" data-act="go" data-arg="account">Cuenta</button></div>
+  <div class="scroll pad">
+    ${active ? activeJobCard() : ''}
+    ${S.client.located
+      ? `<div class="card loc">${I.pin}<div><b>El Tambo, Huancayo</b><p class="meta">${near} ${near === 1 ? 'profesional verificado' : 'profesionales verificados'} a menos de 3 km</p></div></div>`
+      : `<div class="card soft"><p>Usa tu ubicación para ver profesionales verificados cerca de ti.</p>${btn('client','locate','Usar mi ubicación',{kind:'secondary'})}</div>`}
+    <h2 class="h2">¿Qué necesitas hoy?</h2>
+    ${groups.map(g => `<div class="stack"><p class="group">${g}</p><div class="grid3">${TRADES.filter(t => t.cat === g).map(t => `<button type="button" class="tile" data-dev="client" data-act="openNew" data-arg="${t.slug}" aria-label="Pedir ${t.pro}">${t.pro}</button>`).join('')}</div></div>`).join('')}
+  </div></div>`;
+}
+function vNew(){
+  const f = ui.client.form, t = tradeOf(f.trade), u = unitTxt(t);
+  const p = toCents(f.price), total = Number.isFinite(p) ? p * (f.qty || 1) : NaN;
+  return `<div class="view">${appbar('client','Pedir ' + t.pro.toLowerCase(),'go','home')}
+  <div class="scroll pad">
+    <div class="stack"><label class="lbl" for="client-desc">¿Qué necesitas?</label>${field('client','desc',{area:true, ph:'Ej.: ' + t.sample})}
+      <button type="button" class="chip-hint" data-dev="client" data-act="fillSample">Llenar con un ejemplo</button></div>
+    <div class="stack"><span class="lbl">Fotos (opcional)</span><div class="photos">${Array.from({length:f.photos || 0}, (_, i) => photoTile(i)).join('')}${(f.photos || 0) < 3 ? `<button type="button" class="add-photo" data-dev="client" data-act="addPhoto">+ Agregar foto</button>` : ''}</div></div>
+    <div class="stack"><span class="lbl">¿Cuándo?</span><div class="chips">${['Ahora','Hoy en la tarde','Mañana 9:00'].map(w => chip('client','setWhen',w,(f.when || 'Ahora') === w)).join('')}</div></div>
+    <div class="stack"><label class="lbl" for="client-address">Dirección exacta</label>
+      ${field('client','address',{ac:'street-address', ph:'Jr., Av., número'})}
+      ${field('client','ref',{aria:'Referencia', ph:'Referencia: dpto., piso, color de puerta'})}
+      <p class="note">${I.lock}<span>Solo el profesional que aceptes verá tu dirección exacta.</span></p></div>
+    <div class="stack"><label class="lbl" for="client-price">¿Cuánto ofreces${u}?</label>
+      <div class="money-field"><span>S/</span>${field('client','price',{inputmode:'decimal', ph:String(t.sug/100), live:true})}</div>
+      ${t.unit !== 'job' ? `<div class="qty"><span>${t.unit === 'hour' ? 'Horas' : 'Días'}</span><button type="button" data-dev="client" data-act="qty" data-arg="-1" aria-label="Menos">−</button><b>${f.qty}</b><button type="button" data-dev="client" data-act="qty" data-arg="1" aria-label="Más">+</button>${Number.isFinite(total) ? `<span class="meta">Total ${soles(total)}</span>` : ''}</div>` : ''}
+      <p class="note"><span>En Huancayo se paga entre ${solesShort(t.min)} y ${solesShort(t.max)}${u}; lo sugerido es ${solesShort(t.sug)}.${t.unit === 'job' ? ` Si solo necesitas que lo revisen, la visita de diagnóstico es ${solesShort(S.settings.diagFee)}.` : ''}</span></p></div>
+    ${err('client')}
+  </div>
+  <div class="footer">${btn('client','publish','Buscar profesionales cerca')}</div></div>`;
+}
+function vOffers(){
+  const j = S.job; if (!j) return vClientHome();
+  const t = tradeOf(j.trade), offers = j.offers.filter(o => o.status !== 'withdrawn').slice().sort((a,b) => a.priceCents - b.priceCents);
+  const n = offers.length;
+  return `<div class="view">${appbar('client','Tu pedido','go','home')}
+  <div class="scroll pad">
+    <div class="card soft"><div class="row between"><b>${t.name}</b>${pill(LABEL[j.status],'plain')}</div><p>${esc(j.desc)}</p><p class="meta">Ofreciste ${solesShort(j.offered)} · ${esc(j.when)} · ${j.id}</p></div>
+    ${n === 0 ? `<div class="radar"><div class="pulse"></div><b>Buscando ${t.plural} cerca…</b><p class="muted">Te avisamos apenas respondan.</p></div>`
+      : `<h3 class="h3">${n} ${n === 1 ? t.pro.toLowerCase() + ' respondió' : t.plural + ' respondieron'}</h3>
+      ${offers.map(o => `<article class="card">
+        <div class="offer-top"><div class="avatar">${initials(o.name)}</div><div class="who-col"><b>${esc(o.short)}</b><span class="meta">${I.star} ${o.rating} · ${o.jobs} trabajos · a ${o.distanceM >= 1000 ? (o.distanceM/1000).toFixed(1) + ' km' : o.distanceM + ' m'}</span></div><div class="stack" style="align-items:flex-end;gap:4px"><span class="price">${solesShort(o.priceCents)}</span>${o.priceCents === j.offered ? pill('Tu precio','ok') : pill('Contraoferta','warn')}</div></div>
+        ${o.msg ? `<p class="quote">“${esc(o.msg)}”</p>` : ''}
+        <div class="row">${btn('client','openProfile','Ver perfil',{arg:o.id, kind:'secondary', full:false, sm:true})}${btn('client','accept','Aceptar ' + solesShort(o.priceCents),{arg:o.id, full:false, sm:true})}</div>
+      </article>`).join('')}`}
+    <button type="button" class="link" data-dev="client" data-act="cancelJob">Cancelar pedido</button>
+  </div></div>`;
+}
+function vProfile(){
+  const j = S.job, o = j && j.offers.find(x => x.id === ui.client.form.profile);
+  if (!o) return vOffers();
+  const t = tradeOf(j.trade);
+  return `<div class="view">${appbar('client','Perfil','go','offers')}
+  <div class="scroll pad">
+    <div class="stack" style="align-items:center;text-align:center"><div class="avatar big">${initials(o.name)}</div><h2 class="h2">${esc(o.name)}</h2>
+      ${pill('Identidad verificada','ok')}<p class="meta">${t.pro}${o.who === 'pedro' ? ' · Electricista ' + (proApproved('electricidad') ? 'aprobado' : 'en revisión') : ''}</p></div>
+    <dl class="kv card"><dt>Calificación</dt><dd>${I.star} ${o.rating}</dd><dt>Trabajos hechos</dt><dd>${o.jobs}</dd><dt>Distancia</dt><dd>a ${o.distanceM} m</dd><dt>Su oferta</dt><dd class="total">${soles(o.priceCents)}</dd></dl>
+    <div class="card soft"><b>Última reseña</b><p>“${o.who === 'pedro' ? 'Llegó puntual y dejó todo limpio.' : 'Buen trabajo, aunque llegó un poco tarde.'}”</p><p class="meta">${o.who === 'pedro' ? 'María P.' : 'Jaime A.'} · ${I.star} ${o.who === 'pedro' ? 5 : 4}</p></div>
+    <p class="note">${I.shield}<span>Revisamos su DNI, selfie y antecedentes, y al menos dos evidencias de su oficio.</span></p>
+  </div>
+  <div class="footer">${btn('client','accept','Aceptar y contratar · ' + solesShort(o.priceCents),{arg:o.id})}</div></div>`;
+}
+function vService(){
+  const j = S.job; if (!j || !j.accepted) return vClientHome();
+  const o = j.accepted, nm = first(o.name), st = j.status;
+  let head = '';
+  if (st === 'accepted') head = `<div class="card"><h2 class="h2">${nm} aceptó tu pedido</h2><p class="muted">Te avisaremos cuando salga hacia tu casa.</p></div>`;
+  if (st === 'on_the_way') head = `<div class="card"><div class="row between"><h2 class="h2">${nm} va en camino</h2><span class="live">En vivo</span></div><p class="meta">A ${j.distance} m · llega en unos ${Math.max(1, Math.round(j.distance / 160))} min</p>${mapSvg(j.distance)}</div>
+    <div class="code-box"><small>Tu código de seguridad</small><b>${j.code}</b><small>Dáselo a ${nm} cuando llegue. Así confirmas que es la persona que contrataste.</small></div>`;
+  if (st === 'at_home') head = `<div class="card okc"><h2 class="h2">${nm} está en tu domicilio</h2><p>Validó tu código a las ${j.arrivedAt}.${j.renegDone ? (j.renegAccepted ? ' Aceptaste el nuevo precio.' : ' Mantuviste el precio anterior.') : ''}</p></div>`;
+  if (st === 'price_renegotiated'){
+    const r = j.reneg, mats = r.items.reduce((a,m) => a + m.price, 0);
+    head = `<div class="card warn"><h2 class="h2">${nm} propone un nuevo precio</h2>${r.reason ? `<p>“${esc(r.reason)}”</p>` : ''}
+      <dl class="kv"><dt>Mano de obra</dt><dd>${soles(r.labor)}</dd>${r.items.map(m => `<dt>${esc(m.name)} · ${m.brand}, ${m.store}</dt><dd>${soles(m.price)}</dd>`).join('')}<dt class="total">Total</dt><dd class="total">${soles(r.labor + mats)}</dd></dl>
+      ${r.items.length ? `<p class="note">${I.check}<span>Boleta adjunta. Los materiales se reembolsan contra boleta y no pagan comisión.</span></p>` : ''}
+      <div class="row">${btn('client','renegAnswer','Aceptar nuevo precio',{arg:'1', full:false, sm:true})}${btn('client','renegAnswer','Mantener el anterior',{arg:'0', kind:'secondary', full:false, sm:true})}</div></div>`;
+  }
+  if (st === 'finished') head = `<div class="card warn"><h2 class="h2">${nm} terminó el trabajo</h2><p>Revisa que todo esté bien antes de confirmar.</p>${btn('client','go','Revisar y confirmar',{arg:'confirm'})}</div>`;
+  if (st === 'confirmed') head = `<div class="card okc"><h2 class="h2">Trabajo confirmado</h2>${btn('client','go','Calificar a ' + nm,{arg:'rate'})}</div>`;
+  if (st === 'cancelled') head = `<div class="card"><h2 class="h2">Servicio cancelado</h2><p class="muted">${esc(j.cancelReason || '')}</p></div>`;
+  const chatOn = ['accepted','on_the_way','at_home','price_renegotiated','finished'].includes(st);
+  return `<div class="view">${appbar('client',tradeOf(j.trade).name + ' · ' + j.id,'go','home')}
+  <div class="scroll pad">
+    ${stepper(st)}
+    ${head}
+    <div class="card"><div class="offer-top"><div class="avatar">${initials(o.name)}</div><div class="who-col"><b>${esc(o.name)}</b><span class="meta">${I.star} ${o.rating} · +51 ${o.who === 'pedro' ? '900 000 002' : '900 000 0' + (10 + TRADES.findIndex(t => t.slug === j.trade))}</span></div>${chatOn ? btn('client','chatOpen','Chat',{kind:'secondary', full:false, sm:true}) : ''}</div>
+      <p class="meta">${I.pin} ${esc(j.address)}${j.ref ? ' · ' + esc(j.ref) : ''}</p></div>
+    ${['on_the_way','at_home','price_renegotiated'].includes(st) ? `<div class="stack"><button type="button" class="sos-btn" data-dev="client" data-act="sosStart">SOS</button><p class="fine">Si te sientes en riesgo, presiona SOS: soporte recibe tu ubicación y te llama.</p></div>` : ''}
+    ${['accepted','on_the_way'].includes(st) ? `<button type="button" class="link" data-dev="client" data-act="cancelJob">Cancelar servicio</button>` : ''}
+  </div></div>`;
+}
+function vConfirm(){
+  const j = S.job; if (!j || j.status !== 'finished') return vService();
+  const mats = j.materials.reduce((a,m) => a + m.price, 0), nm = first(j.accepted.name);
+  return `<div class="view">${appbar('client','Confirmar trabajo','go','service')}
+  <div class="scroll pad">
+    <h2 class="h2">${nm} marcó el trabajo como terminado</h2>
+    <dl class="kv card"><dt>Mano de obra</dt><dd>${soles(j.laborCents)}</dd>${j.materials.map(m => `<dt>${esc(m.name)}</dt><dd>${soles(m.price)}</dd>`).join('')}<dt class="total">Total a pagarle a ${nm}</dt><dd class="total">${soles(j.laborCents + mats)}</dd></dl>
+    <p class="note">${I.shield}<span>Le pagas directo a ${nm}: efectivo, Yape o Plin. La comisión de Cerquita la paga el profesional; tú no pagas nada extra.</span></p>
+  </div>
+  <div class="footer">${btn('client','confirm','Sí, quedó bien',{arg:'1'})}${btn('client','confirm','Algo falta',{arg:'0', kind:'secondary'})}</div></div>`;
+}
+function vRate(){
+  const j = S.job; if (!j || j.status !== 'confirmed') return vClientHome();
+  const f = ui.client.form, stars = f.stars || 5, nm = first(j.accepted.name);
+  const pts = Math.floor(j.laborCents / 100) * S.settings.pointsPerSol;
+  const tags = ['Puntual','Trabajo limpio','Amable','Buen precio','Resolvió el problema'];
+  return `<div class="view">${appbar('client','Califica a ' + nm)}
+  <div class="scroll pad">
+    <div class="stars" role="group" aria-label="Estrellas">${[1,2,3,4,5].map(n => `<button type="button" class="${n <= stars ? 'on' : ''}" data-dev="client" data-act="setStars" data-arg="${n}" aria-label="${n} estrellas">★</button>`).join('')}</div>
+    <div class="chips">${tags.map(tg => chip('client','toggleTag',tg,!!(f.tags || {})[tg])).join('')}</div>
+    ${field('client','comment',{area:true, rows:2, aria:'Comentario (opcional)', ph:'Cuéntale a otros cómo te fue (opcional)'})}
+    <div class="stack"><span class="lbl">¿Cómo le pagaste?</span><div class="chips">${['Efectivo','Yape','Plin','Transferencia'].map(m => chip('client','setPaid',m,(f.paid || 'Efectivo') === m)).join('')}</div></div>
+    <div class="card warn"><b>Ganas ${pts} puntos</b><p class="meta">1 punto por cada S/ 1 de mano de obra. Valen ${soles(pts * S.settings.pointValue)} de descuento en tu próximo pedido.</p></div>
+  </div>
+  <div class="footer">${btn('client','rate','Enviar calificación')}</div></div>`;
+}
+function vAccount(){
+  return `<div class="view">${appbar('client','Cuenta y privacidad','go','home')}
+  <div class="scroll pad">
+    <div class="card"><div class="offer-top"><div class="avatar">CC</div><div class="who-col"><b>Carla Campos</b><span class="meta">+51 900 000 001</span></div></div></div>
+    <div class="card"><b>Contactos de confianza</b><p class="meta">Mamá · 911 111 111. Les avisamos si presionas SOS.</p></div>
+    <div class="card"><b>Puntos</b><p class="meta">${S.client.points} puntos · valen ${soles(S.client.points * S.settings.pointValue)}</p></div>
+    <div class="card"><b>Privacidad</b><p class="meta">Tu dirección exacta y tu celular solo los ve el profesional que contratas, y tu ubicación aproximada se redondea a unos 100 m.</p></div>
+    ${btn('client','logout','Cerrar sesión',{kind:'secondary'})}
+  </div></div>`;
+}
+
+/* ───────── Chat y SOS (ambos celulares) ───────── */
+function vChat(dev){
+  const j = S.job; if (!j || !j.accepted) return dev === 'client' ? vClientHome() : vRequests();
+  const other = dev === 'client' ? first(j.accepted.name) : 'Carla';
+  const sugg = dev === 'client' ? ['Toca el timbre del 302','Escríbeme al 987654321'] : ['Llego en 5 minutos','Pásame tu WhatsApp'];
+  return `<div class="view">${appbar(dev,'Chat con ' + other,'go',dev === 'client' ? 'service' : 'job')}
+  <div class="scroll pad">
+    <p class="note">${I.shield}<span>Por tu seguridad, coordina todo por aquí. No compartas números ni pagos fuera de la app.</span></p>
+    <div class="msgs">${j.messages.map(m => `<div class="bubble${m.from === dev ? ' me' : ''}">${esc(m.text)}<time>${m.at}</time></div>`).join('') || '<p class="muted center">Todavía no hay mensajes.</p>'}</div>
+    ${ui[dev].chatBlock ? `<p class="err" role="alert">${esc(ui[dev].chatBlock)}</p>` : ''}
+  </div>
+  <div class="footer"><div class="chips">${sugg.map(s => chip(dev,'chatSuggest',s,false)).join('')}</div>
+    <div class="chatbar">${field(dev,'chat',{aria:'Escribe un mensaje', ph:'Escribe un mensaje', enter:'chatSend'})}${btn(dev,'chatSend','Enviar',{full:false})}</div></div></div>`;
+}
+function vSos(dev){
+  const s = ui[dev].sos;
+  if (!s.sent) return `<div class="sos-screen"><b>Enviando alerta SOS en</b><span class="count">${s.count}</span><p>Soporte recibirá tu ubicación y te llamará.</p><button type="button" class="btn" data-dev="${dev}" data-act="sosCancel">Cancelar</button></div>`;
+  return `<div class="sos-screen"><h2 class="h2">Alerta enviada</h2><p>Soporte de Cerquita ya tiene tu ubicación y te va a llamar.</p>
+    <ul><li>Avisamos a tu contacto de confianza</li><li>Policía: 105 · Bomberos: 116 · SAMU: 106</li></ul>
+    <button type="button" class="btn" data-dev="${dev}" data-act="sosBack">Volver al servicio</button></div>`;
+}
+
+/* ───────── Celular de Pedro (profesional) ───────── */
+function vPro(){
+  const s = ui.pro.screen;
+  if (!S.pro.logged) return s === 'code' ? vCode('pro') : vLogin('pro');
+  if (ui.pro.sos) return vSos('pro');
+  return ({requests:vRequests, quote:vQuote, job:vJob, chat:() => vChat('pro'), wallet:vWallet, pay:vPay, trades:vTrades}[s] || vRequests)();
+}
+const tabbar = cur => `<nav class="tabbar" aria-label="Secciones">${[['requests','Pedidos',I.list],['wallet','Comisión',I.wallet],['trades','Oficios',I.badge]].map(([k,l,ic]) => `<button type="button" class="${cur === k ? 'is-on' : ''}" data-dev="pro" data-act="go" data-arg="${k}">${ic}<span>${l}</span></button>`).join('')}</nav>`;
+function vRequests(){
+  const j = S.job, on = S.pro.online, t = j && tradeOf(j.trade);
+  const mine = pedroJob() && !['rated','cancelled'].includes(j.status);
+  const myOffer = j && j.offers.find(o => o.who === 'pedro');
+  const lostIt = j && myOffer && myOffer.status === 'rejected' && ['accepted','on_the_way','at_home','price_renegotiated','finished','confirmed','rated'].includes(j.status);
+  const approved = S.pro.trades.filter(x => proApproved(x.slug)).map(x => tradeOf(x.slug).pro.toLowerCase());
+  let body;
+  if (!on) body = `<div class="empty"><b>Estás desconectado</b><p>Ponte en línea para recibir pedidos de ${approved.join(' y ')} a menos de 5 km.</p>${btn('pro','proToggle','Ponerme en línea',{full:false})}</div>`;
+  else {
+    const list = proSees() ? `<article class="card">
+        <div class="row between"><span class="pill info">${t.name}</span><span class="meta">hace ${Math.max(1, Math.round((Date.now() - j.createdAt) / 60000))} min</span></div>
+        <p>${esc(j.desc)}</p>
+        ${j.photos ? `<div class="photos">${Array.from({length:j.photos}, (_, i) => photoTile(i)).join('')}</div>` : ''}
+        <p class="meta">a 600 m · El Tambo · Carla C. · Nueva en Cerquita</p>
+        <div class="row between"><span class="price">Ofrece ${solesShort(j.offered)}</span>${myOffer ? pill('Oferta enviada: ' + soles(myOffer.priceCents),'ok') : btn('pro','openQuote','Cotizar',{full:false, sm:true})}</div>
+      </article>` : `<div class="empty"><b>Sin pedidos cerca por ahora</b><p>Te avisamos al instante cuando alguien pida ${approved.join(' o ')}.</p></div>`;
+    body = `${mine ? `<button type="button" class="card okc" data-dev="pro" data-act="go" data-arg="job"><div class="row between"><b>Trabajo en curso · ${j.id}</b>${pill(LABEL[j.status],'plain')}</div><span class="meta">Carla C. · toca para ver</span></button>` : ''}
+      ${lostIt ? `<p class="note">${I.list}<span>Carla eligió otra oferta en ${j.id}. Sigue en línea para recibir más pedidos.</span></p>` : ''}
+      <p class="note">${I.shield}<span>Solo ves pedidos de tus oficios aprobados (${approved.join(', ')}) a menos de 5 km.</span></p>
+      ${mine ? '' : list}`;
+  }
+  return `<div class="view"><div class="appbar"><h1>Hola, Pedro</h1><button type="button" class="switch" role="switch" aria-checked="${on}" aria-label="En línea" data-dev="pro" data-act="proToggle"><span>${on ? 'En línea' : 'Desconectado'}</span><span class="track"></span></button></div>
+  <div class="scroll pad">
+    ${pending() > 0 ? `<button type="button" class="card warn" data-dev="pro" data-act="go" data-arg="wallet"><div class="row between"><b>Comisión por pagar</b><b>${soles(pending())}</b></div><span class="meta">Límite ${soles(S.settings.debtLimit)} · toca para pagar</span></button>` : ''}
+    ${body}
+  </div>${tabbar('requests')}</div>`;
+}
+function vQuote(){
+  const j = S.job; if (!proSees()) return vRequests();
+  const t = tradeOf(j.trade), f = ui.pro.form;
+  const opts = [j.offered, round5(j.offered * 1.2), round5(j.offered * 1.4)].filter((v,i,a) => a.indexOf(v) === i);
+  const price = f.pick === 'custom' ? toCents(f.custom) : opts[Number(f.pick || 0)];
+  const ok = Number.isFinite(price) && price > 0, c = ok ? commission(price) : 0;
+  return `<div class="view">${appbar('pro','Cotizar','go','requests')}
+  <div class="scroll pad">
+    <div class="card soft"><div class="row between"><b>${t.name}</b><span class="meta">${j.id}</span></div><p>${esc(j.desc)}</p>
+      ${j.photos ? `<div class="photos">${Array.from({length:j.photos}, (_, i) => photoTile(i)).join('')}</div>` : ''}
+      <p class="meta">${I.pin} Zona: El Tambo · a 600 m · ${esc(j.when)}</p>
+      <p class="note">${I.lock}<span>La dirección exacta y el celular de Carla se muestran cuando acepte tu oferta.</span></p></div>
+    <h3 class="h3">Tu cotización</h3>
+    <div class="chips" role="radiogroup" aria-label="Precio">${opts.map((v,i) => `<button type="button" role="radio" class="chip" aria-checked="${String(f.pick || '0') === String(i)}" data-dev="pro" data-act="pick" data-arg="${i}">${i === 0 ? 'Acepto ' : ''}${solesShort(v)}</button>`).join('')}${chip('pro','pick','custom',f.pick === 'custom','Otro monto')}</div>
+    ${f.pick === 'custom' ? `<div class="money-field"><span>S/</span>${field('pro','custom',{inputmode:'decimal', ph:'Ej.: 100', live:true, aria:'Otro monto'})}</div>` : ''}
+    ${ok ? `<dl class="kv card"><dt>Precio para Carla</dt><dd>${soles(price)}</dd><dt>Comisión de la app (${S.settings.commissionPct} %)</dt><dd class="neg">− ${soles(c)}</dd><dt class="total">Recibes</dt><dd class="total">${soles(price - c)}</dd></dl>` : ''}
+    <div class="stack"><label class="lbl" id="msg-label" for="pro-msg">Mensaje para Carla (opcional)</label>${field('pro','msg',{ph:'Ej.: Llevo los repuestos.'})}</div>
+    ${err('pro')}
+  </div>
+  <div class="footer">${btn('pro','sendQuote','Enviar cotización')}</div></div>`;
+}
+function vJob(){
+  const j = pedroJob(); if (!j) return vRequests();
+  const st = j.status, f = ui.pro.form, mats = j.materials.reduce((a,m) => a + m.price, 0);
+  let act = '';
+  if (st === 'accepted') act = `<p class="note">${I.pin}<span>Al tocar “Ir al domicilio” compartimos tu ubicación con Carla solo hasta que termines.</span></p>${btn('pro','startTrip','Ir al domicilio')}`;
+  if (st === 'on_the_way') act = `<div class="card"><div class="row between"><span class="live">Compartiendo tu ubicación</span><span class="meta">a ${j.distance} m</span></div>${mapSvg(j.distance)}</div>
+    <div class="stack"><label class="lbl" id="code-label" for="pro-code">Pídele a Carla su código de 4 dígitos</label>${field('pro','code',{inputmode:'numeric', max:4, cls:'otp', ph:'····'})}</div>${err('pro')}${btn('pro','arrive','Llegué · validar código')}`;
+  if (st === 'at_home' && !f.reneg) act = `${j.renegDone ? `<p class="note">${I.check}<span>${j.renegAccepted ? 'Carla aceptó el nuevo precio.' : 'Carla mantuvo el precio anterior.'}</span></p>` : ''}
+    ${j.renegDone ? '' : btn('pro','renegOpen','Reevaluar precio en sitio',{kind:'secondary'})}${btn('pro','finish','Terminar trabajo')}`;
+  if (st === 'at_home' && f.reneg){
+    const items = matsFor(j.trade), labor = toCents(f.labor), sel = items.filter(m => (f.items || {})[m.id]);
+    const sum = (Number.isFinite(labor) ? labor : 0) + sel.reduce((a,m) => a + m.price, 0);
+    act = `<div class="card"><h3 class="h3">Reevaluación en sitio</h3>
+      <div class="stack"><label class="lbl" for="pro-labor">Mano de obra</label><div class="money-field"><span>S/</span>${field('pro','labor',{inputmode:'decimal', live:true})}</div></div>
+      ${items.length ? `<div class="stack"><span class="lbl">Materiales homologados (precio de referencia)</span>${items.map(m => `<button type="button" class="item-btn" aria-pressed="${!!(f.items || {})[m.id]}" data-dev="pro" data-act="toggleItem" data-arg="${m.id}"><span class="box">${(f.items || {})[m.id] ? '✓' : ''}</span><span>${esc(m.name)}<small>${m.brand} · ${m.store}</small></span><b>${soles(m.price)}</b></button>`).join('')}
+        ${f.receipt ? `<p class="note">${I.check}<span>Boleta adjunta</span></p>` : `<button type="button" class="add-photo" style="width:auto;height:auto;padding:10px 14px" data-dev="pro" data-act="attachReceipt">+ Adjuntar foto de la boleta</button>`}</div>` : ''}
+      ${field('pro','reason',{area:true, rows:2, aria:'Motivo', ph:'¿Qué encontraste? Ej.: la llave de paso está rota.'})}
+      <dl class="kv"><dt class="total">Nuevo total</dt><dd class="total">${soles(sum)}</dd><dt>Comisión (solo sobre mano de obra)</dt><dd>${Number.isFinite(labor) ? soles(commission(labor)) : '—'}</dd></dl>
+      ${err('pro')}
+      <div class="row">${btn('pro','renegSend','Enviar a Carla',{full:false, sm:true})}${btn('pro','renegClose','Cancelar',{kind:'secondary', full:false, sm:true})}</div></div>`;
+  }
+  if (st === 'price_renegotiated') act = `<div class="card warn"><b>Esperando que Carla revise el nuevo precio…</b><p class="meta">Le llegó una notificación con el detalle y la boleta.</p></div>`;
+  if (st === 'finished') act = `<div class="card warn"><b>Esperando que Carla confirme…</b><p class="meta">Cuando confirme se anota tu comisión.</p></div>`;
+  if (st === 'confirmed' || st === 'rated') act = `<div class="card okc"><b>Trabajo confirmado</b><p>Se anotó tu comisión de ${soles(j.commission)}: ${S.settings.commissionPct} % de ${soles(j.laborCents)} de mano de obra.${j.materials.length ? ' Los materiales no pagan comisión.' : ''}</p>${j.rating ? `<p class="meta">Carla te calificó con ${'★'.repeat(j.rating.stars)}${j.rating.comment ? ' · “' + esc(j.rating.comment) + '”' : ''}</p>` : ''}${btn('pro','go','Ver mi comisión',{arg:'wallet', kind:'secondary'})}</div>`;
+  const chatOn = ['accepted','on_the_way','at_home','price_renegotiated','finished'].includes(st);
+  return `<div class="view">${appbar('pro','Trabajo ' + j.id,'go','requests')}
+  <div class="scroll pad">
+    ${stepper(st)}
+    <div class="card"><div class="offer-top"><div class="avatar">CC</div><div class="who-col"><b>Carla Campos</b><span class="meta">+51 900 000 001</span></div>${chatOn ? btn('pro','chatOpen','Chat',{kind:'secondary', full:false, sm:true}) : ''}</div>
+      <p class="meta">${I.pin} ${esc(j.address)}${j.ref ? ' · ' + esc(j.ref) : ''}</p><p>${esc(j.desc)}</p>
+      <dl class="kv"><dt>Mano de obra</dt><dd>${soles(j.laborCents)}</dd>${j.materials.map(m => `<dt>${esc(m.name)}</dt><dd>${soles(m.price)}</dd>`).join('')}<dt class="total">Total</dt><dd class="total">${soles(j.laborCents + mats)}</dd></dl></div>
+    ${act}
+    ${['on_the_way','at_home'].includes(st) ? `<button type="button" class="sos-btn" data-dev="pro" data-act="sosStart">SOS</button>` : ''}
+  </div></div>`;
+}
+function vWallet(){
+  const p = pending(), lim = S.settings.debtLimit, pend = S.proofs.filter(x => x.status === 'pending');
+  let run = 0;
+  const rows = S.wallet.map(e => { run += e.amount; return {...e, after:run}; }).reverse();
+  return `<div class="view"><div class="appbar"><h1>Mi comisión</h1></div>
+  <div class="scroll pad">
+    <div class="card"><span class="meta">${p > 0 ? 'Comisión por pagar' : 'Estás al día'}</span><span class="big-amt">${soles(p)}</span>
+      <div class="bar" aria-hidden="true"><span style="width:${Math.min(100, p / lim * 100)}%"></span></div>
+      <p class="meta">Límite ${soles(lim)}. Si lo pasas tienes ${S.settings.graceDays} días para pagar; después se pausan tus cotizaciones hasta que pagues.</p>
+      ${pend.map(x => pill('Constancia en revisión: ' + soles(x.amount),'info')).join(' ')}
+      ${btn('pro','openPay','Pagar comisión',{disabled:p === 0})}</div>
+    <p class="note">${I.shield}<span>Pagas a Cerquita por Yape, Plin o transferencia. No hay compras ni recargas dentro de la app.</span></p>
+    <div class="card"><b>Movimientos</b>${rows.length ? rows.map(e => `<div class="mov"><span>${esc(e.label)}<small>${e.at} · saldo ${soles(e.after)}</small></span><span class="amt ${e.amount < 0 ? 'neg' : 'pos'}">${e.amount < 0 ? '− ' : '+ '}${soles(Math.abs(e.amount))}</span></div>`).join('') : '<p class="muted">Aún no hay movimientos. Se anota uno cuando un cliente confirma un trabajo.</p>'}</div>
+  </div>${tabbar('wallet')}</div>`;
+}
+function vPay(){
+  const f = ui.pro.form;
+  return `<div class="view">${appbar('pro','Pagar comisión','go','wallet')}
+  <div class="scroll pad">
+    <div class="card soft"><b>1. Yapea o plinea a Cerquita</b><dl class="kv"><dt>Yape o Plin</dt><dd>${S.settings.yape} (ejemplo)</dd><dt>Titular</dt><dd>${S.settings.holder} (ejemplo)</dd><dt class="total">Monto</dt><dd class="total">${soles(pending())}</dd></dl><p class="fine">Estos datos los carga el administrador en el panel → Parámetros.</p></div>
+    <b>2. Sube tu constancia</b>
+    <div class="chips">${['Yape','Plin','Transferencia'].map(m => chip('pro','setMethod',m,(f.method || 'Yape') === m)).join('')}</div>
+    <div class="money-field"><span>S/</span>${field('pro','amount',{inputmode:'decimal', aria:'Monto pagado'})}</div>
+    ${field('pro','op',{aria:'Código de operación', ph:'Código de operación'})}
+    ${f.shot ? `<p class="note">${I.check}<span>Captura adjunta</span></p>` : `<button type="button" class="add-photo" style="width:auto;height:auto;padding:12px" data-dev="pro" data-act="attachShot">+ Adjuntar captura del pago</button>`}
+    ${err('pro')}
+  </div>
+  <div class="footer">${btn('pro','sendProof','Enviar constancia')}</div></div>`;
+}
+function vTrades(){
+  return `<div class="view"><div class="appbar"><h1>Mis oficios</h1></div>
+  <div class="scroll pad">
+    ${S.pro.trades.map(x => { const t = tradeOf(x.slug), [l,k] = VLABEL[x.status];
+      let d = '';
+      if (x.status === 'approved_observation') d = `<p class="meta">Te faltan ${3 - x.good} de 3 calificaciones de 4 o más estrellas para la aprobación plena.</p><div class="bar"><span style="width:${x.good / 3 * 100}%;background:var(--ok)"></span></div>`;
+      if (x.status === 'approved_full') d = '<p class="meta">Aprobación plena: ya tienes 3 buenas calificaciones.</p>';
+      if (x.status === 'submitted' || x.status === 'in_review') d = '<p class="meta">Soporte está revisando tu identidad y tus 2 fotos de trabajos.</p>';
+      if (x.status === 'needs_info' || x.status === 'rejected') d = `<p class="meta">${esc(x.reason)}</p>`;
+      return `<div class="card"><div class="row between"><b>${t.pro}</b>${pill(l,k)}</div>${d}</div>`; }).join('')}
+    <p class="note">${I.shield}<span>Solo recibes pedidos de oficios aprobados. Cada oficio se verifica por separado.</span></p>
+  </div>${tabbar('trades')}</div>`;
+}
+
+/* ───────── Panel de soporte ───────── */
+function vAdmin(){
+  if (!S.admin.logged) return vAdminLogin();
+  return `<div class="panel">${adminNav()}<section class="pmain">${({verif:aVerif, verifDetail:aVerifDetail, proofs:aProofs, sos:aSosView, jobs:aJobs, suspects:aSuspects, rates:aRates, params:aParams}[ui.admin.screen] || aVerif)()}</section></div>`;
+}
+function vAdminLogin(){
+  const f = ui.admin.form;
+  return `<div class="alogin"><div class="card alogin-card"><div class="logo">Cerquita <span class="muted">· Soporte</span></div>
+    <p class="muted">Panel para revisar oficios, constancias de pago y alertas SOS. Solo personal autorizado.</p>
+    ${f.step === 'code'
+      ? `<label class="lbl" for="admin-otp">Código SMS</label>${field('admin','otp',{inputmode:'numeric', ac:'one-time-code', max:6, cls:'otp', ph:'······'})}<button type="button" class="chip-hint" data-dev="admin" data-act="fillOtp">Código de prueba · 123456</button>${err('admin')}${btn('admin','aVerify','Ingresar')}`
+      : `<label class="lbl" for="admin-phone">Celular</label><div class="phone-field"><span class="cc">+51</span>${field('admin','phone',{inputmode:'numeric', ph:'9XX XXX XXX', max:11})}</div><button type="button" class="chip-hint" data-dev="admin" data-act="fillPhone">Número de prueba del administrador · 900 000 008</button>${err('admin')}${btn('admin','aSend','Recibir código')}`}
+  </div></div>`;
+}
+function adminNav(){
+  const cur = ui.admin.screen;
+  const items = [['verif','Verificación',S.verif.filter(v => ['submitted','in_review'].includes(v.status)).length],['proofs','Constancias',S.proofs.filter(p => p.status === 'pending').length],['sos','Alertas SOS',S.sos.filter(a => a.status === 'open').length],['jobs','Pedidos',null],['suspects','Sospechas',1],['rates','Tarifario',null],['params','Parámetros',null]];
+  return `<nav class="pnav" aria-label="Secciones del panel"><div class="pbrand">Cerquita · Soporte</div>
+    ${items.map(([k,l,c]) => `<button type="button" class="pnav-item${cur === k || (k === 'verif' && cur === 'verifDetail') ? ' is-on' : ''}" data-dev="admin" data-act="go" data-arg="${k}"><span>${l}</span>${c !== null ? `<span class="count${c ? ' has' : ''}">${c}</span>` : ''}</button>`).join('')}
+    <div class="pnav-foot"><span class="muted">Administrador: Andrés Admin</span><button type="button" class="link" data-dev="admin" data-act="logout">Cerrar sesión</button></div></nav>`;
+}
+function aVerif(){
+  return `<h2 class="ph">Cola por oficio</h2><p class="muted">Profesionales que enviaron su evidencia. Para aprobar: identidad completa y al menos dos evidencias del oficio.</p>
+  <div class="stack">${S.verif.map(v => `<button type="button" class="card row-card" data-dev="admin" data-act="aOpenVerif" data-arg="${v.id}"><div><b>${v.pro} · ${tradeOf(v.trade).pro}</b><span class="muted">Enviado ${v.sent} · ${v.evidence} × Foto de un trabajo</span></div>${pill(...VLABEL[v.status])}</button>`).join('')}</div>`;
+}
+function aVerifDetail(){
+  const v = S.verif.find(x => x.id === ui.admin.form.verif) || S.verif[0], seen = ui.admin.form.seen || {};
+  const open = ['submitted','in_review'].includes(v.status);
+  return `<button type="button" class="link" data-dev="admin" data-act="go" data-arg="verif">${I.back} Cola</button>
+  <div class="row between"><h2 class="ph">${v.pro} · ${tradeOf(v.trade).pro}</h2>${pill(...VLABEL[v.status])}</div>
+  <h3 class="h3">Identidad</h3><p class="note">${I.lock}<span>Archivos privados. Cada vista abre un enlace temporal y queda registrada con tu nombre.</span></p>
+  <div class="docs">${['DNI frente','DNI reverso','Selfie','Antecedentes'].map(d => `<figure class="doc"><div class="doc-img">${seen[d] ? fakeId() : ''}</div><figcaption>${d} ${seen[d] ? pill('Vista registrada','plain') : `<button type="button" class="link" data-dev="admin" data-act="aView" data-arg="${d}">Ver</button>`}</figcaption></figure>`).join('')}</div>
+  <h3 class="h3">Evidencia del oficio</h3>
+  <div class="docs">${[1,2].map(i => `<figure class="doc"><div class="doc-img">${workArt(i)}</div><figcaption>Foto de un trabajo ${i}</figcaption></figure>`).join('')}</div>
+  <h3 class="h3">Registro de accesos</h3>
+  ${S.accessLog.length ? `<ul class="log">${S.accessLog.map(a => `<li><time>${a.at}</time><span><b>${a.who}</b> abrió ${a.doc}</span></li>`).join('')}</ul>` : '<p class="muted">Nadie abrió estos documentos todavía.</p>'}
+  ${open ? `<div class="card"><label class="lbl" for="admin-reason">Motivo (obligatorio para pedir datos o rechazar)</label>${field('admin','reason',{area:true, rows:2, ph:'Ej.: Sube una foto tuya en el lugar del trabajo.'})}${err('admin')}
+    <div class="row">${btn('admin','aDecide','Aprobar',{arg:'approve', full:false})}${btn('admin','aDecide','Pedir más datos',{arg:'needs_info', kind:'secondary', full:false})}${btn('admin','aDecide','Rechazar',{arg:'reject', kind:'secondary', full:false})}</div></div>`
+    : `<p class="muted">Decisión tomada${v.reason ? ': ' + esc(v.reason) : '.'}</p>`}`;
+}
+function aProofs(){
+  return `<h2 class="ph">Constancias de pago</h2><p class="muted">Pagos de comisión por Yape, Plin o transferencia. Al aprobar, se abona en la cuenta del profesional.</p>
+  ${S.proofs.length ? S.proofs.map(p => `<article class="card proof"><div class="proof-img"><div class="fake-shot"><b>${p.method}</b><span>${soles(p.amount)}</span><small>${esc(p.op)}</small></div></div>
+    <div class="stack"><div class="row between"><b>Pedro G. · ${p.method}</b>${p.status === 'pending' ? pill('Pendiente','warn') : p.status === 'approved' ? pill('Aprobada','ok') : pill('Rechazada','bad')}</div>
+      <dl class="kv"><dt>Monto</dt><dd>${soles(p.amount)}</dd><dt>Código de operación</dt><dd>${esc(p.op)}</dd><dt>Enviada</dt><dd>${p.at}</dd><dt>Deuda actual del profesional</dt><dd>${soles(pending())}</dd></dl>
+      ${p.status === 'pending' ? `${field('admin','rej-' + p.id,{aria:'Motivo del rechazo', ph:'Motivo, solo si la rechazas'})}${err('admin')}<div class="row">${btn('admin','aProof','Aprobar y abonar',{arg:p.id + '|ok', full:false})}${btn('admin','aProof','Rechazar',{arg:p.id + '|no', kind:'secondary', full:false})}</div>` : p.note ? `<p class="muted">Motivo: ${esc(p.note)}</p>` : ''}
+    </div></article>`).join('') : `<div class="empty"><b>Sin constancias por revisar</b><p>Aparecen cuando un profesional paga su comisión desde la app.</p></div>`}`;
+}
+function aSosView(){
+  return `<h2 class="ph">Alertas SOS</h2><p class="muted">Llama primero a la persona. Si no responde, llama a sus contactos de confianza o a la Policía (105).</p>
+  ${S.sos.length ? S.sos.map(a => `<article class="card"><div class="row between"><b>${a.who} · ${a.job || 'sin pedido'}</b>${a.status === 'open' ? pill('Abierta','bad') : pill('Cerrada','plain')}</div>
+    <dl class="kv"><dt>Hora</dt><dd>${a.at}</dd><dt>Celular</dt><dd>+51 ${a.phone}</dd><dt>Ubicación</dt><dd>El Tambo, Huancayo (−12.065, −75.205)</dd></dl>
+    ${a.status === 'open' ? `${field('admin','sos-' + a.id,{aria:'Nota de cierre', ph:'Nota de cierre. Ej.: Llamamos a Carla, todo bien.'})}${err('admin')}${btn('admin','aSos','Cerrar alerta',{arg:a.id, full:false})}` : `<p class="muted">Nota: ${esc(a.note)}</p>`}</article>`).join('')
+    : `<div class="empty"><b>Sin alertas abiertas</b><p>Prueba el botón SOS en un servicio en curso: la alerta llega aquí al instante.</p></div>`}`;
+}
+function aJobs(){
+  const all = [S.job, ...S.history].filter(Boolean);
+  return `<h2 class="ph">Pedidos</h2><p class="muted">Todos los pedidos de la demo con su estado y comisión.</p>
+  ${all.length ? `<div class="tbl-wrap"><table><thead><tr><th>Pedido</th><th>Oficio</th><th>Cliente</th><th>Profesional</th><th>Estado</th><th class="num">Mano de obra</th><th class="num">Materiales</th><th class="num">Comisión</th></tr></thead><tbody>
+    ${all.map(j => `<tr><td>${j.id}</td><td>${tradeOf(j.trade).name}</td><td>Carla C.</td><td>${j.accepted ? esc(j.accepted.short) : '—'}</td><td>${LABEL[j.status]}</td><td class="num">${soles(j.laborCents)}</td><td class="num">${soles(j.materials.reduce((a,m) => a + m.price, 0))}</td><td class="num">${j.commission ? soles(j.commission) : '—'}</td></tr>`).join('')}
+  </tbody></table></div>` : `<div class="empty"><b>Todavía no hay pedidos</b><p>Publica uno desde el celular de Carla.</p></div>`}`;
+}
+function aSuspects(){
+  const st = ui.admin.form.suspect;
+  return `<h2 class="ph">Sospechas de trato fuera de la app</h2><p class="muted">Cada 5 minutos el sistema cruza ubicaciones: si un profesional pasa tiempo en la dirección de un pedido cancelado, aparece aquí.</p>
+  <article class="card"><span class="example">Ejemplo</span><div class="row between"><b>P-0981 · Gasfitería · Jorge R.</b>${st ? pill(st === 'ok' ? 'Confirmada' : 'Descartada', st === 'ok' ? 'bad' : 'plain') : pill('Abierta','warn')}</div>
+    <p>El profesional estuvo 25 minutos a menos de 100 m de la dirección del cliente, 40 minutos después de que se canceló el pedido.</p>
+    ${st ? '' : `<div class="row">${btn('admin','aSuspect','Confirmar y bloquear',{arg:'ok', full:false})}${btn('admin','aSuspect','Descartar',{arg:'no', kind:'secondary', full:false})}</div>`}</article>`;
+}
+function aRates(){
+  return `<h2 class="ph">Tarifario de Huancayo</h2><p class="muted">Rangos que ve el cliente al pedir. Son estimados de referencia: hay que validarlos con profesionales de la ciudad.</p>
+  <div class="tbl-wrap"><table><thead><tr><th>Oficio</th><th>Unidad</th><th class="num">Mínimo</th><th class="num">Sugerido</th><th class="num">Máximo</th></tr></thead><tbody>
+  ${TRADES.map(t => `<tr><td>${t.name}</td><td>${t.unit === 'job' ? 'Por trabajo' : t.unit === 'hour' ? 'Por hora' : 'Por día'}</td><td class="num">${soles(t.min)}</td><td class="num">${soles(t.sug)}</td><td class="num">${soles(t.max)}</td></tr>`).join('')}
+  </tbody></table></div>`;
+}
+function aParams(){
+  const f = ui.admin.form, s = S.settings;
+  const def = (k, v) => { if (f[k] === undefined) f[k] = v; };
+  def('p_rate', String(s.commissionPct)); def('p_limit', String(s.debtLimit / 100)); def('p_grace', String(s.graceDays)); def('p_diag', String(s.diagFee / 100)); def('p_yape', s.yape);
+  return `<h2 class="ph">Parámetros</h2><p class="muted">Nada de esto está fijo en el código: la app lo lee de la base. Cambia la comisión y verás el nuevo cálculo en el celular de Pedro.</p>
+  <div class="params">
+    <div class="card"><label class="lbl" for="admin-p_rate">Comisión (%)</label>${field('admin','p_rate',{inputmode:'numeric'})}</div>
+    <div class="card"><label class="lbl" for="admin-p_limit">Límite de deuda (S/)</label>${field('admin','p_limit',{inputmode:'decimal'})}</div>
+    <div class="card"><label class="lbl" for="admin-p_grace">Días de gracia</label>${field('admin','p_grace',{inputmode:'numeric'})}</div>
+    <div class="card"><label class="lbl" for="admin-p_diag">Visita de diagnóstico (S/)</label>${field('admin','p_diag',{inputmode:'decimal'})}</div>
+    <div class="card"><label class="lbl" for="admin-p_yape">Yape o Plin de la empresa</label>${field('admin','p_yape',{inputmode:'numeric'})}</div>
+  </div>${err('admin')}
+  <div>${btn('admin','aSaveParams','Guardar parámetros',{full:false})}</div>`;
+}
+
+/* ───────── Acciones ───────── */
+const TEST = {client:'900000001', pro:'900000002', admin:'900000008'};
+const A = {
+  go(dev, s){ go(dev, s); },
+  fillPhone(dev){ ui[dev].form.phone = fmtPhone(TEST[dev]); },
+  fillOtp(dev){ ui[dev].form.otp = '123456'; },
+  backLogin(dev){ go(dev,'login'); },
+  sendCode(dev){
+    const d = (ui[dev].form.phone || '').replace(/\D/g,'');
+    if (!/^9\d{8}$/.test(d)) return fail(dev,'Escribe tu celular de 9 dígitos. Empieza con 9.');
+    if (d !== TEST[dev]) return fail(dev,`En esta demo usa el número de prueba ${fmtPhone(TEST[dev])}.`);
+    ui[dev].form.otp = ''; go(dev,'code');
+  },
+  verify(dev){
+    if ((ui[dev].form.otp || '').trim() !== '123456') return fail(dev,'El código no es correcto. Revisa el SMS e inténtalo otra vez.');
+    S[dev].logged = true; ui[dev].form = {};
+    log(dev, dev === 'client' ? 'Carla ingresó a la app' : 'Pedro ingresó como profesional');
+    go(dev, dev === 'client' ? 'home' : 'requests');
+  },
+  logout(dev){ S[dev].logged = false; ui[dev].form = {}; go(dev,'login'); },
+  locate(){ S.client.located = true; log('client','Carla compartió su zona: El Tambo, Huancayo'); },
+  openNew(dev, slug){
+    if (S.job && !['rated','cancelled'].includes(S.job.status)){ toast('client','Ya tienes un pedido en curso'); return; }
+    const t = tradeOf(slug); ui.client.form = {trade:slug, photos:0, when:'Ahora', qty:t.unit === 'hour' ? 4 : 1}; go('client','newjob');
+  },
+  fillSample(){ const f = ui.client.form, t = tradeOf(f.trade); f.desc = t.sample; f.address = f.address || 'Jr. Los Pinos 245'; f.ref = f.ref || 'Dpto. 302 · Cocina'; f.price = f.price || String(t.sug / 100); },
+  addPhoto(){ ui.client.form.photos = (ui.client.form.photos || 0) + 1; },
+  setWhen(dev, w){ ui.client.form.when = w; },
+  qty(dev, d){ const f = ui.client.form; f.qty = Math.min(12, Math.max(1, (f.qty || 1) + Number(d))); },
+  publish(){
+    const f = ui.client.form, t = tradeOf(f.trade), p = toCents(f.price);
+    if ((f.desc || '').trim().length < 10) return fail('client','Cuéntanos un poco más de lo que necesitas (mínimo 10 letras).');
+    if (!(f.address || '').trim()) return fail('client','Escribe tu dirección exacta. Solo la verá el profesional que aceptes.');
+    if (!(p >= t.min && p <= t.max)) return fail('client',`Pon un precio entre ${solesShort(t.min)} y ${solesShort(t.max)}${unitTxt(t)}.`);
+    if (S.job) S.history.unshift(S.job);
+    const qty = t.unit === 'job' ? 1 : (f.qty || 1);
+    S.job = {id:'P-' + (1041 + S.history.length), trade:t.slug, desc:f.desc.trim(), photos:f.photos || 0, when:f.when || 'Ahora', address:f.address.trim(), ref:(f.ref || '').trim(),
+      offered:p * qty, laborCents:p * qty, status:'published', reached:new Set(['published']), createdAt:Date.now(), offers:[], accepted:null, code:null, distance:650,
+      materials:[], reneg:null, renegDone:false, renegAccepted:false, messages:[], rating:null, commission:0};
+    log('client',`Carla pidió ${t.pro.toLowerCase()} por ${solesShort(p * qty)} (${S.job.id})`);
+    go('client','offers');
+    if (proSees()) notify('pro','Nuevo pedido cerca',`${t.name} a 600 m · ofrece ${solesShort(p * qty)}`);
+    scheduleOther(S.job);
+  },
+  openJob(){
+    const st = S.job && S.job.status;
+    go('client', ['published','with_offers'].includes(st) ? 'offers' : st === 'finished' ? 'confirm' : st === 'confirmed' ? 'rate' : 'service');
+  },
+  openProfile(dev, id){ ui.client.form.profile = id; go('client','profile'); },
+  accept(dev, id){
+    const j = S.job; if (!j || !['published','with_offers'].includes(j.status)) return;
+    const o = j.offers.find(x => x.id === id); if (!o) return;
+    j.offers.forEach(x => { x.status = x === o ? 'accepted' : 'rejected'; });
+    j.accepted = o; j.laborCents = o.priceCents; setStatus('accepted');
+    log('client',`Carla contrató a ${o.short} por ${solesShort(o.priceCents)}`);
+    go('client','service');
+    if (o.who === 'pedro'){ notify('pro','¡Carla aceptó tu oferta!','Ya ves su dirección exacta y su celular.'); ui.pro.form = {}; }
+    else { if (j.offers.some(x => x.who === 'pedro')) notify('pro','Carla eligió otra oferta','Sigue en línea para recibir más pedidos.'); setTimeout(() => autoOther(j), 2500); }
+  },
+  cancelJob(){
+    const j = S.job; if (!j || !['published','with_offers','accepted','on_the_way'].includes(j.status)) return;
+    clearInterval(timers.move); j.status = 'cancelled'; j.cancelReason = 'Lo canceló Carla.';
+    j.offers.forEach(o => { if (o.status === 'pending') o.status = 'expired'; });
+    log('client',`Carla canceló ${j.id}`);
+    if (j.offers.some(o => o.who === 'pedro')) notify('pro','Pedido cancelado',`Carla canceló ${j.id}.`);
+    go('client','home');
+  },
+  proToggle(){
+    S.pro.online = !S.pro.online;
+    log('pro', S.pro.online ? 'Pedro se puso en línea' : 'Pedro se desconectó');
+    if (S.pro.online && proSees()) notify('pro','Hay un pedido cerca',`${tradeOf(S.job.trade).name} · ofrece ${solesShort(S.job.offered)}`);
+  },
+  openQuote(){ ui.pro.form = {pick:'0'}; go('pro','quote'); },
+  pick(dev, v){ ui.pro.form.pick = v; },
+  sendQuote(){
+    const j = S.job, f = ui.pro.form; if (!proSees()) return;
+    const opts = [j.offered, round5(j.offered * 1.2), round5(j.offered * 1.4)].filter((v,i,a) => a.indexOf(v) === i);
+    const price = f.pick === 'custom' ? toCents(f.custom) : opts[Number(f.pick || 0)];
+    if (!(price > 0)) return fail('pro','Escribe un monto válido.');
+    j.offers.push({id:'o-pedro-' + j.id, who:'pedro', name:'Pedro Gutiérrez', short:'Pedro G.', rating:S.pro.rating, jobs:S.pro.jobs, distanceM:650, priceCents:price, msg:(f.msg || '').trim(), status:'pending'});
+    if (j.status === 'published') setStatus('with_offers');
+    log('pro',`Pedro cotizó ${solesShort(price)}${price !== j.offered ? ' (contraoferta)' : ''}`);
+    notify('client','Pedro G. respondió',`Ofrece ${solesShort(price)} por tu pedido`);
+    toast('pro','Cotización enviada'); go('pro','requests');
+  },
+  startTrip(){
+    const j = pedroJob(); if (!j || j.status !== 'accepted') return;
+    j.code = String(1000 + Math.floor(Math.random() * 9000)); j.distance = 650; setStatus('on_the_way'); ui.pro.form = {};
+    log('pro','Pedro salió hacia el domicilio y comparte su ubicación');
+    notify('client','Pedro va en camino','Sigue su ubicación en vivo y ten a mano tu código.');
+    startMove();
+  },
+  arrive(){
+    const j = pedroJob(); if (!j || j.status !== 'on_the_way') return;
+    if ((ui.pro.form.code || '').trim() !== j.code) return fail('pro','El código no coincide. Pídeselo a Carla.');
+    clearInterval(timers.move); j.distance = 0; j.arrivedAt = clock(); setStatus('at_home');
+    log('pro','Pedro llegó y validó el código de seguridad');
+    notify('client','Pedro llegó','Validó tu código de seguridad.');
+  },
+  renegOpen(){ const j = pedroJob(); ui.pro.form = {reneg:true, labor:String(j.laborCents / 100), items:{}, receipt:false, reason:''}; },
+  renegClose(){ ui.pro.form.reneg = false; ui.pro.err = null; },
+  toggleItem(dev, id){ const it = ui.pro.form.items; it[id] = !it[id]; },
+  attachReceipt(){ ui.pro.form.receipt = true; },
+  renegSend(){
+    const f = ui.pro.form, j = pedroJob(); if (!j || j.status !== 'at_home') return;
+    const labor = toCents(f.labor), items = matsFor(j.trade).filter(m => (f.items || {})[m.id]);
+    if (!(labor > 0)) return fail('pro','Escribe el monto de la mano de obra.');
+    if (items.length && !f.receipt) return fail('pro','Adjunta la foto de la boleta: los materiales se reembolsan contra boleta.');
+    if (labor === j.laborCents && !items.length) return fail('pro','No cambió nada: ajusta la mano de obra o agrega materiales.');
+    j.reneg = {labor, items, reason:(f.reason || '').trim()}; f.reneg = false; setStatus('price_renegotiated');
+    log('pro',`Pedro propuso un nuevo precio: ${soles(labor)} + ${soles(items.reduce((a,m) => a + m.price, 0))} en materiales`);
+    notify('client','Pedro propone un nuevo precio','Revísalo antes de que continúe.');
+  },
+  renegAnswer(dev, yes){
+    const j = S.job; if (!j || j.status !== 'price_renegotiated') return;
+    if (yes === '1'){ j.laborCents = j.reneg.labor; j.materials = j.reneg.items; }
+    j.renegDone = true; j.renegAccepted = yes === '1'; j.status = 'at_home';
+    log('client', yes === '1' ? 'Carla aceptó el nuevo precio' : 'Carla mantuvo el precio anterior');
+    notify('pro', yes === '1' ? 'Carla aceptó el nuevo precio' : 'Carla mantuvo el precio anterior','Ya puedes terminar el trabajo.');
+  },
+  finish(){
+    const j = pedroJob(); if (!j || j.status !== 'at_home') return;
+    setStatus('finished'); log('pro','Pedro marcó el trabajo como terminado');
+    notify('client','Pedro terminó el trabajo','Revisa y confirma.');
+  },
+  confirm(dev, ok){
+    const j = S.job; if (!j || j.status !== 'finished') return;
+    if (ok !== '1'){
+      j.status = 'at_home'; log('client','Carla indicó que algo falta');
+      notify('pro','Carla indicó que algo falta','Revisa con ella por el chat antes de terminar.');
+      go('client','service'); return;
+    }
+    setStatus('confirmed');
+    const c = commission(j.laborCents); j.commission = c;
+    if (j.accepted.who === 'pedro'){
+      S.wallet.push({type:'commission_debit', amount:-c, label:`Comisión ${j.id} · ${tradeOf(j.trade).name}`, at:clock()});
+      notify('pro','Carla confirmó el trabajo',`Se anotó tu comisión de ${soles(c)}.`);
+    }
+    log('client',`Carla confirmó. Comisión ${soles(c)} = ${S.settings.commissionPct} % de ${soles(j.laborCents)} de mano de obra`);
+    ui.client.form = {stars:5, tags:{}, paid:'Efectivo'}; go('client','rate');
+  },
+  setStars(dev, n){ ui.client.form.stars = Number(n); },
+  toggleTag(dev, tg){ const t = ui.client.form.tags = ui.client.form.tags || {}; t[tg] = !t[tg]; },
+  setPaid(dev, m){ ui.client.form.paid = m; },
+  rate(){
+    const j = S.job, f = ui.client.form; if (!j || j.status !== 'confirmed') return;
+    const pts = Math.floor(j.laborCents / 100) * S.settings.pointsPerSol;
+    j.rating = {stars:f.stars || 5, comment:(f.comment || '').trim(), paid:f.paid || 'Efectivo'};
+    setStatus('rated'); S.client.points += pts;
+    if (j.accepted.who === 'pedro'){
+      S.pro.jobs++;
+      const x = S.pro.trades.find(t => t.slug === j.trade);
+      if (j.rating.stars >= 4 && x && x.status === 'approved_observation'){ x.good++; if (x.good >= 3) x.status = 'approved_full'; }
+      notify('pro',`Carla te calificó con ${j.rating.stars} estrellas`, j.rating.comment || 'Gracias por tu trabajo.');
+    }
+    log('client',`Carla calificó con ${j.rating.stars} estrellas y ganó ${pts} puntos`);
+    toast('client',`Ganaste ${pts} puntos`); go('client','home');
+  },
+  chatOpen(dev){ ui[dev].form = {}; ui[dev].chatBlock = null; go(dev,'chat'); },
+  chatSuggest(dev, txt){ ui[dev].form.chat = txt; },
+  chatSend(dev){
+    const j = S.job, txt = (ui[dev].form.chat || '').trim(); if (!j || !txt) return;
+    const v = chatViolation(txt);
+    ui[dev].form.chat = '';
+    if (v){ ui[dev].chatBlock = BLOCK[v]; log(dev,'El filtro del chat bloqueó un mensaje con datos de contacto'); return; }
+    ui[dev].chatBlock = null;
+    j.messages.push({from:dev, text:txt, at:clock()});
+    if (dev === 'client' && j.accepted.who !== 'pedro'){ setTimeout(() => { j.messages.push({from:'pro', text:'Perfecto, ya voy para allá.', at:clock()}); renderAll(); }, 1500); }
+    else notify(dev === 'client' ? 'pro' : 'client', dev === 'client' ? 'Carla' : 'Pedro', txt);
+  },
+  sosStart(dev){
+    ui[dev].sos = {count:5, sent:false};
+    clearInterval(timers['sos' + dev]);
+    timers['sos' + dev] = setInterval(() => {
+      const s = ui[dev].sos; if (!s || s.sent){ clearInterval(timers['sos' + dev]); return; }
+      s.count--;
+      if (s.count <= 0){
+        s.sent = true; clearInterval(timers['sos' + dev]);
+        const nm = dev === 'client' ? 'Carla Campos' : 'Pedro Gutiérrez';
+        S.sos.unshift({id:'S-' + (11 + S.sos.length), who:nm, phone:fmtPhone(TEST[dev]), job:S.job ? S.job.id : null, at:clock(), status:'open', note:''});
+        log(dev,`${first(nm)} envió una alerta SOS`);
+        notify('admin','Alerta SOS',`${nm}${S.job ? ' · ' + S.job.id : ''}`);
+      }
+      renderAll();
+    }, 1000);
+  },
+  sosCancel(dev){ clearInterval(timers['sos' + dev]); ui[dev].sos = null; },
+  sosBack(dev){ ui[dev].sos = null; },
+  openPay(){ ui.pro.form = {method:'Yape', amount:(pending() / 100).toFixed(2), shot:false}; go('pro','pay'); },
+  setMethod(dev, m){ ui.pro.form.method = m; },
+  attachShot(){ ui.pro.form.shot = true; },
+  sendProof(){
+    const f = ui.pro.form, amt = toCents(f.amount);
+    if (!(amt > 0)) return fail('pro','Escribe el monto que pagaste.');
+    if (!(f.op || '').trim()) return fail('pro','Escribe el código de operación de tu pago.');
+    if (!f.shot) return fail('pro','Adjunta la captura del pago.');
+    S.proofs.unshift({id:'C-' + (201 + S.proofs.length), amount:amt, method:f.method || 'Yape', op:f.op.trim().toUpperCase(), status:'pending', at:clock(), note:''});
+    log('pro',`Pedro envió una constancia de ${soles(amt)} por ${f.method}`);
+    notify('admin','Nueva constancia',`Pedro G. · ${soles(amt)} · ${f.method}`);
+    toast('pro','Constancia enviada'); go('pro','wallet');
+  },
+  /* panel */
+  aSend(){
+    const d = (ui.admin.form.phone || '').replace(/\D/g,'');
+    if (d !== TEST.admin) return fail('admin','Este número no tiene acceso al panel. En la demo usa 900 000 008.');
+    ui.admin.form.step = 'code'; ui.admin.err = null;
+  },
+  aVerify(){
+    if ((ui.admin.form.otp || '').trim() !== '123456') return fail('admin','El código no es correcto.');
+    S.admin.logged = true; ui.admin.form = {}; log('admin','Andrés (soporte) ingresó al panel'); go('admin','verif');
+  },
+  aOpenVerif(dev, id){
+    ui.admin.form.verif = id; const v = S.verif.find(x => x.id === id);
+    if (v.status === 'submitted'){ v.status = 'in_review'; const x = S.pro.trades.find(t => t.slug === v.trade); if (x) x.status = 'in_review'; }
+    go('admin','verifDetail');
+  },
+  aView(dev, doc){ (ui.admin.form.seen = ui.admin.form.seen || {})[doc] = true; S.accessLog.unshift({doc, who:'Andrés Admin', at:clock()}); log('admin',`Soporte abrió ${doc} de Pedro (queda registrado)`); },
+  aDecide(dev, d){
+    const v = S.verif.find(x => x.id === ui.admin.form.verif) || S.verif[0], reason = (ui.admin.form.reason || '').trim();
+    if (d !== 'approve' && !reason) return fail('admin','El motivo es obligatorio para pedir datos o rechazar.');
+    const st = d === 'approve' ? 'approved_observation' : d === 'needs_info' ? 'needs_info' : 'rejected';
+    v.status = st; v.reason = reason;
+    const x = S.pro.trades.find(t => t.slug === v.trade); if (x){ x.status = st; x.reason = reason; }
+    log('admin',`Soporte: ${VLABEL[st][0].toLowerCase()} para Electricista de Pedro`);
+    notify('pro', st === 'approved_observation' ? 'Aprobamos tu oficio de electricista' : 'Revisamos tu oficio de electricista', st === 'approved_observation' ? 'Ya recibes pedidos de electricidad.' : reason);
+  },
+  aProof(dev, arg){
+    const [id, dec] = arg.split('|'), p = S.proofs.find(x => x.id === id); if (!p || p.status !== 'pending') return;
+    if (dec === 'no'){
+      const note = (ui.admin.form['rej-' + id] || '').trim(); if (!note) return fail('admin','Escribe el motivo del rechazo.');
+      p.status = 'rejected'; p.note = note; log('admin',`Soporte rechazó la constancia ${id}`); notify('pro','Rechazamos tu constancia', note); return;
+    }
+    p.status = 'approved';
+    S.wallet.push({type:'payment_credit', amount:p.amount, label:`Pago ${p.method} · ${p.op}`, at:clock()});
+    log('admin',`Soporte aprobó la constancia ${id} y abonó ${soles(p.amount)}`);
+    notify('pro','Aprobamos tu pago',`Se abonaron ${soles(p.amount)} a tu cuenta.`);
+  },
+  aSos(dev, id){
+    const note = (ui.admin.form['sos-' + id] || '').trim(); if (!note) return fail('admin','Escribe una nota de cierre.');
+    const a = S.sos.find(x => x.id === id); a.status = 'closed'; a.note = note; log('admin',`Soporte cerró la alerta ${id}`);
+  },
+  aSuspect(dev, v){ ui.admin.form.suspect = v; },
+  aSaveParams(){
+    const f = ui.admin.form, rate = Number(f.p_rate), lim = toCents(f.p_limit), grace = Number(f.p_grace), diag = toCents(f.p_diag);
+    if (!(rate >= 0 && rate <= 30)) return fail('admin','La comisión debe estar entre 0 y 30 %.');
+    if (!(lim >= 0)) return fail('admin','Escribe un límite de deuda válido.');
+    if (!(grace >= 0 && grace <= 15)) return fail('admin','Los días de gracia van de 0 a 15.');
+    if (!(diag >= 0)) return fail('admin','Escribe un monto válido para la visita.');
+    Object.assign(S.settings, {commissionPct:rate, debtLimit:lim, graceDays:grace, diagFee:diag, yape:(f.p_yape || '').trim() || S.settings.yape});
+    log('admin',`Soporte cambió parámetros: comisión ${rate} %, límite ${soles(lim)}`); toast('admin','Parámetros guardados');
+  }
+};
+
+/* Profesional simulado que compite con Pedro */
+function scheduleOther(j){
+  setTimeout(() => {
+    if (S.job !== j || !['published','with_offers'].includes(j.status) || j.offers.some(o => o.who === 'other')) return;
+    const [short, name] = OTHERS[j.trade];
+    j.offers.push({id:'o-other-' + j.id, who:'other', name, short, rating:4.6, jobs:11, distanceM:1200, priceCents:j.offered, msg:'Puedo ir hoy mismo.', status:'pending'});
+    if (j.status === 'published') setStatus('with_offers');
+    log('client',`${short} ofreció ${solesShort(j.offered)} (profesional simulado)`);
+    notify('client',`${short} respondió`,`Acepta tu precio de ${solesShort(j.offered)}`);
+    renderAll();
+  }, 4500);
+}
+function autoOther(j){
+  if (S.job !== j || j.status !== 'accepted') return;
+  j.code = String(1000 + Math.floor(Math.random() * 9000)); j.distance = 650; setStatus('on_the_way');
+  notify('client',`${first(j.accepted.name)} va en camino`,'Sigue su ubicación en vivo.');
+  startMove(); renderAll();
+}
+function startMove(){
+  clearInterval(timers.move);
+  timers.move = setInterval(() => {
+    const j = S.job;
+    if (!j || j.status !== 'on_the_way'){ clearInterval(timers.move); return; }
+    if (j.distance > 50) j.distance -= 50;
+    else if (j.accepted.who === 'other' && !j.autoArrive){
+      j.autoArrive = true;
+      setTimeout(() => {
+        if (S.job !== j || j.status !== 'on_the_way') return;
+        clearInterval(timers.move); j.arrivedAt = clock(); setStatus('at_home');
+        notify('client',`${first(j.accepted.name)} llegó`,'Validó tu código de seguridad.'); renderAll();
+        setTimeout(() => { if (S.job === j && j.status === 'at_home'){ setStatus('finished'); notify('client',`${first(j.accepted.name)} terminó el trabajo`,'Revisa y confirma.'); renderAll(); } }, 5000);
+      }, 1200);
+    }
+    renderDev('client'); renderDev('pro');
+  }, 700);
+}
+
+/* ───────── Pintado ───────── */
+const VIEWS = {client:vClient, pro:vPro, admin:vAdmin};
+function renderDev(dev){
+  const host = document.getElementById('scr-' + dev); if (!host) return;
+  const a = document.activeElement, aid = a && host.contains(a) ? a.id : null;
+  let sel = null; try { if (aid && typeof a.selectionStart === 'number') sel = [a.selectionStart, a.selectionEnd]; } catch (e) {}
+  const key = ui[dev].screen + (ui[dev].sos ? '-sos' : '');
+  const oldScroll = host.querySelector('.scroll, .pmain'), top = oldScroll && host.dataset.key === key ? oldScroll.scrollTop : 0;
+  const u = ui[dev];
+  const overlays = (u.push ? `<div class="push" role="status"><span class="app-ic">C</span><div><b>${esc(u.push.title)}</b><span>${esc(u.push.body)}</span></div></div>` : '') +
+    (u.toast ? `<div class="toast" role="status">${esc(u.toast.msg)}</div>` : '');
+  host.innerHTML = (dev === 'admin' ? '' : `<div class="sbar"><span>9:41</span><span class="bat" aria-hidden="true"></span></div>`) + VIEWS[dev]() + overlays;
+  host.dataset.key = key;
+  const sc = host.querySelector('.scroll, .pmain'); if (sc) sc.scrollTop = top;
+  if (aid){ const el = document.getElementById(aid); if (el){ el.focus({preventScroll:true}); if (sel && el.setSelectionRange) try { el.setSelectionRange(sel[0], sel[1]); } catch (e) {} } }
+}
+const STEPS = [
+  {who:'client', text:'Carla ingresa con su celular y el código SMS', done:() => S.client.logged, run:async () => { if (ui.client.screen !== 'code'){ go('client','login'); await type('client','phone','900 000 001'); await tap('client','sendCode'); } await type('client','otp','123456'); await tap('client','verify'); }},
+  {who:'pro', text:'Pedro ingresa como profesional', done:() => S.pro.logged, run:async () => { if (ui.pro.screen !== 'code'){ go('pro','login'); await type('pro','phone','900 000 002'); await tap('pro','sendCode'); } await type('pro','otp','123456'); await tap('pro','verify'); }},
+  {who:'pro', text:'Pedro se pone en línea', done:() => S.pro.online, run:async () => { go('pro','requests'); await tap('pro','proToggle'); }},
+  {who:'client', text:'Carla pide un gasfitero: describe el problema, pone su dirección y cuánto ofrece', done:() => !!S.job || S.history.length > 0, run:async () => {
+    go('client','home'); if (!S.client.located) await tap('client','locate');
+    await tap('client','openNew','gasfiteria'); await type('client','desc',tradeOf('gasfiteria').sample); await tap('client','addPhoto');
+    await type('client','address','Jr. Los Pinos 245'); await type('client','ref','Dpto. 302 · Cocina'); await type('client','price','80'); await tap('client','publish'); }},
+  {who:'pro', text:'Pedro ve el pedido sin la dirección exacta y cotiza', done:() => anyJob(j => j.offers.some(o => o.who === 'pedro')), run:async () => {
+    if (!proSees()){ stopWith('Pedro solo ve pedidos de gasfitería. Reinicia la demo para seguir el recorrido.'); return; }
+    go('pro','requests'); await wait(500); await tap('pro','openQuote'); await tap('pro','pick','1'); await type('pro','msg','Llevo los repuestos.'); await tap('pro','sendQuote'); }},
+  {who:'client', text:'Carla compara ofertas, ve el perfil de Pedro y lo contrata', done:() => reached('accepted'), run:async () => {
+    const o = S.job && S.job.offers.find(x => x.who === 'pedro'); if (!o) return;
+    go('client','offers'); await wait(500); await tap('client','openProfile',o.id); await tap('client','accept',o.id); }},
+  {who:'pro', text:'Pedro sale y comparte su ubicación en vivo', done:() => reached('on_the_way'), run:async () => {
+    if (!pedroJob()){ stopWith('Esta vez Carla contrató a otro profesional. Reinicia la demo para ver el recorrido con Pedro.'); return; }
+    go('pro','job'); await tap('pro','startTrip'); await waitFor(() => !S.job || S.job.distance <= 250, 8000); }},
+  {who:'pro', text:'Llega y valida el código de seguridad de Carla', done:() => reached('at_home'), run:async () => {
+    const j = pedroJob(); if (!j) return; go('pro','job'); await type('pro','code',j.code); await tap('pro','arrive'); }},
+  {who:'pro', text:'Reevalúa en sitio: agrega una llave de paso con boleta', done:() => reached('price_renegotiated') || reached('finished'), run:async () => {
+    const j = pedroJob(); if (!j) return; const it = matsFor(j.trade)[0]; go('pro','job');
+    await tap('pro','renegOpen'); if (it){ await tap('pro','toggleItem',it.id); await tap('pro','attachReceipt'); } else ui.pro.form.labor = String(j.laborCents / 100 + 10);
+    await type('pro','reason','La llave de paso está rota; hay que cambiarla.'); await tap('pro','renegSend'); }},
+  {who:'client', text:'Carla acepta el nuevo precio: los materiales no pagan comisión', done:() => anyJob(j => j.renegDone) || reached('finished'), run:async () => { go('client','service'); await wait(400); await tap('client','renegAnswer','1'); }},
+  {who:'pro', text:'Pedro termina el trabajo', done:() => reached('finished'), run:async () => { go('pro','job'); await tap('pro','finish'); }},
+  {who:'client', text:'Carla confirma, califica y gana puntos', done:() => reached('rated'), run:async () => {
+    go('client','confirm'); await tap('client','confirm','1'); await tap('client','toggleTag','Puntual'); await type('client','comment','Llegó puntual y dejó todo limpio.'); await tap('client','rate'); }},
+  {who:'pro', text:'Se anota la comisión del 10 % y Pedro la paga por Yape', done:() => S.proofs.length > 0, run:async () => {
+    if (pending() === 0) return; go('pro','wallet'); await wait(600); await tap('pro','openPay'); await type('pro','op','OP-77812'); await tap('pro','attachShot'); await tap('pro','sendProof'); }},
+  {who:'admin', text:'Soporte revisa la constancia en el panel y la aprueba', done:() => S.proofs.some(p => p.status === 'approved'), run:async () => {
+    if (!S.admin.logged){ await type('admin','phone','900 000 008'); await tap('admin','aSend'); await type('admin','otp','123456'); await tap('admin','aVerify'); }
+    await tap('admin','go','proofs'); const p = S.proofs.find(x => x.status === 'pending'); if (p) await tap('admin','aProof',p.id + '|ok'); }}
+];
+const WHO = {client:'Cliente', pro:'Profesional', admin:'Soporte'};
+const auto = {on:false, msg:''};
+function renderGuide(){
+  const g = document.getElementById('guide');
+  const cur = STEPS.findIndex(s => !s.done());
+  const all = cur === -1;
+  g.innerHTML = `<h2>Recorrido de la demo</h2>
+    <p class="muted" style="font-size:14px">Toca en los celulares como lo harías en la app, o mira el recorrido completo solo.</p>
+    <div class="guide-actions">${auto.on ? `<button type="button" class="btn btn-secondary btn-sm" id="g-pause">Pausar</button>` : `<button type="button" class="btn btn-primary btn-sm" id="g-play"${all ? ' disabled' : ''}>${cur > 0 ? 'Continuar solo' : 'Ver demo automática'}</button>`}<button type="button" class="btn btn-secondary btn-sm" id="g-reset">Reiniciar</button></div>
+    ${auto.msg ? `<p class="err">${esc(auto.msg)}</p>` : ''}
+    ${all ? `<div class="card okc"><b>Recorrido completo</b><p class="meta">Pedido, servicio, calificación, comisión y pago aprobado. Prueba también lo de abajo, o haz otro pedido.</p></div>` : ''}
+    <ol class="steps">${STEPS.map((s,i) => `<li class="${s.done() ? 'done' : i === cur ? 'cur' : ''}"><span><span class="who">${WHO[s.who]}</span>${s.text}${i === cur && !auto.on ? `<br><button type="button" class="link step-do" data-step="${i}">Hazlo por mí</button>` : ''}</span></li>`).join('')}</ol>
+    <details class="try" open><summary>Prueba también</summary><ul>
+      <li>En el chat, envía “Escríbeme al 987654321”: el filtro lo bloquea.</li>
+      <li>Presiona SOS durante el servicio y ciérralo desde el panel.</li>
+      <li>En el panel, aprueba el oficio de Electricista de Pedro y luego pide un electricista como Carla.</li>
+      <li>Cambia la comisión en Parámetros y cotiza otra vez.</li>
+    </ul></details>
+    <div class="stack"><b style="font-size:14px">Actividad</b>${S.log.length ? `<ul class="log">${S.log.slice(0,14).map(l => `<li><time>${l.at}</time><span><b>${WHO[l.who]}:</b> ${esc(l.text)}</span></li>`).join('')}</ul>` : '<p class="muted" style="font-size:13px">Aquí verás lo que pasa en cada paso.</p>'}</div>`;
+}
+function renderTabs(){
+  document.getElementById('devices').dataset.show = ui.show;
+  document.querySelectorAll('.dev-tabs button').forEach(b => {
+    const d = b.dataset.show; b.setAttribute('aria-selected', String(d === ui.show));
+    b.innerHTML = ({client:'Cliente', pro:'Profesional', admin:'Soporte'})[d] + (ui.unseen[d] ? '<span class="dot" aria-label="Novedades"></span>' : '');
+  });
+}
+function renderAll(){ renderDev('client'); renderDev('pro'); renderDev('admin'); renderGuide(); renderTabs(); }
+function showDev(dev){ ui.show = dev; ui.unseen[dev] = false; renderTabs(); }
+
+/* ───────── Recorrido automático ───────── */
+function reveal(el){
+  const sc = el.closest('.scroll, .pmain'); if (!sc) return;
+  const r = el.getBoundingClientRect(), s = sc.getBoundingClientRect();
+  if (r.top < s.top + 10 || r.bottom > s.bottom - 10) sc.scrollTop += r.top - s.top - s.height / 3;
+}
+async function tap(dev, act, arg = ''){
+  if (!auto.on && auto.stopAsked) throw new Error('stop');
+  showDev(dev); renderAll(); await wait(220);
+  const el = document.querySelector(`[data-dev="${dev}"][data-act="${act}"]${arg !== '' ? `[data-arg="${CSS.escape(String(arg))}"]` : ''}`);
+  if (el){ reveal(el); el.classList.add('is-tapped'); }
+  await wait(480);
+  if (A[act]) A[act](dev, String(arg));
+  renderAll(); await wait(380);
+}
+async function type(dev, key, text){
+  showDev(dev); const f = ui[dev].form, step = Math.max(1, Math.ceil(text.length / 10));
+  for (let i = step; i < text.length; i += step){ f[key] = text.slice(0, i); renderDev(dev); const el = document.getElementById(dev + '-' + key); if (el) reveal(el); await wait(40); }
+  f[key] = text; renderDev(dev); await wait(220);
+}
+async function waitFor(cond, ms){ const t0 = Date.now(); while (!cond() && Date.now() - t0 < ms) await wait(120); }
+function stopWith(msg){ auto.on = false; auto.msg = msg; }
+async function play(){
+  if (auto.on) return;
+  auto.on = true; auto.msg = ''; auto.stopAsked = false; renderGuide();
+  try {
+    for (const s of STEPS){
+      if (!auto.on) break;
+      if (s.done()) continue;
+      await s.run(); renderAll(); await wait(650);
+      if (!s.done() && auto.on){ break; }
+    }
+  } catch (e) { /* pausa */ }
+  auto.on = false; renderAll();
+}
+async function runOne(i){
+  if (auto.on) return;
+  auto.on = true; auto.msg = ''; renderGuide();
+  try { await STEPS[i].run(); } catch (e) {}
+  auto.on = false; renderAll();
+}
+function resetDemo(){
+  auto.on = false; auto.stopAsked = true; auto.msg = '';
+  Object.values(timers).forEach(t => clearInterval(t));
+  S = fresh();
+  ['client','pro','admin'].forEach(d => { ui[d] = blankUi(); });
+  ui.unseen = {client:false, pro:false, admin:false}; ui.show = 'client';
+  renderAll();
+}
+
+/* ───────── Eventos ───────── */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-act]');
+  if (t && !t.disabled){ const dev = t.dataset.dev; if (A[t.dataset.act]){ A[t.dataset.act](dev, t.dataset.arg || ''); renderAll(); } return; }
+  const st = e.target.closest('[data-step]'); if (st){ runOne(Number(st.dataset.step)); return; }
+  const tab = e.target.closest('.dev-tabs button'); if (tab){ showDev(tab.dataset.show); return; }
+  if (e.target.id === 'g-play') play();
+  if (e.target.id === 'g-pause'){ auto.on = false; auto.stopAsked = true; renderGuide(); }
+  if (e.target.id === 'g-reset') resetDemo();
+  if (e.target.id === 'copy-cmd'){
+    const txt = document.getElementById('cmd').textContent, b = e.target;
+    const ok = () => { b.textContent = 'Copiado'; setTimeout(() => { b.textContent = 'Copiar'; }, 1600); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('cmd')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selecciona y copia'; };
+    try { navigator.clipboard.writeText(txt).then(ok, fallback); } catch (er) { fallback(); }
+  }
+});
+document.addEventListener('input', e => {
+  const b = e.target.dataset && e.target.dataset.bind; if (!b) return;
+  const [dev, key] = b.split(/:(.+)/);
+  ui[dev].form[key] = e.target.value;
+  if (e.target.dataset.live) renderDev(dev);
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const en = e.target.dataset && e.target.dataset.enter; if (!en) return;
+  e.preventDefault(); const [dev] = e.target.dataset.bind.split(':'); A[en](dev); renderAll();
+});
+
+/* Pestañas de la página (#demo, #flujos, #alojamiento) */
+function route(){
+  const v = (location.hash || '#demo').slice(1);
+  const view = ['demo','flujos','alojamiento'].includes(v) ? v : 'demo';
+  ['demo','flujos','alojamiento'].forEach(k => { document.getElementById('v-' + k).hidden = k !== view; });
+  document.querySelectorAll('.tabs a').forEach(a => { if (a.dataset.view === view) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+}
+window.addEventListener('hashchange', route);
+route();
+renderAll();
+</script>
+
+</body>
+</html>

@@ -4,5 +4,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { authCookieName, supabaseAnonKey, supabaseUrl } from '@/lib/env';
 
 export function createClient() {
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, { cookieOptions: { name: authCookieName } });
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: { name: authCookieName },
+  });
 }
