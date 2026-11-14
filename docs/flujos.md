@@ -45,8 +45,8 @@ stateDiagram-v2
   with_offers --> accepted: el cliente acepta
   accepted --> on_the_way: ir al domicilio
   on_the_way --> at_home: código validado
-  at_home --> price_renegotiated: reevaluación
-  price_renegotiated --> at_home: el cliente responde
+  at_home --> price_renegotiated: el cliente aprueba la reevaluación
+  price_renegotiated --> finished: terminar
   at_home --> finished: terminar
   finished --> at_home: algo falta
   finished --> confirmed: el cliente confirma
@@ -55,6 +55,7 @@ stateDiagram-v2
   with_offers --> cancelled
   accepted --> cancelled
   on_the_way --> cancelled
+  at_home --> cancelled
   rated --> [*]
   cancelled --> [*]
 ```

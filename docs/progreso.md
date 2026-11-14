@@ -1,5 +1,7 @@
 # Cerquita · Progreso del MVP
 
+> Historial por fase. El estado vigente está en `docs/estado.md` y los pendientes en `docs/roadmap.md`.
+
 Última actualización: **pre-lanzamiento: push, reportes, soporte, programación, panel completo e infraestructura de producción** (10 de noviembre de 2026). Plan completo en `documento-tecnico.md`.
 
 | Fase | Estado | Criterio de cierre | Cómo se comprueba |

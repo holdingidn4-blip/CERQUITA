@@ -3,7 +3,7 @@
 App de servicios del hogar (Android e iOS) con selector Cliente / Profesional, pedidos filtrados por oficio verificado y comisión de 10 % por trabajo completado.
 
 ## Estado
-MVP completo (8 fases) + módulo Piloto Huancayo (multicategoría, reevaluación en sitio, materiales sin comisión y antifraude GPS) + módulos de confianza y pre-lanzamiento. Demo interactiva en `docs/demo/cerquita-demo.html` (ábrela en el navegador) y flujos en `docs/flujos.md`. Lo que falta para publicar está en `docs/progreso.md` → “Checklist de publicación”. Detalle en `docs/progreso.md`. El código se construye por fases con Claude Code (ver `docs/documento-tecnico.md`, sección “Plan de trabajo”).
+MVP completo (8 fases) + módulo Piloto Huancayo (multicategoría, reevaluación en sitio, materiales sin comisión y antifraude GPS) + módulos de confianza y pre-lanzamiento. Demo interactiva en `docs/demo/cerquita-demo.html` (ábrela en el navegador) y flujos en `docs/flujos.md`. Estado vigente en `docs/estado.md`, pendientes por prioridad en `docs/roadmap.md` y reglas de negocio en `docs/reglas-negocio.md` (`docs/progreso.md` queda como historial por fase). El código se construye por fases con Claude Code (ver `docs/documento-tecnico.md`, sección “Plan de trabajo”).
 
 ## Estructura
 ```
