@@ -1,5 +1,34 @@
 # Cerquita · Producción y pre-lanzamiento
 
+## 0. Entornos reales (piloto)
+
+| Pieza | Dónde | Estado |
+| --- | --- | --- |
+| Base, Auth y Storage | Supabase `cerquita` · ref `dknxuxrylnncbdzjqagh` · São Paulo · plan gratis | Activo |
+| App Android | APK por enlace (ver “APK del piloto”) | Build 2 publicado |
+| Panel | Vercel | Pendiente |
+| Proyecto antiguo | Supabase `cerquita-demo` (`vfquejeijminjxxyozqg`) | Pausado y vacío: se puede borrar |
+
+URL de la API: `https://dknxuxrylnncbdzjqagh.supabase.co` · clave publicable: `sb_publishable_qRc_QYms7-tiIrZ6pBy8wQ_dItg6UcJ` (pública; va dentro de la app).
+
+### Aplicar SQL en producción desde una sesión de Claude (sin puerto 5432 ni token personal)
+1. Con el conector de Supabase (`execute_sql`): crear la tabla temporal `public._deploy_staging (name, body)` con RLS y una política de `insert` para `anon` que exija la cabecera `x-deploy-key` con una clave aleatoria.
+2. Subir cada archivo `.sql` por la API REST con la clave publicable y esa cabecera; calcular su `md5` local.
+3. Con `execute_sql`: un bloque `do` que, por cada archivo, compruebe `md5(body)`, lo ejecute con `execute` e inserte la fila en `supabase_migrations.schema_migrations` (versión y nombre del archivo).
+4. Borrar la tabla temporal. `pilot_enums` (valores nuevos de enum) debe ir en una transacción anterior a quien los use.
+Con un token personal válido o acceso directo, usar `scripts/deploy-production.sh`.
+
+### APK del piloto
+- Enlace actual (build 2, versión 0.1.0): `https://dknxuxrylnncbdzjqagh.supabase.co/storage/v1/object/public/app-releases/4c31a5fe1f42a03a/cerquita-0.1.0-b2.apk`
+- Para un build nuevo:
+  1. Elegir una carpeta aleatoria (`openssl rand -hex 8`) y crear por SQL la política temporal de subida:
+     `create policy "releases: subida temporal del CI" on storage.objects for insert to anon with check (bucket_id = 'app-releases' and (storage.foldername(name))[1] = '<carpeta>');`
+  2. `git push origin main:refs/heads/apk/<carpeta>` (dispara `.github/workflows/android-apk.yml`; tarda unos 20 minutos).
+  3. Leer `APK_URL=` en el log (`gh run view <id> --log`) y comprobar el enlace. El job “Arranque en emulador” abre la app y sube una captura.
+  4. Borrar la política: `drop policy "releases: subida temporal del CI" on storage.objects;`
+- El APK va firmado con la llave de depuración de la plantilla (igual en todos los builds, así se instala encima del anterior). Antes de publicar en tiendas hay que pasar a EAS o a una llave propia.
+- Límite de Storage en el plan gratis: 50 MB por archivo (por eso `expo.useLegacyPackaging=true`).
+
 ## 1. Supabase (base, funciones y cron)
 
 | Paso | Cómo |

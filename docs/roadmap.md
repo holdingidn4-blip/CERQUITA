@@ -4,11 +4,15 @@ Prioridades: **P0** bloquea el inicio del piloto · **P1** primeras semanas del 
 Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, pagos o decisiones legales).
 
 ## P0 · Para arrancar el piloto en Huancayo
-- [ ] Backend de producción en Supabase (`cerquita`): 13 migraciones, seed de Huancayo, Auth por SMS con hook, cron, Vault y `send-push`.
-- [ ] Panel publicado (Vercel) con sus variables y un administrador real.
-- [ ] APK Android instalable por enlace (EAS, perfil `preview`) apuntando a producción.
-- [ ] Vista alternativa cuando no hay clave de Google Maps (que la app no se cierre).
-- [ ] Confirmar y corregir `delete_my_account` con documentos ya vistos por soporte.
+- [x] Backend de producción en Supabase (`cerquita`): 13 migraciones, seed de Huancayo y cron.
+- [ ] Desplegar `send-push` con su secreto en Vault y fijar `push_function_url`.
+- [ ] **(D)** Activar el ingreso por celular en Supabase (Authentication → Phone) con números de prueba; luego el hook `hook_before_user_created`.
+- [ ] Panel publicado (Vercel) con sus variables y un administrador real. **(D)** conectar GitHub en Vercel o entregar un token.
+- [ ] Quitar del panel la dependencia de `SUPABASE_SERVICE_ROLE_KEY` (URL firmada con la sesión de soporte + política con vista registrada).
+- [x] APK Android instalable por enlace, apuntando a producción (GitHub Actions + Storage; build 2).
+- [ ] **(D)** Token de Expo para crear el proyecto de EAS: push, actualizaciones OTA y firma definitiva.
+- [x] Vista alternativa cuando no hay clave de Google Maps (que la app no se cierre).
+- [ ] Corregir `delete_my_account` con documentos ya vistos por soporte (fallo confirmado).
 - [ ] Prueba de punta a punta en 2 teléfonos reales: registro, verificación, pedido, cotización, GPS, chat, cierre, comisión y pago.
 - [ ] **(D)** Proveedor de SMS con cobertura en Perú cargado en Supabase Auth (hasta entonces solo entran números de prueba).
 - [ ] **(D)** Números reales del administrador, revisores y primeros probadores.

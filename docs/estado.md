@@ -1,6 +1,6 @@
 # Cerquita · Estado
 
-Actualizado: 2026-11-14. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
+Actualizado: 2026-11-15. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Implementado
 - Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (13 migraciones).
@@ -15,34 +15,38 @@ Actualizado: 2026-11-14. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - Chat interno con filtro de teléfonos, correos y palabras clave; el teléfono nunca se muestra.
 - Puntos del cliente, ranking de profesionales, reclamos, reportar/bloquear, tickets de soporte.
 - Seguridad: SOS, contactos de confianza, eliminar cuenta, antifraude GPS (bypass), suspensión manual, reversión de asientos.
-- Notificaciones push: cola `notification_outbox`, cron y Edge Function `send-push` (código listo).
-- Panel: Buscar, Verificación, Constancias, SOS, Sospechas, Soporte, Reportes, Reclamos, Lista negra, Tarifario, Parámetros, fichas de usuario y pedido.
-- Infra en código: `eas.json`, `app.config.ts`, `scripts/deploy-production.sh`, seed de Huancayo, `seed-staff.mjs`, CI en GitHub Actions.
-- Pruebas (última corrida completa: commit `4211d0a`, 2026-11-10): 153 unitarias, 378 pgTAP, 7 de humo SMS, 92 pasos e2e. Todo en verde.
-- Documentación: `CLAUDE.md`, `docs/reglas-negocio.md`, `docs/roadmap.md`, `docs/flujos.md`, `docs/produccion.md`, demo simulada en `docs/demo/`.
+- Notificaciones push: cola `notification_outbox`, cron y Edge Function `send-push` (código listo, sin desplegar).
+- Panel: Buscar, Verificación, Constancias, SOS, Sospechas, Soporte, Reportes, Reclamos, Lista negra, Tarifario, Parámetros, fichas.
+- Mapa: sin clave de Google Maps en Android se muestra una vista simple (la app ya no depende de la clave).
+
+## Desplegado (producción del piloto)
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 13 migraciones, seed de Huancayo, 29 tablas con RLS, 4 tareas cron.
+- **APK Android:** build 2 (0.1.0), 35,7 MB, arm64 + armv7, apunta a producción. Enlace y procedimiento en `docs/produccion.md` → “APK del piloto”.
+- El APK se compila en GitHub Actions (`.github/workflows/android-apk.yml`) al subir una rama `apk/<carpeta>` y se publica en Storage (`app-releases`).
+
+## Pruebas (última corrida)
+- CI en `main` (commit `0403642`, 2026-11-15): 153 unitarias, pgTAP completo y 92 pasos e2e. Todo en verde.
+- APK build 2: arranque en emulador Android 14 (API 34) OK; muestra la pantalla de ingreso. Verificado: enlace 200, ABIs y URL de producción dentro del APK.
+- Producción: lectura anónima de oficios OK; lectura anónima de pedidos rechazada (401).
+- **No probado todavía:** ingreso real, cámara, GPS en segundo plano, push y flujo completo en un teléfono físico.
 
 ## Incompleto
-- **Nada está desplegado todavía.** Proyecto Supabase de producción `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis) creado y vacío.
+- **Ingreso por celular sin configurar en producción** (Supabase → Authentication → Phone). Hasta entonces nadie puede entrar a la app.
+- **Panel sin publicar:** Vercel no tiene GitHub conectado ni token. Además hay que quitar su dependencia de la llave `service_role`.
+- Edge Function `send-push` sin desplegar; `push_function_url` y el secreto de Vault vacíos.
+- Sin proyecto de EAS (el dueño no entregó token de Expo): sin push ni actualizaciones OTA. El APK va firmado con la llave de depuración.
+- Sin proveedor de SMS real, sin clave de Google Maps, sin Firebase/FCM, sin Sentry.
+- Captcha documentado pero no conectado. Limpieza de Storage en GitHub Actions sin activar.
+- Tarifario y catálogo de producción con valores estimados. Términos y privacidad en borrador.
 - Proyecto `cerquita-demo` (`vfquejeijminjxxyozqg`): pausado y vacío; se puede borrar.
-- Panel sin publicar (Vercel sin GitHub conectado: hace falta token de Vercel o conectar el repositorio).
-- App nunca compilada ni probada en un teléfono real: solo se probó el export web. Cámara, GPS en segundo plano, mapas y push no están validados en dispositivo.
-- Proveedor de SMS real sin contratar (local usa números de prueba).
-- Sin clave de Google Maps para Android: `MapView` puede cerrar la app sin clave (falta una vista alternativa).
-- Sin Firebase/FCM: las notificaciones push de Android no llegarán hasta configurarlo.
-- Edge Function `send-push` nunca ejecutada (el entorno local no tiene edge-runtime); solo pruebas de su lógica pura.
-- Captcha (Turnstile/hCaptcha) documentado pero no conectado en la app ni en el panel.
-- Sentry sin DSN. Limpieza de Storage en GitHub Actions sin activar.
-- Tarifario y catálogo de producción con valores estimados.
-- Términos y privacidad en borrador; “Seguro Cerquita” y “Garantía 30 días” sin definir.
-- La duración del video se valida en la app, no en el servidor.
 - iOS: requiere cuenta de Apple Developer.
 
 ## Errores conocidos
-- Por confirmar: `delete_my_account` fallaría para un pro cuyos documentos ya vio soporte (el borrado en cascada choca con `document_access_log` inmutable).
-- pgTAP y e2e no se han vuelto a correr desde `4211d0a`; después solo hubo cambios de configuración del panel/app (`c1e8af0`) y documentación.
-- `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación. No usar como referencia de reglas.
-- En este entorno Docker no arranca solo y Postgres directo (5432) no es alcanzable: el SQL de producción va por la API de Supabase.
+- **Confirmado:** `delete_my_account` falla para un pro cuyos documentos ya vio soporte (“document_access_log es inmutable”): la cascada al borrar `verification_documents` choca con el trigger. Falta migración de corrección.
+- El token personal de Supabase guardado en el entorno es inválido (5 intentos): no usar la API de administración; el SQL de producción se aplica con el conector (ver `docs/produccion.md`).
+- En este entorno los `git push` de etiquetas fallan; usar ramas. Docker no arranca solo y muere a las 2 h.
+- `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación.
 
 ## Última tarea
-- Hecho: documentación de contexto (`CLAUDE.md`, reglas de negocio, estado y roadmap).
-- En curso: P0 del roadmap, despliegue real (backend, panel y APK Android).
+- Hecho: documentación de contexto, backend de producción cargado, primer APK publicado y probado en emulador.
+- Siguiente: migración `pilot_fixes` (eliminar cuenta + panel sin `service_role`), desplegar `send-push`, publicar el panel cuando haya acceso a Vercel.
