@@ -37,13 +37,15 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
       - run: pnpm install --frozen-lockfile
       - name: Generar el proyecto Android (prebuild)
         working-directory: apps/mobile
         run: npx expo prebuild --platform android --no-install
       - name: Compilar el APK (arm64 y armv7)
         working-directory: apps/mobile/android
-        run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a --no-daemon
+        # useLegacyPackaging comprime las librerías nativas: el APK baja de ~65 MB a menos de 50 MB (límite de Storage).
+        run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a -Pexpo.useLegacyPackaging=true --no-daemon
       - name: Publicar en Supabase Storage
         run: |
           set -euo pipefail
@@ -52,6 +54,7 @@ jobs:
           FOLDER="${GITHUB_REF_NAME#apk/}"
           NAME="cerquita-${VERSION}-b${GITHUB_RUN_NUMBER}.apk"
           ls -l "$APK"
+          if [ "$(stat -c %s "$APK")" -gt 52428800 ]; then echo "El APK supera los 50 MB que admite Storage"; exit 1; fi
           curl -sS --fail-with-body -X POST \
             "${EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/app-releases/${FOLDER}/${NAME}" \
             -H "apikey: ${EXPO_PUBLIC_SUPABASE_ANON_KEY}" \
