@@ -1,0 +1,106 @@
+name: APK Android (piloto)
+
+# Compila el APK de prueba interna y lo publica en Supabase Storage (bucket público app-releases).
+# Se dispara con una etiqueta apk-<carpeta>; el procedimiento está en docs/produccion.md → "APK del piloto".
+on:
+  push:
+    tags: ['apk-*']
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+env:
+  EXPO_NO_TELEMETRY: 1
+  # Valores públicos del proyecto de producción (la clave publicable va dentro de la app).
+  EXPO_PUBLIC_SUPABASE_URL: https://dknxuxrylnncbdzjqagh.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_qRc_QYms7-tiIrZ6pBy8wQ_dItg6UcJ
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      EXPO_PUBLIC_APP_ENV: pilot
+      ANDROID_VERSION_CODE: ${{ github.run_number }}
+      # Opcionales: si no existen quedan vacíos (mapa en vista simple, sin push ni OTA).
+      GOOGLE_MAPS_ANDROID_API_KEY: ${{ secrets.GOOGLE_MAPS_ANDROID_API_KEY }}
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: pnpm install --frozen-lockfile
+      - name: Generar el proyecto Android (prebuild)
+        working-directory: apps/mobile
+        run: npx expo prebuild --platform android --no-install
+      - name: Compilar el APK (arm64 y armv7)
+        working-directory: apps/mobile/android
+        run: ./gradlew :app:assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a --no-daemon
+      - name: Publicar en Supabase Storage
+        run: |
+          set -euo pipefail
+          APK=apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          VERSION=$(node -p "require('./apps/mobile/app.json').expo.version")
+          FOLDER="${GITHUB_REF_NAME#apk-}"
+          NAME="cerquita-${VERSION}-b${GITHUB_RUN_NUMBER}.apk"
+          ls -l "$APK"
+          curl -sS --fail-with-body -X POST \
+            "${EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/app-releases/${FOLDER}/${NAME}" \
+            -H "apikey: ${EXPO_PUBLIC_SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${EXPO_PUBLIC_SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            --data-binary "@${APK}"
+          echo
+          echo "APK_URL=${EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/app-releases/${FOLDER}/${NAME}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cerquita-apk
+          path: apps/mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: ignore
+
+  smoke:
+    name: Arranque en emulador
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: cerquita-apk
+          path: apk
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          script: bash .github/scripts/apk-smoke.sh
+      - name: Publicar capturas
+        if: always()
+        run: |
+          FOLDER="${GITHUB_REF_NAME#apk-}"
+          for f in smoke/*.png; do
+            [ -f "$f" ] || continue
+            curl -sS -X POST \
+              "${EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/app-releases/${FOLDER}/smoke-b${GITHUB_RUN_NUMBER}-$(basename "$f")" \
+              -H "apikey: ${EXPO_PUBLIC_SUPABASE_ANON_KEY}" \
+              -H "Authorization: Bearer ${EXPO_PUBLIC_SUPABASE_ANON_KEY}" \
+              -H "Content-Type: image/png" --data-binary "@${f}" || true
+            echo
+          done
