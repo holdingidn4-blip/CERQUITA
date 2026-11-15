@@ -1,10 +1,10 @@
 name: APK Android (piloto)
 
 # Compila el APK de prueba interna y lo publica en Supabase Storage (bucket público app-releases).
-# Se dispara con una etiqueta apk-<carpeta>; el procedimiento está en docs/produccion.md → "APK del piloto".
+# Se dispara al subir una rama apk/<carpeta>; el procedimiento está en docs/produccion.md → "APK del piloto".
 on:
   push:
-    tags: ['apk-*']
+    branches: ['apk/**']
 
 concurrency:
   group: android-apk
@@ -49,7 +49,7 @@ jobs:
           set -euo pipefail
           APK=apps/mobile/android/app/build/outputs/apk/release/app-release.apk
           VERSION=$(node -p "require('./apps/mobile/app.json').expo.version")
-          FOLDER="${GITHUB_REF_NAME#apk-}"
+          FOLDER="${GITHUB_REF_NAME#apk/}"
           NAME="cerquita-${VERSION}-b${GITHUB_RUN_NUMBER}.apk"
           ls -l "$APK"
           curl -sS --fail-with-body -X POST \
@@ -94,7 +94,7 @@ jobs:
       - name: Publicar capturas
         if: always()
         run: |
-          FOLDER="${GITHUB_REF_NAME#apk-}"
+          FOLDER="${GITHUB_REF_NAME#apk/}"
           for f in smoke/*.png; do
             [ -f "$f" ] || continue
             curl -sS -X POST \
