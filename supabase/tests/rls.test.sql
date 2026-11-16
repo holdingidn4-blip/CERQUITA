@@ -1,7 +1,7 @@
 -- Pruebas de RLS y reglas del servidor. Corre con: supabase test db
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(63);
+select plan(64);
 -- Las semillas traen un tarifario de ejemplo; cada prueba define el suyo (se revierte al final).
 delete from public.trade_rate_cards;
 
@@ -217,8 +217,12 @@ select lives_ok(format('insert into storage.objects (bucket_id, name, owner_id) 
 select is((select count(*)::int from storage.objects where bucket_id = 'verification'), 0, 'el DNI no se lee desde la app');
 select throws_ok(format('insert into storage.objects (bucket_id, name, owner_id) values (%L, %L, auth.uid()::text)', 'verification', :q || '/dni.jpg'),
   '42501', null, 'no sube a la carpeta de otro');
+select pg_temp.as_user(:r, 'support');
+select is((select count(*)::int from storage.objects where bucket_id = 'verification'), 0,
+  'soporte sin vista registrada no lee el DNI');
 select pg_temp.as_user(:s, 'reviewer');
-select is((select count(*)::int from storage.objects where bucket_id = 'verification'), 0, 'ni soporte lee directo: solo URL firmada');
+select is((select count(*)::int from storage.objects where bucket_id = 'verification'), 1,
+  'quien registró la vista puede leerlo para firmar la URL (sin service_role)');
 
 -- ───────── anon ─────────
 select pg_temp.as_postgres();
