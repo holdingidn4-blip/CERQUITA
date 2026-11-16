@@ -1,7 +1,7 @@
 -- Pruebas de la fase 8: eliminar cuenta, archivos huérfanos y SOS.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(25);
+select plan(30);
 -- Las semillas traen un tarifario de ejemplo; cada prueba define el suyo (se revierte al final).
 delete from public.trade_rate_cards;
 
@@ -66,6 +66,22 @@ select pg_temp.as_user(:u);
 select throws_ok(format('select public.sos_update_location(%L, -12.1, -77.0)', :alert), 'P0001', null,
   'cerrada, ya no comparte ubicación');
 
+-- ───────── Documentos: soporte solo los abre registrando la vista (regla 6) ─────────
+select pg_temp.as_postgres();
+insert into public.verification_documents (pro_id, kind, storage_path) values (:u, 'selfie', :u || '/selfie.jpg');
+insert into storage.objects (bucket_id, name) values ('verification', :u || '/selfie.jpg');
+\set doc '(select id from public.verification_documents where storage_path = ''a6000000-0000-0000-0000-000000000000/selfie.jpg'')'
+select pg_temp.as_user(:s, 'reviewer');
+select is((select count(*)::int from storage.objects where bucket_id = 'verification'), 0,
+  'soporte no puede leer el archivo sin registrar la vista');
+select is(public.log_document_access(:doc), 'a6000000-0000-0000-0000-000000000000/selfie.jpg',
+  'registrar la vista devuelve la ruta del archivo');
+select is((select count(*)::int from storage.objects where bucket_id = 'verification'), 1,
+  'con la vista registrada soporte puede firmar la URL con su sesión');
+select pg_temp.as_user(:p);
+select is((select count(*)::int from storage.objects where bucket_id = 'verification'), 0,
+  'un usuario común no lee documentos de verificación ajenos');
+
 -- ───────── Eliminar cuenta ─────────
 select pg_temp.as_user(:u);
 select throws_like('select public.delete_my_account()', 'Tienes un servicio en curso%', 'con un servicio en curso no se elimina');
@@ -80,6 +96,8 @@ select is((select phone from auth.users where id = :u), null, 'la cuenta de acce
 select ok((select banned_until > now() + interval '100 years' from auth.users where id = :u), 'y bloqueada');
 select is((select count(*)::int from public.trusted_contacts where user_id = :u), 0, 'se borran sus contactos de confianza');
 select is((select count(*)::int from public.verification_documents where pro_id = :u), 0, 'y sus documentos');
+select is((select count(*)::int from public.document_access_log where viewer_id = :s), 1,
+  'aunque soporte ya vio su selfie: el registro de vistas se conserva');
 select is((select status::text from public.jobs where id = '10000000-0000-0000-0000-0000000000f8'), 'cancelled', 'sus pedidos abiertos se cancelan');
 select is((select exact_address from public.jobs where id = '10000000-0000-0000-0000-0000000000f8'), 'Dirección eliminada', 'sin dirección');
 select is((select count(*)::int from public.wallet_entries where professional_id = :u), 1, 'el libro de cuentas se conserva');

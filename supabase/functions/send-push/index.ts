@@ -1,8 +1,8 @@
 // Edge Function: envía las notificaciones pendientes de public.notification_outbox con Expo Push.
-// La invoca pg_cron cada minuto (private.dispatch_push) con el secreto PUSH_FUNCTION_SECRET.
+// La invoca pg_cron cada minuto (private.dispatch_push) con el secreto de Vault “push_function_secret”.
 // Deploy: supabase functions deploy send-push --no-verify-jwt
-//         supabase secrets set PUSH_FUNCTION_SECRET=... EXPO_ACCESS_TOKEN=...
-import { createClient } from 'npm:@supabase/supabase-js@2';
+// Secretos opcionales: EXPO_ACCESS_TOKEN y PUSH_FUNCTION_SECRET (si existe, se usa en lugar de Vault).
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 import {
   buildMessages,
@@ -15,11 +15,18 @@ import {
 
 const EXPO_URL = 'https://exp.host/--/api/v2/push/send';
 
+/** El llamado debe traer el secreto de Vault (o PUSH_FUNCTION_SECRET si está configurado). */
+async function authorized(req: Request, supabase: SupabaseClient): Promise<boolean> {
+  const header = req.headers.get('Authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (token.length < 32) return false;
+  const envSecret = Deno.env.get('PUSH_FUNCTION_SECRET');
+  if (envSecret) return token === envSecret;
+  const { data } = await supabase.rpc('push_secret_matches', { p_secret: token });
+  return data === true;
+}
+
 Deno.serve(async (req) => {
-  const secret = Deno.env.get('PUSH_FUNCTION_SECRET');
-  if (!secret || req.headers.get('Authorization') !== `Bearer ${secret}`) {
-    return new Response('No autorizado', { status: 401 });
-  }
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -27,6 +34,9 @@ Deno.serve(async (req) => {
       auth: { persistSession: false },
     },
   );
+  if (!(await authorized(req, supabase))) {
+    return new Response('No autorizado', { status: 401 });
+  }
 
   const { data: rows, error } = await supabase
     .from('notification_outbox')

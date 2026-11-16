@@ -4,6 +4,10 @@ const proxyPath = process.env.NEXT_PUBLIC_SUPABASE_PROXY_PATH;
 
 export const supabaseUrl =
   typeof window !== 'undefined' && proxyPath ? `${window.location.origin}${proxyPath}` : configured;
-export const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
+/** Clave publicable. La integración de Supabase en Vercel puede publicarla con cualquiera de los dos nombres. */
+export const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+  '';
 /** Nombre fijo de la cookie de sesión: el navegador y el servidor pueden ver URLs distintas de Supabase. */
 export const authCookieName = 'sb-cerquita-auth-token';

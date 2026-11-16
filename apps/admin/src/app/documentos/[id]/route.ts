@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 
-import { createServiceClient } from '@/lib/supabase/admin';
 import { requireStaff, createClient } from '@/lib/supabase/server';
 
 /** Segundos de vida de la URL firmada. */
 const SIGNED_URL_TTL = 60;
 
-/** Registra la vista (como el revisor) y redirige a una URL firmada de vida corta. */
+/**
+ * Registra la vista (como el revisor) y redirige a una URL firmada de vida corta (regla 6).
+ * Se firma con la sesión de soporte: el bucket solo deja leer el archivo a quien acaba de
+ * registrar la vista (política "verification: soporte con vista registrada"). Sin service_role.
+ */
 export async function GET(_request: Request, ctx: RouteContext<'/documentos/[id]'>) {
   await requireStaff();
   const { id } = await ctx.params;
@@ -14,8 +17,8 @@ export async function GET(_request: Request, ctx: RouteContext<'/documentos/[id]
   const { data: path, error } = await supabase.rpc('log_document_access', { p_document: id });
   if (error || !path) return new NextResponse('Documento no encontrado', { status: 404 });
 
-  const { data: signed, error: signError } = await createServiceClient()
-    .storage.from('verification')
+  const { data: signed, error: signError } = await supabase.storage
+    .from('verification')
     .createSignedUrl(path, SIGNED_URL_TTL);
   if (signError || !signed)
     return new NextResponse('El archivo no está disponible', { status: 404 });

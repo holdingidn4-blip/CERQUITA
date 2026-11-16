@@ -2,7 +2,7 @@
 -- suspensión, reversión de asientos, buscador, datos de pago y anti-abuso de SMS.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(45);
+select plan(48);
 delete from public.trade_rate_cards;
 
 create function pg_temp.as_user(p uuid, p_staff text default null) returns void
@@ -168,6 +168,19 @@ select pg_temp.as_postgres();
 select is(public.hook_before_user_created('{"user":{"phone":"5215512345678"}}'), '{"error": {"message": "Solo se aceptan celulares peruanos (+51 9XX XXX XXX).", "http_code": 403}}'::jsonb,
   'el hook de Auth rechaza números extranjeros');
 select is(public.hook_before_user_created('{"user":{"phone":"51987654321"}}'), '{}'::jsonb, 'y acepta celulares peruanos');
+
+-- Secreto de send-push en Vault: solo service_role puede compararlo.
+select pg_temp.as_postgres();
+select vault.create_secret(repeat('s', 40), 'push_function_secret')
+where not exists (select 1 from vault.secrets where name = 'push_function_secret');
+select decrypted_secret as push_secret from vault.decrypted_secrets where name = 'push_function_secret' \gset
+select pg_temp.as_user(:c);
+select throws_ok('select public.push_secret_matches(''x'')', '42501', null, 'la app no puede probar el secreto de send-push');
+select pg_temp.as_postgres();
+set local role service_role;
+select is(public.push_secret_matches('otro'), false, 'un secreto distinto no autoriza');
+select is(public.push_secret_matches(:'push_secret'), true, 'el secreto de Vault autoriza');
+reset role;
 
 select * from finish();
 rollback;
