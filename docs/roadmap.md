@@ -5,14 +5,17 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 
 ## P0 · Para arrancar el piloto en Huancayo
 - [x] Backend de producción en Supabase (`cerquita`): 13 migraciones, seed de Huancayo y cron.
-- [ ] Desplegar `send-push` con su secreto en Vault y fijar `push_function_url`.
-- [ ] **(D)** Activar el ingreso por celular en Supabase (Authentication → Phone) con números de prueba; luego el hook `hook_before_user_created`.
+- [x] Desplegar `send-push` con su secreto en Vault y fijar `push_function_url`.
+- [x] **(D)** Activar el ingreso por celular en Supabase (Phone + Twilio trial + números de prueba).
+- [ ] **(D)** Activar el hook `hook_before_user_created` (Authentication → Hooks).
 - [ ] Panel publicado (Vercel) con sus variables y un administrador real. **(D)** conectar GitHub en Vercel o entregar un token.
-- [ ] Quitar del panel la dependencia de `SUPABASE_SERVICE_ROLE_KEY` (URL firmada con la sesión de soporte + política con vista registrada).
+- [x] Quitar del panel la dependencia de `SUPABASE_SERVICE_ROLE_KEY` (URL firmada con la sesión de soporte + política con vista registrada).
+- [ ] Revocar EXECUTE de `anon`/PUBLIC en las funciones `security definer` del esquema `public` (aviso del linter de Supabase).
+- [ ] Primer administrador: el dueño entra una vez y se le asigna `staff_role = admin` por SQL.
 - [x] APK Android instalable por enlace, apuntando a producción (GitHub Actions + Storage; build 2).
 - [ ] **(D)** Token de Expo para crear el proyecto de EAS: push, actualizaciones OTA y firma definitiva.
 - [x] Vista alternativa cuando no hay clave de Google Maps (que la app no se cierre).
-- [ ] Corregir `delete_my_account` con documentos ya vistos por soporte (fallo confirmado).
+- [x] Corregir `delete_my_account` con documentos ya vistos por soporte.
 - [ ] Prueba de punta a punta en 2 teléfonos reales: registro, verificación, pedido, cotización, GPS, chat, cierre, comisión y pago.
 - [ ] **(D)** Proveedor de SMS con cobertura en Perú cargado en Supabase Auth (hasta entonces solo entran números de prueba).
 - [ ] **(D)** Números reales del administrador, revisores y primeros probadores.

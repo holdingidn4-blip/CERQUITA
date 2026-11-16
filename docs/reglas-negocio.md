@@ -18,7 +18,8 @@ Equivalencias: “orders” = `jobs` · “commission ledger” = `wallet_entrie
   - Servicio del hogar: antecedentes policiales + penales + 2 referencias (`domestic_min_references`).
 - Estados: `draft` → `submitted` (`submit_pro_trade`) → `in_review` → `approved_observation` | `needs_info` (motivo obligatorio; puede reenviar) | `rejected` (motivo obligatorio; reintento a los 30 días, `reject_retry_days`). Con 3 calificaciones de ≥ 4★ (`full_approval_ratings`, `full_approval_min_stars`) pasa a `approved_full`. `suspended`: por soporte, por antifraude o al eliminar la cuenta.
 - Solo `approved_observation` y `approved_full` reciben pedidos de ese oficio.
-- Documentos: bucket privado `verification/<usuario>/…`. Soporte los abre con URL firmada de corta vida y cada vista queda en `document_access_log` (inmutable).
+- Documentos: bucket privado `verification/<usuario>/…`. Soporte los abre con URL firmada de 60 s que firma **con su propia sesión**: Storage solo le deja leer el archivo si registró esa vista hace menos de 2 minutos (`log_document_access` → `document_access_log`, inmutable). El panel no usa la llave `service_role`.
+- El registro de vistas se conserva aunque el documento se elimine (eliminar cuenta): no tiene FK en cascada.
 
 ## 3. Pedidos
 - El cliente publica: oficio, descripción, hasta 6 fotos, precio que ofrece, cantidad de horas o días si aplica, dirección exacta y cuándo (`schedule_kind`: ahora, hoy más tarde o programado hasta 30 días con `scheduled_for`).
@@ -106,7 +107,8 @@ Un profesional ve y puede cotizar un pedido solo si se cumple **todo** (`pro_is_
 
 ## 11. Notificaciones
 - Eventos que encolan en `notification_outbox`: pedido nuevo (pros elegibles cercanos), oferta recibida, mensaje de chat, aceptado, en camino, llegó, reevaluación, precio aprobado, terminado, confirmado, cancelado y respuesta de soporte.
-- `pg_cron` llama cada minuto a la Edge Function `send-push` (Expo Push, lotes de 100, 3 reintentos, borra tokens dados de baja). Un bloqueo entre usuarios también corta las notificaciones.
+- `pg_cron` llama cada minuto a la Edge Function `send-push` (Expo Push, lotes de 100, 3 reintentos, borra tokens dados de baja) con el secreto de Vault `push_function_secret`; la función lo valida con `push_secret_matches()` (solo service_role). Un bloqueo entre usuarios también corta las notificaciones.
+- Para que lleguen a un teléfono hacen falta el proyecto de EAS (token de push) y, en Android, Firebase (FCM).
 
 ## 12. Parámetros (`settings`)
 Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `global`. Nunca se fijan en el código.

@@ -6,7 +6,8 @@
 | --- | --- | --- |
 | Base, Auth y Storage | Supabase `cerquita` · ref `dknxuxrylnncbdzjqagh` · São Paulo · plan gratis | Activo |
 | App Android | APK por enlace (ver “APK del piloto”) | Build 2 publicado |
-| Panel | Vercel | Pendiente |
+| Panel | Vercel · proyecto `cerquita` (rama `main`, carpeta `apps/admin`) | Creado; sin desplegar |
+| Notificaciones | Edge Function `send-push` (secreto en Vault `push_function_secret`) | Activa |
 | Proyecto antiguo | Supabase `cerquita-demo` (`vfquejeijminjxxyozqg`) | Pausado y vacío: se puede borrar |
 
 URL de la API: `https://dknxuxrylnncbdzjqagh.supabase.co` · clave publicable: `sb_publishable_qRc_QYms7-tiIrZ6pBy8wQ_dItg6UcJ` (pública; va dentro de la app).
@@ -60,6 +61,9 @@ npx eas-cli@latest update --channel production --message "fix: ..."  # correcci�
 - **Sentry:** `EXPO_PUBLIC_SENTRY_DSN` activa el registro; `SENTRY_ORG`, `SENTRY_PROJECT` y `SENTRY_AUTH_TOKEN` suben los source maps.
 
 ## 3. Panel de soporte (Next.js)
+
+**Variables en Vercel (solo estas dos):** `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` (o `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). El panel **no** usa `SUPABASE_SERVICE_ROLE_KEY`: si la integración de Supabase la agregó, se puede borrar del proyecto de Vercel. Primer administrador: entrar una vez con el celular y asignar el rol por SQL (`update auth.users set raw_app_meta_data = raw_app_meta_data || '{"staff_role":"admin"}' where phone = '519XXXXXXXX'`) o con `staff:set`.
+
 
 Hosting con Node 22 (Vercel u otro). Variables: bloque “Panel admin” de `.env.production.example`. Proteger con dominio propio y, si se puede, acceso por IP o SSO. Los errores del servidor salen como JSON en los logs (`src/instrumentation.ts`).
 
