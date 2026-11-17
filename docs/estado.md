@@ -42,7 +42,6 @@ Actualizado: 2026-11-16. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - Proyecto `cerquita-demo` (`vfquejeijminjxxyozqg`): pausado y vacío; se puede borrar.
 
 ## Errores conocidos
-- **Login por SMS no funciona en el APK (confirmado 2026-11-16):** Twilio rechaza el Auth Token guardado en Supabase (error 20003, cuenta AC3fdaeb…). Todo número falla con “No pudimos enviar el SMS”. Los números de prueba estándar (51900000001, 002, 003, 008, 009) tampoco están configurados en producción. Corregir en Supabase → Authentication → Providers → Phone: Auth Token de Twilio, SID de la cuenta y, en “Test phone numbers and OTPs”, los números exactos (51 + celular, sin +) con su código y sin fecha vencida.
 - **Aviso de seguridad (previo, no explotable hoy):** 56 funciones `security definer` se pueden llamar con la clave anónima porque PostgreSQL da EXECUTE a PUBLIC por defecto. Todas validan `auth.uid()`/soporte por dentro; falta revocarlo (P0 del roadmap).
 - Vercel: el conector de esta sesión necesita autorización del equipo `holdingidn4-3141` para leer el proyecto (enlace de un solo uso).
 - El token personal de Supabase guardado en el entorno es inválido: el SQL de producción se aplica con el conector (ver `docs/produccion.md`).
@@ -50,5 +49,6 @@ Actualizado: 2026-11-16. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación.
 
 ## Última tarea
-- Diagnóstico del login por SMS: la app y el servidor están bien; falla el Auth Token de Twilio en Supabase y faltan los números de prueba en producción. Lo debe corregir el dueño (son sus credenciales).
-- Siguiente: confirmar login con números de prueba; luego el panel en Vercel (pendiente de autorizar el equipo).
+- Login por SMS resuelto en producción: Auth Token de Twilio corregido, SID de cuenta verificado y número de prueba con código fijo válido. Probado: envío del código (200) y verificación con el código de prueba (sesión emitida).
+- Cuenta de Twilio en modo prueba: solo plantillas predefinidas y números verificados. Para SMS reales a otros celulares, actualizar la cuenta.
+- Siguiente: probar el APK con el número de prueba; luego el panel en Vercel (pendiente de autorizar el equipo).
