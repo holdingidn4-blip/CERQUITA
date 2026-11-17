@@ -24,7 +24,7 @@ Actualizado: 2026-11-17. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
 - **APK Android:** build 2 (0.1.0), 35,7 MB, apunta a producción. Enlace en `docs/produccion.md` → “APK del piloto”.
 - **Panel:** https://cerquita-nine.vercel.app (Vercel, rama `main`, carpeta `apps/admin`; solo URL + clave publicable). Sin sesión redirige a `/login`.
-- **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build en cola en el plan gratis de EAS.
+- **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
 - CI en `main` (commit `b603aff`, 2026-11-16): 153 unitarias, pgTAP completo (privacy 30, prelaunch 48, rls 64…) y 92 pasos e2e. Todo en verde.
@@ -54,5 +54,5 @@ Actualizado: 2026-11-17. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 ## Última tarea
 - Cierre de permisos en producción (autorizado por el dueño). La primera migración (`20261117000100`, solo `anon`) no bastaba: `anon` heredaba EXECUTE de PUBLIC. La segunda (`20261117000200`) quita PUBLIC y da grant explícito a las dos RPC de reevaluación que dependían de él.
 - Verificado: `anon` 0 funciones; `authenticated` conserva las 56 RPC; hook de Auth y `send-push` intactos. pgTAP `prelaunch` sube a 52 (corre en el CI).
-- Panel desplegado en Vercel y AAB lanzado en EAS (variables de producción cargadas en EAS).
+- Panel desplegado en Vercel y primer AAB de producción compilado en EAS (variables de producción cargadas en EAS).
 - Siguiente: primer administrador; Google Play (cuenta del dueño) y subir el AAB a prueba interna/cerrada.

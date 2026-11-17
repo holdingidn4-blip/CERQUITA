@@ -7,7 +7,7 @@
 | Base, Auth y Storage | Supabase `cerquita` · ref `dknxuxrylnncbdzjqagh` · São Paulo · plan gratis | Activo |
 | App Android | APK por enlace (ver “APK del piloto”) | Build 2 publicado |
 | Panel | Vercel · proyecto `cerquita` (rama `main`, carpeta `apps/admin`) · https://cerquita-nine.vercel.app | Desplegado (cada push a `main` despliega) |
-| App Android (tiendas) | EAS · `@holdingidn/cerquita` · perfil `production` (AAB, llave de firma guardada en EAS) | Build 2 en cola/compilando |
+| App Android (tiendas) | EAS · `@holdingidn/cerquita` · perfil `production` (AAB, llave de firma guardada en EAS) | Build 2 listo (`a1a6c154`, se descarga desde expo.dev) |
 | Notificaciones | Edge Function `send-push` (secreto en Vault `push_function_secret`) | Activa |
 | Proyecto antiguo | Supabase `cerquita-demo` (`vfquejeijminjxxyozqg`) | Pausado y vacío: se puede borrar |
 

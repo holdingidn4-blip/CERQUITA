@@ -13,7 +13,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] Revocar EXECUTE de `anon`/PUBLIC en las funciones del esquema `public` (aplicado en producción; `anon` ejecuta 0 funciones).
 - [ ] Primer administrador: el dueño entra una vez y se le asigna `staff_role = admin` por SQL.
 - [x] APK Android instalable por enlace, apuntando a producción (GitHub Actions + Storage; build 2).
-- [x] Proyecto EAS (`@holdingidn/cerquita`), variables de producción y llave de firma definitiva en EAS; primer AAB lanzado.
+- [x] Proyecto EAS (`@holdingidn/cerquita`), variables de producción y llave de firma definitiva en EAS; primer AAB compilado (build `a1a6c154`).
 - [x] Vista alternativa cuando no hay clave de Google Maps (que la app no se cierre).
 - [x] Corregir `delete_my_account` con documentos ya vistos por soporte.
 - [ ] Prueba de punta a punta en 2 teléfonos reales: registro, verificación, pedido, cotización, GPS, chat, cierre, comisión y pago.
