@@ -33,7 +33,9 @@
         "POST_NOTIFICATIONS",
         "CAMERA"
       ],
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -53,14 +55,14 @@
         "expo-image-picker",
         {
           "photosPermission": "Cerquita usa tus fotos para verificar tu identidad y tu oficio.",
-          "cameraPermission": "Cerquita usa la c\u00e1mara para tu selfie con DNI y fotos de tus trabajos."
+          "cameraPermission": "Cerquita usa la cámara para tu selfie con DNI y fotos de tus trabajos."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Cerquita usa tu ubicaci\u00f3n para mostrarte profesionales cerca y ubicar tu pedido.",
-          "locationAlwaysAndWhenInUsePermission": "Cerquita comparte tu ubicaci\u00f3n con el cliente solo durante un servicio aceptado, desde \u201cIr al domicilio\u201d hasta \u201cTerminado\u201d.",
+          "locationWhenInUsePermission": "Cerquita usa tu ubicación para mostrarte profesionales cerca y ubicar tu pedido.",
+          "locationAlwaysAndWhenInUsePermission": "Cerquita comparte tu ubicación con el cliente solo durante un servicio aceptado, desde “Ir al domicilio” hasta “Terminado”.",
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true,
           "isIosBackgroundLocationEnabled": true
@@ -87,6 +89,18 @@
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
-    }
+    },
+    "extra": {
+      "androidMaps": false,
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "78931b81-56bd-47a0-9f32-7b02cb08d444"
+      }
+    },
+    "owner": "holdingidn"
   }
 }
