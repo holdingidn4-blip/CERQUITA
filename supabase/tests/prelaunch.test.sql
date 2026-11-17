@@ -2,7 +2,7 @@
 -- suspensión, reversión de asientos, buscador, datos de pago y anti-abuso de SMS.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(48);
+select plan(52);
 delete from public.trade_rate_cards;
 
 create function pg_temp.as_user(p uuid, p_staff text default null) returns void
@@ -181,6 +181,17 @@ set local role service_role;
 select is(public.push_secret_matches('otro'), false, 'un secreto distinto no autoriza');
 select is(public.push_secret_matches(:'push_secret'), true, 'el secreto de Vault autoriza');
 reset role;
+
+-- Sin sesión no se ejecuta ninguna función de public (ni por anon ni heredado de PUBLIC).
+select pg_temp.as_postgres();
+select is((select count(*)::int from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute')), 0,
+  'anon no ejecuta ninguna función de public');
+select ok(has_function_privilege('authenticated', 'public.my_account()', 'execute'), 'la app con sesión sigue usando my_account');
+select ok(has_function_privilege('authenticated', 'public.answer_reevaluation(uuid,boolean)', 'execute')
+  and has_function_privilege('authenticated', 'public.propose_reevaluation(uuid,integer,public.materials_provider,jsonb,text)', 'execute'),
+  'la reevaluación tiene su grant explícito');
+select ok(has_function_privilege('supabase_auth_admin', 'public.hook_before_user_created(jsonb)', 'execute'), 'el hook de Auth sigue habilitado');
 
 select * from finish();
 rollback;

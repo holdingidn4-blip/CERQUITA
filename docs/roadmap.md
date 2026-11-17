@@ -10,7 +10,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [ ] **(D)** Activar el hook `hook_before_user_created` (Authentication → Hooks).
 - [ ] Panel publicado (Vercel) con sus variables y un administrador real. **(D)** conectar GitHub en Vercel o entregar un token.
 - [x] Quitar del panel la dependencia de `SUPABASE_SERVICE_ROLE_KEY` (URL firmada con la sesión de soporte + política con vista registrada).
-- [ ] Revocar EXECUTE de `anon`/PUBLIC en las funciones `security definer` del esquema `public` (aviso del linter de Supabase).
+- [x] Revocar EXECUTE de `anon`/PUBLIC en las funciones del esquema `public` (aplicado en producción; `anon` ejecuta 0 funciones).
 - [ ] Primer administrador: el dueño entra una vez y se le asigna `staff_role = admin` por SQL.
 - [x] APK Android instalable por enlace, apuntando a producción (GitHub Actions + Storage; build 2).
 - [ ] **(D)** Token de Expo para crear el proyecto de EAS: push, actualizaciones OTA y firma definitiva.

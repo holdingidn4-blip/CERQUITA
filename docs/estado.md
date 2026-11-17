@@ -1,6 +1,6 @@
 # Cerquita · Estado
 
-Actualizado: 2026-11-16. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
+Actualizado: 2026-11-17. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Implementado
 - Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (14 migraciones).
@@ -16,9 +16,10 @@ Actualizado: 2026-11-16. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **El panel ya no usa la llave `service_role`**: firma las URL de documentos con la sesión de soporte (política de Storage que exige vista registrada < 2 min).
 - **Eliminar cuenta corregido**: el registro de vistas de documentos ya no se borra en cascada (inmutable, se conserva).
 - **Notificaciones**: `send-push` valida su secreto contra Vault (`push_secret_matches`); no hay secretos en variables.
+- **Funciones cerradas sin sesión**: `anon` y PUBLIC ya no ejecutan ninguna función de `public`; la app con sesión conserva sus RPC.
 
 ## Desplegado (producción del piloto)
-- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 14 migraciones, seed de Huancayo, 29 tablas con RLS, 4 tareas cron.
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 16 migraciones, seed de Huancayo, 29 tablas con RLS, 4 tareas cron.
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
 - **APK Android:** build 2 (0.1.0), 35,7 MB, apunta a producción. Enlace en `docs/produccion.md` → “APK del piloto”.
@@ -28,7 +29,8 @@ Actualizado: 2026-11-16. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - CI en `main` (commit `b603aff`, 2026-11-16): 153 unitarias, pgTAP completo (privacy 30, prelaunch 48, rls 64…) y 92 pasos e2e. Todo en verde.
 - e2e confirma que el DNI se abre con URL firmada por la sesión de soporte (sin `service_role`) y que la vista queda registrada.
 - Producción (transacción revertida): un pro con DNI ya visto por soporte elimina su cuenta; documentos 0, vistas conservadas 1, perfil anonimizado.
-- Producción: `send-push` con secreto de Vault → 200 `{"sent":0}`; con secreto falso o sin secreto → 401.
+- Producción: `send-push` con secreto de Vault → 200 `{"sent":0}`; con secreto falso o sin secreto → 401 (repetido tras el cierre de permisos).
+- Producción (clave anónima, 2026-11-17): `my_account` y `sos_open_alerts` → 401 “permission denied”; lectura pública de oficios → 200.
 - APK build 2: arranque en emulador Android 14 OK (pantalla de ingreso).
 - **No probado todavía:** ingreso real con los números de prueba, cámara, GPS en segundo plano, push en un teléfono y flujo completo en físico.
 
@@ -42,13 +44,13 @@ Actualizado: 2026-11-16. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - Proyecto `cerquita-demo` (`vfquejeijminjxxyozqg`): pausado y vacío; se puede borrar.
 
 ## Errores conocidos
-- **Aviso de seguridad (previo, no explotable hoy):** 56 funciones `security definer` se pueden llamar con la clave anónima porque PostgreSQL da EXECUTE a PUBLIC por defecto. Todas validan `auth.uid()`/soporte por dentro; falta revocarlo (P0 del roadmap).
+- Linter de Supabase: 56 avisos “authenticated puede ejecutar security definer”. Es intencional (son las RPC de la app y validan `auth.uid()`/rol por dentro). Otro aviso: protección de contraseñas filtradas (no aplica: el ingreso es por SMS).
 - Vercel: el conector de esta sesión necesita autorización del equipo `holdingidn4-3141` para leer el proyecto (enlace de un solo uso).
 - El token personal de Supabase guardado en el entorno es inválido: el SQL de producción se aplica con el conector (ver `docs/produccion.md`).
 - En este entorno Docker muere a las 2 h y los `git push` de etiquetas fallan: las pruebas de base corren en el CI; los APK se disparan con ramas `apk/*`.
 - `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación.
 
 ## Última tarea
-- Login por SMS resuelto en producción: Auth Token de Twilio corregido, SID de cuenta verificado y número de prueba con código fijo válido. Probado: envío del código (200) y verificación con el código de prueba (sesión emitida).
-- Cuenta de Twilio en modo prueba: solo plantillas predefinidas y números verificados. Para SMS reales a otros celulares, actualizar la cuenta.
-- Siguiente: probar el APK con el número de prueba; luego el panel en Vercel (pendiente de autorizar el equipo).
+- Cierre de permisos en producción (autorizado por el dueño). La primera migración (`20261117000100`, solo `anon`) no bastaba: `anon` heredaba EXECUTE de PUBLIC. La segunda (`20261117000200`) quita PUBLIC y da grant explícito a las dos RPC de reevaluación que dependían de él.
+- Verificado: `anon` 0 funciones; `authenticated` conserva las 56 RPC; hook de Auth y `send-push` intactos. pgTAP `prelaunch` sube a 52 (corre en el CI).
+- Siguiente: AAB de producción con EAS y despliegue del panel en Vercel (falta autorizar el equipo).
