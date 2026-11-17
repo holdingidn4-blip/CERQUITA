@@ -33,9 +33,7 @@
         "POST_NOTIFICATIONS",
         "CAMERA"
       ],
-      "blockedPermissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "output": "static",
