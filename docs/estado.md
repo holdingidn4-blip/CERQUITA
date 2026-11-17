@@ -23,7 +23,8 @@ Actualizado: 2026-11-17. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
 - **APK Android:** build 2 (0.1.0), 35,7 MB, apunta a producción. Enlace en `docs/produccion.md` → “APK del piloto”.
-- **Panel:** proyecto Vercel `cerquita` creado por el dueño (repo, rama `main`, carpeta `apps/admin`, integración Supabase). **Sin desplegar** a la espera del dueño.
+- **Panel:** https://cerquita-nine.vercel.app (Vercel, rama `main`, carpeta `apps/admin`; solo URL + clave publicable). Sin sesión redirige a `/login`.
+- **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build en cola en el plan gratis de EAS.
 
 ## Pruebas (última corrida)
 - CI en `main` (commit `b603aff`, 2026-11-16): 153 unitarias, pgTAP completo (privacy 30, prelaunch 48, rls 64…) y 92 pasos e2e. Todo en verde.
@@ -35,7 +36,8 @@ Actualizado: 2026-11-17. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **No probado todavía:** ingreso real con los números de prueba, cámara, GPS en segundo plano, push en un teléfono y flujo completo en físico.
 
 ## Incompleto
-- Panel sin desplegar (decisión del dueño, tras estos arreglos). Falta asignar el primer administrador (el dueño entra una vez y se le da el rol por SQL).
+- Falta el primer administrador del panel: el dueño entra una vez con su celular y se le da el rol por SQL. Ojo: un número con código fijo de prueba no debe ser admin (cualquiera con el código entra).
+- La integración de Supabase dejó en Vercel variables que el panel no usa (`SUPABASE_SERVICE_ROLE_KEY`, `POSTGRES_*`…). No hacen daño en el servidor, pero conviene quitarlas.
 - Push no llegará a teléfonos hasta tener proyecto EAS (token de Expo) y Firebase/FCM: la función y la cola ya funcionan.
 - Twilio trial: SMS reales solo a números verificados; el piloto usa números de prueba de Supabase.
 - Sin clave de Google Maps (vista simple de mapa), sin Sentry, captcha no conectado, limpieza de Storage en GitHub Actions sin activar.
@@ -45,7 +47,6 @@ Actualizado: 2026-11-17. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 
 ## Errores conocidos
 - Linter de Supabase: 56 avisos “authenticated puede ejecutar security definer”. Es intencional (son las RPC de la app y validan `auth.uid()`/rol por dentro). Otro aviso: protección de contraseñas filtradas (no aplica: el ingreso es por SMS).
-- Vercel: el conector de esta sesión necesita autorización del equipo `holdingidn4-3141` para leer el proyecto (enlace de un solo uso).
 - El token personal de Supabase guardado en el entorno es inválido: el SQL de producción se aplica con el conector (ver `docs/produccion.md`).
 - En este entorno Docker muere a las 2 h y los `git push` de etiquetas fallan: las pruebas de base corren en el CI; los APK se disparan con ramas `apk/*`.
 - `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación.
@@ -53,4 +54,5 @@ Actualizado: 2026-11-17. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 ## Última tarea
 - Cierre de permisos en producción (autorizado por el dueño). La primera migración (`20261117000100`, solo `anon`) no bastaba: `anon` heredaba EXECUTE de PUBLIC. La segunda (`20261117000200`) quita PUBLIC y da grant explícito a las dos RPC de reevaluación que dependían de él.
 - Verificado: `anon` 0 funciones; `authenticated` conserva las 56 RPC; hook de Auth y `send-push` intactos. pgTAP `prelaunch` sube a 52 (corre en el CI).
-- Siguiente: AAB de producción con EAS y despliegue del panel en Vercel (falta autorizar el equipo).
+- Panel desplegado en Vercel y AAB lanzado en EAS (variables de producción cargadas en EAS).
+- Siguiente: primer administrador; Google Play (cuenta del dueño) y subir el AAB a prueba interna/cerrada.

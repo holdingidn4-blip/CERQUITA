@@ -6,7 +6,8 @@
 | --- | --- | --- |
 | Base, Auth y Storage | Supabase `cerquita` · ref `dknxuxrylnncbdzjqagh` · São Paulo · plan gratis | Activo |
 | App Android | APK por enlace (ver “APK del piloto”) | Build 2 publicado |
-| Panel | Vercel · proyecto `cerquita` (rama `main`, carpeta `apps/admin`) | Creado; sin desplegar |
+| Panel | Vercel · proyecto `cerquita` (rama `main`, carpeta `apps/admin`) · https://cerquita-nine.vercel.app | Desplegado (cada push a `main` despliega) |
+| App Android (tiendas) | EAS · `@holdingidn/cerquita` · perfil `production` (AAB, llave de firma guardada en EAS) | Build 2 en cola/compilando |
 | Notificaciones | Edge Function `send-push` (secreto en Vault `push_function_secret`) | Activa |
 | Proyecto antiguo | Supabase `cerquita-demo` (`vfquejeijminjxxyozqg`) | Pausado y vacío: se puede borrar |
 
@@ -48,6 +49,7 @@ Con un token personal válido o acceso directo, usar `scripts/deploy-production.
 
 ```bash
 cd apps/mobile
+# Proyecto ya creado: @holdingidn/cerquita (projectId en app.json). En la sesión en la nube: EXPO_TOKEN=proxy-injected eas …
 npx eas-cli@latest init                 # crea el proyecto y su EAS_PROJECT_ID
 npx eas-cli@latest env:create --environment production   # cada variable de .env.production.example (bloque App móvil)
 npx eas-cli@latest build --profile production --platform all
@@ -56,6 +58,7 @@ npx eas-cli@latest submit --profile production --platform ios       # TestFlight
 npx eas-cli@latest update --channel production --message "fix: ..."  # corrección OTA (expo-updates)
 ```
 
+- Variables ya cargadas en EAS (entorno `production`): `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_APP_ENV=pilot`. El `versionCode` lo lleva EAS (`appVersionSource: remote`, `autoIncrement`).
 - **Push:** iOS necesita la clave APNs (EAS la genera en el primer build). Android, las credenciales FCM v1 en EAS (`eas credentials`).
 - **Ubicación en segundo plano:** Google Play exige declarar `ACCESS_BACKGROUND_LOCATION` con un video del flujo (pantalla 13 → permiso). Apple revisa el texto de `NSLocationAlwaysAndWhenInUseUsageDescription`.
 - **Sentry:** `EXPO_PUBLIC_SENTRY_DSN` activa el registro; `SENTRY_ORG`, `SENTRY_PROJECT` y `SENTRY_AUTH_TOKEN` suben los source maps.

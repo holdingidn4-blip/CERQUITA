@@ -8,12 +8,12 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] Desplegar `send-push` con su secreto en Vault y fijar `push_function_url`.
 - [x] **(D)** Activar el ingreso por celular en Supabase (Phone + Twilio trial + números de prueba).
 - [ ] **(D)** Activar el hook `hook_before_user_created` (Authentication → Hooks).
-- [ ] Panel publicado (Vercel) con sus variables y un administrador real. **(D)** conectar GitHub en Vercel o entregar un token.
+- [x] Panel publicado en Vercel (https://cerquita-nine.vercel.app) con solo URL + clave publicable.
 - [x] Quitar del panel la dependencia de `SUPABASE_SERVICE_ROLE_KEY` (URL firmada con la sesión de soporte + política con vista registrada).
 - [x] Revocar EXECUTE de `anon`/PUBLIC en las funciones del esquema `public` (aplicado en producción; `anon` ejecuta 0 funciones).
 - [ ] Primer administrador: el dueño entra una vez y se le asigna `staff_role = admin` por SQL.
 - [x] APK Android instalable por enlace, apuntando a producción (GitHub Actions + Storage; build 2).
-- [ ] **(D)** Token de Expo para crear el proyecto de EAS: push, actualizaciones OTA y firma definitiva.
+- [x] Proyecto EAS (`@holdingidn/cerquita`), variables de producción y llave de firma definitiva en EAS; primer AAB lanzado.
 - [x] Vista alternativa cuando no hay clave de Google Maps (que la app no se cierre).
 - [x] Corregir `delete_my_account` con documentos ya vistos por soporte.
 - [ ] Prueba de punta a punta en 2 teléfonos reales: registro, verificación, pedido, cotización, GPS, chat, cierre, comisión y pago.
