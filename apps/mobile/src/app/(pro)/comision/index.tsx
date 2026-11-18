@@ -1,4 +1,6 @@
 import {
+  formatMinutes,
+  proofReviewDue,
   debtMessage,
   debtState,
   formatEntryAmount,
@@ -14,6 +16,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { useSettingInt } from '@/lib/settings';
 import { supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
 import { useDebt } from '@/pro/use-debt';
@@ -39,6 +42,7 @@ export default function Comision() {
   const { debt } = useDebt();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [proofs, setProofs] = useState<Proof[]>([]);
+  const reviewHours = useSettingInt('proof_review_hours') ?? 2;
 
   const load = useCallback(async () => {
     const [e, p] = await Promise.all([
@@ -91,15 +95,27 @@ export default function Comision() {
         {proofs.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.h2}>Constancias enviadas</Text>
-            {proofs.map((p) => (
-              <View key={p.id} style={styles.row}>
-                <Text style={[styles.body, styles.flex]}>{formatSoles(p.amount_cents)}</Text>
-                <Text style={styles.secondary}>
-                  {PROOF_STATUS_LABELS[p.status]}
-                  {p.review_note ? ` · ${p.review_note}` : ''}
-                </Text>
-              </View>
-            ))}
+            {proofs.map((p) => {
+              const due = p.status === 'pending' ? proofReviewDue(p.created_at, reviewHours) : null;
+              return (
+                <View key={p.id} style={styles.proof}>
+                  <View style={styles.row}>
+                    <Text style={[styles.body, styles.flex]}>{formatSoles(p.amount_cents)}</Text>
+                    <Text style={styles.secondary}>
+                      {PROOF_STATUS_LABELS[p.status]}
+                      {p.review_note ? ` · ${p.review_note}` : ''}
+                    </Text>
+                  </View>
+                  {due && (
+                    <Text style={[styles.secondary, due.overdue && styles.overdue]}>
+                      {due.overdue
+                        ? 'Está tardando más de lo normal. Escríbenos desde Ayuda y lo revisamos.'
+                        : `Te respondemos en menos de ${formatMinutes(due.minutes)}.`}
+                    </Text>
+                  )}
+                </View>
+              );
+            })}
           </View>
         )}
 
@@ -157,4 +173,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   amount: { fontFamily: fonts.display, fontSize: 16, color: colors.danger },
   credit: { color: colors.primary },
+  proof: { gap: 4 },
+  overdue: { color: '#7A5A12', fontFamily: fonts.bodySemibold },
 });

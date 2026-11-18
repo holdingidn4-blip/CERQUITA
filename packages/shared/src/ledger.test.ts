@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { debtMessage, debtState, formatEntryAmount, graceDaysLeft } from './ledger';
+import {
+  debtMessage,
+  debtState,
+  formatEntryAmount,
+  formatMinutes,
+  graceDaysLeft,
+  proofReviewDue,
+} from './ledger';
 
 const base = {
   pendingCents: 950,
@@ -34,5 +41,26 @@ describe('formatEntryAmount', () => {
   it('muestra el signo', () => {
     expect(formatEntryAmount(-950)).toBe('−S/ 9.50');
     expect(formatEntryAmount(1000)).toBe('+S/ 10.00');
+  });
+});
+
+describe('plazo de revisión de constancias', () => {
+  const sent = new Date('2026-11-18T15:00:00Z');
+  it('dentro del plazo: minutos que faltan', () => {
+    expect(proofReviewDue(sent, 2, new Date('2026-11-18T16:15:00Z'))).toEqual({
+      overdue: false,
+      minutes: 45,
+    });
+  });
+  it('vencida: minutos de atraso', () => {
+    expect(proofReviewDue(sent, 2, new Date('2026-11-18T17:30:00Z'))).toEqual({
+      overdue: true,
+      minutes: 30,
+    });
+  });
+  it('formato de minutos', () => {
+    expect(formatMinutes(45)).toBe('45 min');
+    expect(formatMinutes(120)).toBe('2 h');
+    expect(formatMinutes(80)).toBe('1 h 20 min');
   });
 });

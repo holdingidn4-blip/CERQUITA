@@ -1,4 +1,10 @@
-import { formatSoles, PAYMENT_METHOD_LABELS, timeAgo } from '@cerquita/shared';
+import {
+  formatMinutes,
+  formatSoles,
+  PAYMENT_METHOD_LABELS,
+  proofReviewDue,
+  timeAgo,
+} from '@cerquita/shared';
 import type { Metadata } from 'next';
 
 import { createClient } from '@/lib/supabase/server';
@@ -16,13 +22,25 @@ const DONE: Record<string, string> = {
 export default async function Constancias({ searchParams }: PageProps<'/constancias'>) {
   const { hecho } = await searchParams;
   const supabase = await createClient();
-  const { data: proofs } = await supabase
-    .from('payment_proofs')
-    .select(
-      'id, professional_id, method, operation_code, amount_cents, created_at, pro:profiles!payment_proofs_professional_id_fkey(full_name)',
-    )
-    .eq('status', 'pending')
-    .order('created_at');
+  const [{ data: proofs }, { data: hoursRow }] = await Promise.all([
+    supabase
+      .from('payment_proofs')
+      .select(
+        'id, professional_id, method, operation_code, amount_cents, created_at, pro:profiles!payment_proofs_professional_id_fkey(full_name)',
+      )
+      .eq('status', 'pending')
+      .order('created_at'),
+    supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'proof_review_hours')
+      .eq('scope', 'global')
+      .maybeSingle(),
+  ]);
+  // Plazo de respuesta que la app le promete al profesional (settings: proof_review_hours).
+  const reviewHours = Number(hoursRow?.value) || 2;
+  const dues = (proofs ?? []).map((p) => proofReviewDue(p.created_at, reviewHours));
+  const overdue = dues.filter((d) => d.overdue).length;
   const debts = await Promise.all(
     (proofs ?? []).map(async (p) => {
       const { data } = await supabase.rpc('pro_debt', { p_pro: p.professional_id });
@@ -35,6 +53,19 @@ export default async function Constancias({ searchParams }: PageProps<'/constanc
       {typeof hecho === 'string' && DONE[hecho] && (
         <p role="status" className={styles.notice}>
           {DONE[hecho]}
+        </p>
+      )}
+      {(proofs ?? []).length > 0 && (
+        <p className={styles.muted} data-testid="resumen-constancias">
+          {(proofs ?? []).length} pendientes · la app promete respuesta en {reviewHours} h
+          {overdue > 0 && (
+            <>
+              {' · '}
+              <strong>
+                {overdue} {overdue === 1 ? 'vencida' : 'vencidas'}
+              </strong>
+            </>
+          )}
         </p>
       )}
       {(proofs ?? []).length === 0 ? (
@@ -57,6 +88,15 @@ export default async function Constancias({ searchParams }: PageProps<'/constanc
                 <td>
                   {p.pro?.full_name ?? 'Sin nombre'}
                   <div className={styles.muted}>{timeAgo(p.created_at)}</div>
+                  <span
+                    className={styles.badge}
+                    data-tone={dues[i]?.overdue ? 'danger' : 'info'}
+                    data-testid="plazo-constancia"
+                  >
+                    {dues[i]?.overdue
+                      ? `Vencida hace ${formatMinutes(dues[i]?.minutes ?? 0)}`
+                      : `Vence en ${formatMinutes(dues[i]?.minutes ?? 0)}`}
+                  </span>
                 </td>
                 <td>{PAYMENT_METHOD_LABELS[p.method]}</td>
                 <td>

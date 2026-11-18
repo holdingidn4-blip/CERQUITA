@@ -33,6 +33,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [ ] Sentry en la app (DSN) para ver fallas en los teléfonos.
 - [ ] Activar la limpieza de Storage en GitHub Actions.
 - [ ] Vigilar la cola de notificaciones y las tareas programadas (cron).
+- [x] Plazo de revisión visible para las constancias y alerta de vencidas en el panel (falta aplicarlo en producción).
 - [ ] Métricas del piloto en el panel: pedidos por día, tiempo a la primera oferta, % contratado.
 - [ ] Registro guiado del profesional con ejemplos de evidencia.
 - [ ] Validar la duración del video en el servidor.

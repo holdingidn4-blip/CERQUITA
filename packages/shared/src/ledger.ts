@@ -20,6 +20,24 @@ export const PROOF_STATUS_LABELS: Record<PaymentProofStatus, string> = {
   rejected: 'Rechazada',
 };
 
+/** Plazo de revisión de una constancia (`proof_review_hours` en settings). */
+export function proofReviewDue(
+  createdAt: string | Date,
+  hours: number,
+  now: Date = new Date(),
+): { overdue: boolean; minutes: number } {
+  const leftMs = new Date(createdAt).getTime() + hours * 3_600_000 - now.getTime();
+  return { overdue: leftMs <= 0, minutes: Math.ceil(Math.abs(leftMs) / 60_000) };
+}
+
+/** "45 min", "2 h" o "1 h 20 min". */
+export function formatMinutes(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m} min`;
+  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
+
 /** Medio con el que el cliente le pagó al pro (pantalla 6). Cerquita no recibe ese pago. */
 export const CLIENT_PAYMENT_METHODS = ['cash', 'yape', 'plin'] as const;
 export type ClientPaymentMethod = (typeof CLIENT_PAYMENT_METHODS)[number];

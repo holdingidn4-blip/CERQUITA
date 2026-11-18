@@ -130,6 +130,7 @@ Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `glob
 | `points_per_sol` · `point_value_cents` · `max_points_discount_pct` | 1 · 5 · 20 | Puntos |
 | `yape_number`, `plin_number`, `yape_qr_url`, `plin_qr_url`, `account_holder`, `bank_account` | vacío | Datos de cobro de la empresa |
 | `push_function_url` | vacío | URL de `send-push` (se fija al desplegar) |
+| `proof_review_hours` | 2 | Plazo de respuesta que la app promete al revisar una constancia; el panel marca las vencidas |
 | `no_show_grace_minutes` · `no_show_strikes` · `no_show_window_days` · `default_eta_minutes` | 15 · 3 · 30 · 60 | Profesional que no llega: tolerancia, faltas para la pausa, ventana y llegada por defecto |
 
 ## 13. Decisiones abiertas (del dueño)

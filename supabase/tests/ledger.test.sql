@@ -1,7 +1,7 @@
 -- Pruebas de la fase 7: comisión, idempotencia, promoción, pausa, constancias y calificaciones.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(36);
 -- Las semillas traen un tarifario de ejemplo; cada prueba define el suyo (se revierte al final).
 delete from public.trade_rate_cards;
 
@@ -154,5 +154,6 @@ select lives_ok(format('insert into public.ratings (job_id, to_id, stars) values
 select throws_ok(format('insert into public.ratings (job_id, to_id, stars) values (%L, %L, 5)',
   '10000000-0000-0000-0000-0000000000e7', :c), '42501', null, 'no se califica un trabajo sin confirmar');
 
+select is(private.setting_int('proof_review_hours', 0), 2, 'el plazo de revisión de constancias está en settings (2 h)');
 select * from finish();
 rollback;

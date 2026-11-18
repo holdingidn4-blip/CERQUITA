@@ -512,9 +512,29 @@ try {
   await pro.waitForURL('**/comision');
   await pro.waitForSelector('text=En revisión');
   ok('el pro sube la constancia de pago');
+  check(
+    await pro.isVisible('text=/Te respondemos en menos de/'),
+    'y ve en cuánto tiempo le responde soporte',
+  );
 
   await admin.goto(`${ADMIN}/constancias`, { waitUntil: 'networkidle' });
   await admin.waitForSelector('text=OP-77812');
+  check(
+    await admin.isVisible(
+      'tr:has-text("OP-77812") [data-testid=plazo-constancia]:has-text("Vence en")',
+    ),
+    'soporte ve el plazo de respuesta de la constancia',
+  );
+  sql(
+    `update public.payment_proofs set created_at = now() - interval '3 hours' where operation_code = 'OP-77812'`,
+  );
+  await admin.reload({ waitUntil: 'networkidle' });
+  check(
+    (await admin.isVisible(
+      'tr:has-text("OP-77812") [data-testid=plazo-constancia]:has-text("Vencida hace")',
+    )) && (await admin.isVisible('[data-testid=resumen-constancias]:has-text("1 vencida")')),
+    'y la marca como vencida cuando pasa el plazo',
+  );
   const [proofTab] = await Promise.all([
     admin.context().waitForEvent('page'),
     admin.click('text=OP-77812'),
