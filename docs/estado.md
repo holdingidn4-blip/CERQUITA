@@ -27,7 +27,8 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- CI en `main` (commit `b603aff`, 2026-11-16): 153 unitarias, pgTAP completo (privacy 30, prelaunch 48, rls 64…) y 92 pasos e2e. Todo en verde.
+- e2e: 112 pasos (2026-11-18, local); suma reclamo y reporte desde la app y en el panel reclamos, reportes, lista negra, tarifario y parámetros con revisora y admin.
+- CI en `main` (commit `cce8272`, 2026-11-17): unitarias, pgTAP completo (prelaunch 52) y e2e. Todo en verde.
 - e2e confirma que el DNI se abre con URL firmada por la sesión de soporte (sin `service_role`) y que la vista queda registrada.
 - Producción (transacción revertida): un pro con DNI ya visto por soporte elimina su cuenta; documentos 0, vistas conservadas 1, perfil anonimizado.
 - Producción: `send-push` con secreto de Vault → 200 `{"sent":0}`; con secreto falso o sin secreto → 401 (repetido tras el cierre de permisos).
@@ -42,7 +43,7 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | --- | --- | --- | --- |
 | Panel: acceso solo soporte y revisión de verificación | alto | Verificado | e2e Fases 3–4 (CI verde en `cce8272`) |
 | Panel: DNI con URL firmada y vista registrada | alto | Verificado | e2e (CI verde en `cce8272`) |
-| Panel: reclamos, reportes, lista negra, tarifario, parámetros | medio | Sin verificar | Código; fuera del e2e |
+| Panel: reclamos, reportes, lista negra, tarifario, parámetros | medio | Verificado | e2e Fase 9 (112 pasos, local y CI) |
 | Panel en producción con ingreso real | alto | Sin verificar | Solo `/login` y redirección; falta primer admin |
 | App: ingreso por SMS y modo Cliente/Profesional | alto | Sin verificar | e2e en export web |
 | App: registro del profesional y evidencia | alto | Sin verificar | e2e en export web |
@@ -59,7 +60,7 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | Backend: cola y envío push (`send-push`) | medio | Sin verificar | 200/401 en producción |
 | Backend: limpieza de Storage | bajo | Pendiente | Action sin activar |
 
-Cálculo: verificado 6/48 = **12,5 %** · implementado sin verificar 35/48 = **72,9 %** · pendiente 7/48 = **14,6 %**.
+Cálculo: verificado 8/48 = **16,7 %** · implementado sin verificar 33/48 = **68,8 %** · pendiente 7/48 = **14,6 %**.
 
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad:** permisos públicos cerrados y verificados en producción. Falta quitar `SUPABASE_SERVICE_ROLE_KEY` y `POSTGRES_*` de Vercel (dueño). Primer admin con un número sin código fijo (dueño).

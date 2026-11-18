@@ -532,6 +532,203 @@ try {
   );
   sql(`update public.settings set value = '3' where key = 'grace_days'`);
 
+  // ─────────────── Fase 7 · Reclamo y reporte desde la app ───────────────
+  await client.goto(`${MOBILE}/servicio/${jobId}`, { waitUntil: 'networkidle' });
+  await client.click('text=Reportar un problema');
+  await client.fill('[aria-label="Describe el problema"]', 'La fuga volvió al día siguiente.');
+  await client.click('text=Enviar reclamo');
+  await client.waitForSelector('text=Recibimos tu reclamo');
+  check(
+    sql(`select status from public.claims where job_id = '${jobId}'`) === 'open',
+    'el cliente envía un reclamo del servicio',
+  );
+  await client.goto(`${MOBILE}/profesional/${luisId}`, { waitUntil: 'networkidle' });
+  await client.click('text=Reportar o bloquear a Luis');
+  await client.click('[role=radio]:has-text("Pidió pagar o coordinar fuera de la app")');
+  await client.fill('[aria-label="Detalles del reporte"]', 'Me pidió pagarle por fuera de la app.');
+  await client.click('text=Reportar y bloquear');
+  await client.waitForSelector('text=Reportaste y bloqueaste a Luis');
+  check(
+    sql(
+      `select count(*) from public.user_blocks where blocker_id = '11111111-1111-1111-1111-111111111111' and blocked_id = '${luisId}'`,
+    ) === '1',
+    'el cliente reporta y bloquea al profesional',
+  );
+
+  // ─────────────── Fase 9 · Panel: reclamos, reportes y lista negra ───────────────
+  await admin.goto(`${ADMIN}/reclamos`, { waitUntil: 'networkidle' });
+  const claim = admin.locator('[data-testid=reclamo]:has-text("La fuga volvió al día siguiente.")');
+  await claim.waitFor();
+  check(
+    await claim.locator('text=Carla Cliente → Luis Quispe').isVisible(),
+    'soporte ve el reclamo con cliente y técnico',
+  );
+  const viewsBefore = Number(
+    sql(
+      `select count(*) from public.document_access_log l join public.verification_documents d on d.id = l.document_id where d.pro_id = '${luisId}'`,
+    ),
+  );
+  const [claimDoc] = await Promise.all([
+    admin.context().waitForEvent('page'),
+    claim.locator('text=Ver >> nth=0').click(),
+  ]);
+  await claimDoc.waitForLoadState();
+  check(
+    claimDoc.url().includes('/storage/v1/object/sign/verification/'),
+    'abre la identidad del técnico con URL firmada',
+  );
+  await claimDoc.close();
+  check(
+    Number(
+      sql(
+        `select count(*) from public.document_access_log l join public.verification_documents d on d.id = l.document_id where d.pro_id = '${luisId}'`,
+      ),
+    ) ===
+      viewsBefore + 1,
+    'y esa vista queda registrada',
+  );
+  await claim.locator('button:has-text("Resolver")').click();
+  await claim.locator('text=Escribe la resolución.').waitFor();
+  ok('resolver sin texto muestra error');
+  await claim.locator('[aria-label="Resolución"]').fill('Luis vuelve a revisar la fuga sin costo.');
+  await claim.locator('button:has-text("Resolver")').click();
+  await admin.waitForURL('**/reclamos?hecho=1');
+  await admin.waitForSelector('[data-testid=reclamo] >> text=Resuelto');
+  check(
+    sql(`select status || '|' || resolution from public.claims where job_id = '${jobId}'`) ===
+      'resolved|Luis vuelve a revisar la fuga sin costo.',
+    'soporte resuelve el reclamo con su resolución',
+  );
+
+  await admin.goto(`${ADMIN}/reportes`, { waitUntil: 'networkidle' });
+  const report = admin.locator('[data-testid=reporte]:has-text("Me pidió pagarle por fuera")');
+  await report.waitFor();
+  await report.locator('button:has-text("Revisado")').click();
+  await report.locator('text=Estado o nota inválidos').waitFor();
+  ok('revisar un reporte sin nota muestra error');
+  await report.locator('[aria-label="Nota (obligatoria)"]').fill('Advertimos al profesional.');
+  await report.locator('button:has-text("Revisado")').click();
+  await report.locator('td:text-is("reviewed")').waitFor();
+  check(
+    sql(`select status || '|' || note from public.user_reports where reported_id = '${luisId}'`) ===
+      'reviewed|Advertimos al profesional.',
+    'soporte marca el reporte como revisado con nota',
+  );
+
+  await admin.goto(`${ADMIN}/lista-negra`, { waitUntil: 'networkidle' });
+  const fillBlacklist = async (lat) => {
+    await admin.fill('[aria-label="Latitud"]', lat);
+    await admin.fill('[aria-label="Longitud"]', '-75.2100');
+    await admin.fill('[aria-label="Dirección"]', 'Jr. Prueba 999');
+    await admin.fill('[aria-label="Motivo"]', 'Asalto a un técnico');
+    await admin.click('button:has-text("Agregar")');
+  };
+  await fillBlacklist('abc');
+  await admin.waitForSelector('text=Coordenadas inválidas');
+  ok('valida las coordenadas de la lista negra');
+  await fillBlacklist('-12.0700');
+  await admin.waitForURL('**/lista-negra?hecho=agregada');
+  await admin.waitForSelector('text=Dirección agregada.');
+  check(
+    sql(
+      `select active::text from public.blacklisted_locations where address_text = 'Jr. Prueba 999'`,
+    ) === 'true',
+    'agrega una dirección a la lista negra',
+  );
+  await admin.click('tr:has-text("Jr. Prueba 999") >> button:has-text("Desactivar")');
+  await admin.waitForSelector('tr:has-text("Jr. Prueba 999") >> text=Inactiva');
+  check(
+    sql(
+      `select active::text from public.blacklisted_locations where address_text = 'Jr. Prueba 999'`,
+    ) === 'false',
+    'y la desactiva',
+  );
+
+  // ─────────────── Fase 9 · Panel: tarifario y parámetros (solo admin edita) ───────────────
+  await admin.goto(`${ADMIN}/parametros`, { waitUntil: 'networkidle' });
+  check(
+    (await admin.isVisible('text=Solo un administrador puede cambiarlos.')) &&
+      (await admin.locator('[aria-label="reject_retry_days"]').first().isDisabled()),
+    'la revisora ve los parámetros en solo lectura',
+  );
+  await admin.goto(`${ADMIN}/tarifario`, { waitUntil: 'networkidle' });
+  check(
+    await admin.isVisible('text=Solo un administrador puede editar.'),
+    'la revisora ve el tarifario sin poder editar',
+  );
+
+  const boss = await (
+    await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  ).newPage();
+  await adminLogin(boss, '900000008');
+  await boss.waitForURL('**/verificacion');
+  await boss.goto(`${ADMIN}/parametros`, { waitUntil: 'networkidle' });
+  const retryDays = sql(
+    `select value from public.settings where key = 'reject_retry_days' and scope = 'global'`,
+  );
+  const retryForm = boss.locator('form:has([aria-label="reject_retry_days"])').first();
+  await retryForm.locator('[aria-label="reject_retry_days"]').fill('dos');
+  await retryForm.locator('button:has-text("Guardar")').click();
+  await retryForm.locator('text=Debe ser un número entero.').waitFor();
+  ok('un parámetro numérico rechaza texto');
+  await retryForm.locator('[aria-label="reject_retry_days"]').fill(String(Number(retryDays) + 1));
+  await retryForm.locator('button:has-text("Guardar")').click();
+  await retryForm.locator('text=Guardado').waitFor();
+  check(
+    sql(
+      `select value from public.settings where key = 'reject_retry_days' and scope = 'global'`,
+    ) === String(Number(retryDays) + 1),
+    'el admin cambia un parámetro y queda en settings',
+  );
+  sql(
+    `update public.settings set value = '${retryDays}' where key = 'reject_retry_days' and scope = 'global'`,
+  );
+
+  await boss.goto(`${ADMIN}/tarifario`, { waitUntil: 'networkidle' });
+  const [cardId, cardLabel] = sql(
+    'select id, label from public.trade_rate_cards order by trade_id, id limit 1',
+  ).split('|');
+  const card = boss.locator(`[data-testid=tarifa]:has-text("${cardLabel}")`).first();
+  const fillCard = async (min, sug, max) => {
+    await card.locator('[aria-label="Mínimo"]').fill(min);
+    await card.locator('[aria-label="Sugerido"]').fill(sug);
+    await card.locator('[aria-label="Máximo"]').fill(max);
+    await card.locator('[aria-label="Visita"]').fill('30');
+    await card.locator('button:has-text("Guardar")').click();
+  };
+  await fillCard('50', '40', '30');
+  await card.locator('text=Montos en soles: mínimo ≤ sugerido ≤ máximo.').waitFor();
+  ok('el tarifario exige mínimo ≤ sugerido ≤ máximo');
+  await fillCard('40', '90', '260');
+  await card.locator('text=Guardado: rige desde ahora para pedidos nuevos.').waitFor();
+  check(
+    sql(
+      `select min_cents || '|' || suggested_cents || '|' || max_cents || '|' || visit_fee_cents from public.trade_rate_cards where id = ${cardId}`,
+    ) === '4000|9000|26000|3000',
+    'el admin actualiza una tarifa en céntimos',
+  );
+
+  const addMaterial = boss.locator('form:has([aria-label="Marca"])');
+  const fillMaterial = async (store) => {
+    await addMaterial.locator('[aria-label="Tienda (promart, sodimac, maestro…)"]').fill(store);
+    await addMaterial.locator('[aria-label="Marca"]').fill('Pavco');
+    await addMaterial.locator('[aria-label="Nombre del material"]').fill('Codo PVC 1/2 pulgada');
+    await addMaterial.locator('[aria-label="Unidad"]').fill('unidad');
+    await addMaterial.locator('[aria-label="Precio S/"]').fill('2.50');
+    await addMaterial.locator('button:has-text("Agregar material")').click();
+  };
+  await fillMaterial('mercado');
+  await addMaterial.locator('text=Tienda: promart, sodimac, maestro, ferreteria u otro.').waitFor();
+  ok('el catálogo valida la tienda');
+  await fillMaterial('promart');
+  await addMaterial.locator('text=Material agregado.').waitFor();
+  check(
+    sql(
+      `select reference_price_cents from public.materials_catalog where name = 'Codo PVC 1/2 pulgada'`,
+    ) === '250',
+    'el admin agrega un material al catálogo en céntimos',
+  );
+
   // ─────────────── Fase 8 · Contactos, SOS y eliminar cuenta ───────────────
   await client.goto(`${MOBILE}/ajustes/contactos`, { waitUntil: 'networkidle' });
   await client.fill('[aria-label="Nombre del contacto"]', 'Mamá');
