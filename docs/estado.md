@@ -69,6 +69,7 @@ Cálculo: verificado 6/48 = **12,5 %** · implementado sin verificar 35/48 = **7
 - **Tarifario:** validar tarifario, tarifa de visita, catálogo y precios de referencia con profesionales de Huancayo; confirmar 105/116/106 (dueño con profesionales). Desbloquea datos reales del piloto.
 - **Fuera de estas categorías:** prueba en 2 teléfonos físicos con números de prueba (Claude coordina; dueño presta teléfonos). Es lo que pasa A de "sin verificar" a "verificado".
 - No bloqueantes: captcha, Sentry, limpieza de Storage, proyecto `cerquita-demo` (`vfquejeijminjxxyozqg`, pausado; se puede borrar).
+- **Decisión del dueño (2026-11-18): saldo prepago para pagar comisiones (opción B).** No se construye hasta cerrar dos condiciones: (1) que el saldo lo emita una empresa autorizada por la SBS como emisora de dinero electrónico (Ley 29985; directorio SBS) o que Cerquita obtenga esa licencia, y (2) que las recargas dentro de la app pasen por el cobro de Apple o Google, con su porcentaje. Mientras tanto la regla 3 sigue vigente y el piloto usa el modelo A (deuda, pausa y constancia).
 
 ## Errores conocidos
 - Linter de Supabase: 56 avisos “authenticated puede ejecutar security definer”. Es intencional (son las RPC de la app y validan `auth.uid()`/rol por dentro). Otro aviso: protección de contraseñas filtradas (no aplica: el ingreso es por SMS).
