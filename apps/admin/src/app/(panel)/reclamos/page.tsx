@@ -1,4 +1,5 @@
 import {
+  CLAIM_STATUS_LABELS,
   DOCUMENT_LABELS,
   maskPhone,
   timeAgo,
@@ -12,12 +13,6 @@ import styles from '../panel.module.css';
 import { ResolveForm } from './resolve-form';
 
 export const metadata: Metadata = { title: 'Reclamos · Cerquita Panel' };
-const STATUS: Record<string, string> = {
-  open: 'Abierto',
-  in_review: 'En revisión',
-  resolved: 'Resuelto',
-  rejected: 'Rechazado',
-};
 
 export default async function Reclamos() {
   const supabase = await createClient();
@@ -46,7 +41,7 @@ export default async function Reclamos() {
                   </p>
                 </div>
                 <span className={styles.badge} data-tone={c.status === 'open' ? 'warning' : 'info'}>
-                  {STATUS[c.status] ?? c.status}
+                  {CLAIM_STATUS_LABELS[c.status] ?? c.status}
                 </span>
               </div>
               <p>{c.description}</p>

@@ -745,7 +745,7 @@ try {
   ok('revisar un reporte sin nota muestra error');
   await report.locator('[aria-label="Nota (obligatoria)"]').fill('Advertimos al profesional.');
   await report.locator('button:has-text("Revisado")').click();
-  await report.locator('td:text-is("reviewed")').waitFor();
+  await report.locator('td:text-is("Revisado")').waitFor();
   check(
     sql(`select status || '|' || note from public.user_reports where reported_id = '${luisId}'`) ===
       'reviewed|Advertimos al profesional.',
@@ -864,6 +864,86 @@ try {
       `select reference_price_cents from public.materials_catalog where name = 'Codo PVC 1/2 pulgada'`,
     ) === '250',
     'el admin agrega un material al catálogo en céntimos',
+  );
+
+  // ─────────────── Fase 9 · Panel: búsqueda, ficha de usuario y detalle de pedido ───────────────
+  await boss.goto(`${ADMIN}/buscar?q=Luis`, { waitUntil: 'networkidle' });
+  await boss.click('[data-testid=resultado]:has-text("Luis Quispe")');
+  await boss.waitForURL(`**/usuarios/${luisId}`);
+  check(
+    (await boss.isVisible('text=/Gasfitero \\(En observación\\)/')) &&
+      (await boss.isVisible(
+        '[data-testid=llegadas-incumplidas]:has-text("Llegadas incumplidas en 30 días: 1")',
+      )) &&
+      (await boss.isVisible('text=/Pidió pagar o coordinar fuera de la app · Revisado/')),
+    'la ficha del profesional muestra oficios, faltas y reportes con texto legible',
+  );
+  const debtRow = boss.locator('tr:has-text("e2e:deuda")');
+  await debtRow
+    .locator('[aria-label="Motivo de la reversión"]')
+    .fill('Deuda cargada por error en la prueba.');
+  await debtRow.locator('button:has-text("Revertir")').click();
+  // Al revertir, el formulario se reemplaza por “Revertido” en la misma fila.
+  await debtRow.locator('text=Revertido').waitFor();
+  check(
+    sql(
+      `select count(*) from public.wallet_entries where professional_id = '${luisId}' and type = 'reversal'`,
+    ) === '1',
+    'el admin revierte un asiento del libro (sin borrarlo)',
+  );
+  await boss.goto(`${ADMIN}/usuarios/22222222-2222-2222-2222-222222222222`, {
+    waitUntil: 'networkidle',
+  });
+  await boss.fill('[aria-label="Motivo"]', 'Prueba de suspensión');
+  await boss.click('button:has-text("Suspender cuenta")');
+  await boss.waitForSelector('text=Cuenta suspendida.');
+  check(
+    sql(
+      `select (suspended_at is not null)::text from public.profiles where id = '22222222-2222-2222-2222-222222222222'`,
+    ) === 'true',
+    'el admin suspende una cuenta con motivo',
+  );
+  await boss.reload({ waitUntil: 'networkidle' });
+  await boss.fill('[aria-label="Motivo"]', 'Fin de la prueba');
+  await boss.click('button:has-text("Levantar suspensión")');
+  await boss.waitForSelector('text=Suspensión levantada.');
+  check(
+    sql(
+      `select (suspended_at is null)::text from public.profiles where id = '22222222-2222-2222-2222-222222222222'`,
+    ) === 'true',
+    'y levanta la suspensión',
+  );
+  await boss.goto(`${ADMIN}/pedidos/${job2}`, { waitUntil: 'networkidle' });
+  check(
+    (await boss.isVisible('text=/Estado Cancelado/')) && (await boss.isVisible('text=/No llegó/')),
+    'el detalle del pedido muestra el estado y la oferta de quien no llegó',
+  );
+
+  // ─────────────── Fase 9 · Panel: sospecha de bypass (detección real) ───────────────
+  // Pedro se queda quieto en el domicilio del pedido cancelado más de 15 minutos.
+  sql(`update public.jobs set cancelled_at = now() - interval '25 minutes' where id = '${job2}'`);
+  sql(
+    `insert into public.pro_presence (pro_id, online, radius_m, last_point, still_since)
+     select '22222222-2222-2222-2222-222222222222', true, 5000, approx_point, now() - interval '26 minutes' from public.jobs where id = '${job2}'
+     on conflict (pro_id) do update set last_point = excluded.last_point, still_since = excluded.still_since`,
+  );
+  check(
+    sql('select private.detect_bypass()') === '1',
+    'el antifraude detecta al pro quieto en el domicilio',
+  );
+  await admin.goto(`${ADMIN}/sospechas`, { waitUntil: 'networkidle' });
+  const suspicion = admin.locator('[data-testid=sospecha]:has-text("Pedro")');
+  await suspicion.waitFor();
+  await suspicion.locator('button:has-text("Descartar")').click();
+  await suspicion.locator('text=Escribe una nota.').waitFor();
+  await suspicion
+    .locator('[aria-label="Nota de la revisión"]')
+    .fill('Esperaba un taxi en la puerta.');
+  await suspicion.locator('button:has-text("Descartar")').click();
+  await admin.waitForURL('**/sospechas?hecho=descartada');
+  check(
+    sql(`select status from public.bypass_suspicions where job_id = '${job2}'`) === 'dismissed',
+    'soporte descarta la sospecha con nota',
   );
 
   // ─────────────── Fase 8 · Contactos, SOS y eliminar cuenta ───────────────

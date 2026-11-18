@@ -1,4 +1,4 @@
-import { REPORT_REASONS, timeAgo, type ReportReason } from '@cerquita/shared';
+import { REPORT_REASONS, REPORT_STATUS_LABELS, timeAgo, type ReportReason } from '@cerquita/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
@@ -40,7 +40,7 @@ export default async function Reportes() {
                 </div>
                 {r.details && <div>{r.details}</div>}
               </td>
-              <td>{r.status}</td>
+              <td>{REPORT_STATUS_LABELS[r.status] ?? r.status}</td>
               <td>
                 {r.status === 'open' && (
                   <ActionForm

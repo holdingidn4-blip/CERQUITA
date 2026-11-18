@@ -9,3 +9,8 @@ export function timeAgo(date: Date | string, now: Date = new Date()): string {
   const days = Math.floor(hours / 24);
   return days === 1 ? 'ayer' : `hace ${days} días`;
 }
+
+/** Fecha ISO de hace N días (para filtrar ventanas como `no_show_window_days`). */
+export function isoDaysAgo(days: number, now: Date = new Date()): string {
+  return new Date(now.getTime() - days * 86_400_000).toISOString();
+}

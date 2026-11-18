@@ -6,6 +6,7 @@
 
 export const ROLES = ['client', 'pro'] as const;
 export type Role = (typeof ROLES)[number];
+export const ROLE_LABELS: Record<Role, string> = { client: 'Cliente', pro: 'Profesional' };
 
 /** Estados del pedido (`jobs.status`). */
 export const JOB_STATUSES = [
@@ -37,6 +38,16 @@ export const PRO_TRADE_STATUSES = [
   'suspended', // suspendido
 ] as const;
 export type ProTradeStatus = (typeof PRO_TRADE_STATUSES)[number];
+export const PRO_TRADE_STATUS_LABELS: Record<ProTradeStatus, string> = {
+  draft: 'Borrador',
+  submitted: 'Enviado',
+  in_review: 'En revisión',
+  needs_info: 'Falta información',
+  approved_observation: 'En observación',
+  approved_full: 'Aprobado',
+  rejected: 'Rechazado',
+  suspended: 'Suspendido',
+};
 
 export const APPROVED_PRO_TRADE_STATUSES: readonly ProTradeStatus[] = [
   'approved_observation',
@@ -52,6 +63,14 @@ export const OFFER_STATUSES = [
   'no_show',
 ] as const;
 export type OfferStatus = (typeof OFFER_STATUSES)[number];
+export const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
+  pending: 'Pendiente',
+  accepted: 'Aceptada',
+  rejected: 'Rechazada',
+  withdrawn: 'Retirada',
+  expired: 'Vencida',
+  no_show: 'No llegó',
+};
 
 export const WALLET_ENTRY_TYPES = [
   'commission_debit',

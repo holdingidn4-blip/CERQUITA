@@ -5,7 +5,7 @@
 | Pieza | Dónde | Estado |
 | --- | --- | --- |
 | Base, Auth y Storage | Supabase `cerquita` · ref `dknxuxrylnncbdzjqagh` · São Paulo · plan gratis | Activo |
-| App Android | APK por enlace (ver “APK del piloto”) | Build 2 publicado |
+| App Android | APK por enlace (ver “APK del piloto”) | Build 3 publicado (18-11) |
 | Panel | Vercel · proyecto `cerquita` (rama `main`, carpeta `apps/admin`) · https://cerquita-nine.vercel.app | Desplegado (cada push a `main` despliega) |
 | App Android (tiendas) | EAS · `@holdingidn/cerquita` · perfil `production` (AAB, llave de firma guardada en EAS) | Build 2 listo (`a1a6c154`, se descarga desde expo.dev) |
 | Notificaciones | Edge Function `send-push` (secreto en Vault `push_function_secret`) | Activa |
@@ -21,7 +21,8 @@ URL de la API: `https://dknxuxrylnncbdzjqagh.supabase.co` · clave publicable: `
 Con un token personal válido o acceso directo, usar `scripts/deploy-production.sh`.
 
 ### APK del piloto
-- Enlace actual (build 2, versión 0.1.0): `https://dknxuxrylnncbdzjqagh.supabase.co/storage/v1/object/public/app-releases/4c31a5fe1f42a03a/cerquita-0.1.0-b2.apk`
+- Enlace actual (build 3, versión 0.1.0, commit `1c553a4`): `https://dknxuxrylnncbdzjqagh.supabase.co/storage/v1/object/public/app-releases/d42abfae6a1e6a66/cerquita-0.1.0-b3.apk`
+- Anterior (build 2): `…/app-releases/4c31a5fe1f42a03a/cerquita-0.1.0-b2.apk`
 - Para un build nuevo:
   1. Elegir una carpeta aleatoria (`openssl rand -hex 8`) y crear por SQL la política temporal de subida:
      `create policy "releases: subida temporal del CI" on storage.objects for insert to anon with check (bucket_id = 'app-releases' and (storage.foldername(name))[1] = '<carpeta>');`

@@ -1,7 +1,11 @@
 import {
+  CLAIM_STATUS_LABELS,
+  formatArrival,
   formatEntryAmount,
   formatSchedule,
   formatSoles,
+  OFFER_STATUS_LABELS,
+  SERVICE_LABELS,
   timeAgo,
   WALLET_ENTRY_LABELS,
   type ScheduleKind,
@@ -20,7 +24,7 @@ export default async function Pedido({ params }: PageProps<'/pedidos/[id]'>) {
     supabase
       .from('jobs')
       .select(
-        'id, description, status, client_id, offered_price_cents, final_price_cents, labor_cents, materials_cents, commission_rate_bps, cancel_reason, visit_fee_cents, schedule_kind, scheduled_for, created_at, trade:trades(name)',
+        'id, description, status, client_id, offered_price_cents, final_price_cents, labor_cents, materials_cents, commission_rate_bps, cancel_reason, visit_fee_cents, schedule_kind, scheduled_for, promised_arrival_at, created_at, trade:trades(name)',
       )
       .eq('id', id)
       .maybeSingle(),
@@ -46,8 +50,10 @@ export default async function Pedido({ params }: PageProps<'/pedidos/[id]'>) {
         {j.trade?.name} · {j.description}
       </h1>
       <p className={styles.muted}>
-        Estado {j.status} · {formatSchedule(j.scheduled_for, j.schedule_kind as ScheduleKind)} ·
-        creado {timeAgo(j.created_at)} · <Link href={`/usuarios/${j.client_id}`}>ver cliente</Link>
+        Estado {SERVICE_LABELS[j.status]} ·{' '}
+        {formatSchedule(j.scheduled_for, j.schedule_kind as ScheduleKind)} · creado{' '}
+        {timeAgo(j.created_at)} · <Link href={`/usuarios/${j.client_id}`}>ver cliente</Link>
+        {j.promised_arrival_at && <> · llegada acordada {formatArrival(j.promised_arrival_at)}</>}
       </p>
       <section className={styles.section}>
         <h2>Montos</h2>
@@ -70,7 +76,7 @@ export default async function Pedido({ params }: PageProps<'/pedidos/[id]'>) {
           {(offers ?? []).map((o) => (
             <li key={o.id}>
               <Link href={`/usuarios/${o.pro_id}`}>{o.pro?.full_name ?? 'Profesional'}</Link> ·{' '}
-              {formatSoles(o.price_cents)} · {o.status}
+              {formatSoles(o.price_cents)} · {OFFER_STATUS_LABELS[o.status]}
             </li>
           ))}
         </ul>
@@ -94,7 +100,8 @@ export default async function Pedido({ params }: PageProps<'/pedidos/[id]'>) {
           <h2>Disputas</h2>
           {(claims ?? []).map((c) => (
             <p key={c.id}>
-              {c.status}: {c.description} — <Link href="/reclamos">gestionar</Link>
+              {CLAIM_STATUS_LABELS[c.status] ?? c.status}: {c.description} —{' '}
+              <Link href="/reclamos">gestionar</Link>
             </p>
           ))}
         </section>

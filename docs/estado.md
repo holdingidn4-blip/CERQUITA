@@ -25,12 +25,12 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 20 migraciones (las del 18-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local; falta `20261118000400`, la app usa 8 h por defecto mientras tanto), seed de Huancayo, 30 tablas con RLS, 4 tareas cron.
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
-- **APK Android:** build 2 (0.1.0), 35,7 MB, apunta a producción. Enlace en `docs/produccion.md` → “APK del piloto”.
+- **APK Android:** build 3 (0.1.0, commit `1c553a4`), 35,7 MB, apunta a producción; trae el profesional que no llega, el inicio nuevo y el plazo de constancias. Enlace en `docs/produccion.md` → “APK del piloto”.
 - **Panel:** https://cerquita-nine.vercel.app (Vercel, rama `main`, carpeta `apps/admin`; solo URL + clave publicable). Sin sesión redirige a `/login`.
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- Local (2026-11-18): e2e 132 pasos, pgTAP 426 (11 suites; `no_show` 33), unitarias 162. Todo en verde.
+- Local (2026-11-18): e2e 139 pasos, pgTAP 426 (11 suites; `no_show` 33), unitarias 163. Todo en verde.
 - e2e suma: reevaluación en el domicilio (materiales del catálogo y boleta) aprobada por el cliente, cancelación con tarifa de visita y su comisión, y ticket de ayuda respondido desde el panel.
 - CI en `main` (commit `f8a360c`, 2026-11-18): base, chequeo y e2e en verde (incluye no llega e inicio nuevo).
 - e2e suma: reclamo y reporte desde la app; en el panel reclamos, reportes, lista negra, tarifario y parámetros (revisora y admin); hora de llegada en la oferta y cambio de profesional cuando no llega.
@@ -39,17 +39,18 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - Producción (transacción revertida): un pro con DNI ya visto por soporte elimina su cuenta; documentos 0, vistas conservadas 1, perfil anonimizado.
 - Producción: `send-push` con secreto de Vault → 200 `{"sent":0}`; con secreto falso o sin secreto → 401 (repetido tras el cierre de permisos).
 - Producción (clave anónima, 2026-11-17): `my_account` y `sos_open_alerts` → 401 “permission denied”; lectura pública de oficios → 200.
-- APK build 2: arranque en emulador Android 14 OK (pantalla de ingreso).
+- APK build 3: arranque en emulador Android 14 OK (pantalla de ingreso); enlace verificado (200, 35,7 MB).
 - **No probado todavía:** ingreso real con los números de prueba, cámara, GPS en segundo plano, push en un teléfono y flujo completo en físico.
 
 ## Avance técnico del piloto (A)
-Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pruebas unitarias/pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 51).
+Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pruebas unitarias/pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 53).
 
 | Funcionalidad | Peso | Estado | Fuente |
 | --- | --- | --- | --- |
 | Panel: acceso solo soporte y revisión de verificación | alto | Verificado | e2e Fases 3–4 (CI verde en `cce8272`) |
 | Panel: DNI con URL firmada y vista registrada | alto | Verificado | e2e (CI verde en `cce8272`) |
 | Panel: reclamos, reportes, lista negra, tarifario, parámetros | medio | Verificado | e2e Fase 9 (CI verde en `f8a360c`) |
+| Panel: soporte, sospechas, fichas de usuario, búsqueda y detalle de pedido | medio | Verificado | e2e Fases 8–9 (139 pasos) |
 | Panel en producción con ingreso real | alto | Sin verificar | Solo `/login` y redirección; falta primer admin |
 | App: ingreso por SMS y modo Cliente/Profesional | alto | Sin verificar | e2e en export web |
 | App: registro del profesional y evidencia | alto | Sin verificar | e2e en export web |
@@ -67,7 +68,7 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | Backend: cola y envío push (`send-push`) | medio | Sin verificar | 200/401 en producción |
 | Backend: limpieza de Storage | bajo | Pendiente | Action sin activar |
 
-Cálculo: verificado 8/51 = **15,7 %** · implementado sin verificar 36/51 = **70,6 %** · pendiente 7/51 = **13,7 %**. (Sube el total porque entra una función nueva.)
+Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 36/53 = **67,9 %** · pendiente 7/53 = **13,2 %**. (El total sube cuando entra una fila nueva.)
 
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad:** permisos públicos cerrados y verificados en producción. Falta quitar `SUPABASE_SERVICE_ROLE_KEY` y `POSTGRES_*` de Vercel (dueño). Primer admin con un número sin código fijo (dueño).
@@ -86,11 +87,8 @@ Cálculo: verificado 8/51 = **15,7 %** · implementado sin verificar 36/51 = **7
 - `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación.
 
 ## Última tarea
-- Panel: e2e de reclamos, reportes, lista negra, tarifario y parámetros (pasa a verificado).
-- “El profesional no llega”: migraciones `20261118000100` (estado `no_show`) y `20261118000200` (hora de llegada, `report_no_show`, `pro_no_shows`, `my_reliability`, pausa por faltas, chat y GPS por asignación), con app (cotizar, ofertas, servicio del cliente y del pro, aviso en solicitudes) y reglas en `docs/reglas-negocio.md`.
-- Seguridad: `20261118000050` corrige los privilegios por defecto (las funciones nuevas nacían ejecutables sin sesión). En producción hoy no hay funciones abiertas; importa para las migraciones que vengan.
-- CI: versión del CLI de Supabase fija (3.1.0) para que no falle al consultar “latest”.
-- Inicio del cliente rediseñado (capturas a 390 px revisadas; e2e 120 pasos en verde).
-- Tiempo de revisión visible de constancias (app y panel; e2e 123 pasos).
-- Guion de prueba en 2 teléfonos listo: `docs/prueba-telefonos.md` (20 pasos, cada uno ligado a una fila de la tabla A).
-- Siguiente: aplicar las 4 migraciones en producción y build 3 del APK (requiere autorización); luego la prueba en teléfonos.
+- Producción (autorizado por el dueño): migraciones `20261118000050` a `…400` aplicadas y verificadas (huellas de funciones y políticas iguales a las locales; 0 funciones sin sesión). APK build 3 publicado y verificado.
+- Errores corregidos: tienda Maestro sin etiqueta en la reevaluación; estados internos sin traducir en el panel (ficha de usuario, reportes, detalle de pedido); ventana de faltas fija en el código (ahora sale de settings).
+- Nuevo: plazo de respuesta visible para tickets de ayuda; faltas y llegada acordada en el panel.
+- e2e 139 pasos: suma reevaluación con boleta, cancelación con visita, ayuda respondida, búsqueda, ficha (revertir asiento, suspender), detalle de pedido y sospecha antifraude.
+- Siguiente: prueba en 2 teléfonos con el build 3 (`docs/prueba-telefonos.md`) y primer administrador.

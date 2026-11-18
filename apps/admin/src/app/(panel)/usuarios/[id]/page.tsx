@@ -1,9 +1,16 @@
 import {
   formatEntryAmount,
   formatSoles,
+  isoDaysAgo,
   maskPhone,
+  PRO_TRADE_STATUS_LABELS,
+  REPORT_REASONS,
+  REPORT_STATUS_LABELS,
+  ROLE_LABELS,
+  SERVICE_LABELS,
   timeAgo,
   WALLET_ENTRY_LABELS,
+  type ReportReason,
 } from '@cerquita/shared';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -18,6 +25,14 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
   const { id } = await params;
   const staff = await requireStaff();
   const supabase = await createClient();
+  const { data: windowRow } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'no_show_window_days')
+    .eq('scope', 'global')
+    .maybeSingle();
+  // Ventana de llegadas incumplidas (settings: no_show_window_days).
+  const windowDays = Number(windowRow?.value) || 30;
   const [
     { data: p },
     { data: trades },
@@ -25,6 +40,7 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
     { data: reports },
     { data: jobs },
     { data: debt },
+    { data: noShows },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -54,6 +70,11 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
       .order('created_at', { ascending: false })
       .limit(10),
     supabase.rpc('pro_debt', { p_pro: id }),
+    supabase
+      .from('pro_no_shows')
+      .select('id, reported_at')
+      .eq('pro_id', id)
+      .gte('reported_at', isoDaysAgo(windowDays)),
   ]);
   if (!p) notFound();
   const isAdmin = staff.staffRole === 'admin';
@@ -71,7 +92,7 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
         <div>
           <h1 className={styles.h1}>{p.full_name ?? 'Sin nombre'}</h1>
           <p className={styles.muted}>
-            {maskPhone(p.phone)} · modo {p.active_role} · desde {timeAgo(p.created_at)}
+            {maskPhone(p.phone)} · modo {ROLE_LABELS[p.active_role]} · desde {timeAgo(p.created_at)}
             {p.deleted_at ? ' · cuenta eliminada' : ''}
           </p>
         </div>
@@ -119,7 +140,14 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
       {(trades ?? []).length > 0 && (
         <section className={styles.section}>
           <h2>Oficios</h2>
-          <p>{(trades ?? []).map((t) => `${t.trade?.pro_name} (${t.status})`).join(' · ')}</p>
+          <p>
+            {(trades ?? [])
+              .map((t) => `${t.trade?.pro_name} (${PRO_TRADE_STATUS_LABELS[t.status]})`)
+              .join(' · ')}
+          </p>
+          <p className={styles.muted} data-testid="llegadas-incumplidas">
+            Llegadas incumplidas en {windowDays} días: {(noShows ?? []).length}
+          </p>
           {debt?.[0] && (
             <p className={styles.muted}>
               Comisión pendiente: {formatSoles(debt[0].pending_cents)}
@@ -168,7 +196,8 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
           <ul>
             {(reports ?? []).map((r) => (
               <li key={r.id}>
-                {r.reason} · {r.status} · {timeAgo(r.created_at)}{' '}
+                {REPORT_REASONS[r.reason as ReportReason]} ·{' '}
+                {REPORT_STATUS_LABELS[r.status] ?? r.status} · {timeAgo(r.created_at)}{' '}
                 {r.details ? `— ${r.details}` : ''}
               </li>
             ))}
@@ -182,7 +211,7 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
           <ul>
             {(jobs ?? []).map((j) => (
               <li key={j.id}>
-                <Link href={`/pedidos/${j.id}`}>{j.description}</Link> · {j.status}
+                <Link href={`/pedidos/${j.id}`}>{j.description}</Link> · {SERVICE_LABELS[j.status]}
               </li>
             ))}
           </ul>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { timeAgo } from './time';
+import { isoDaysAgo, timeAgo } from './time';
 
 const now = new Date('2026-11-10T12:00:00Z');
 const ago = (ms: number) => new Date(now.getTime() - ms);
@@ -13,4 +13,10 @@ describe('timeAgo', () => {
     [4 * 86_400_000, 'hace 4 días'],
     [-60_000, 'hace un momento'],
   ])('%i ms → %s', (ms, expected) => expect(timeAgo(ago(ms), now)).toBe(expected));
+});
+
+describe('isoDaysAgo', () => {
+  it('resta días exactos', () => {
+    expect(isoDaysAgo(30, new Date('2026-11-18T12:00:00Z'))).toBe('2026-10-19T12:00:00.000Z');
+  });
 });

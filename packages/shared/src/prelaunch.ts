@@ -68,6 +68,18 @@ export const REPORT_REASONS = {
   other: 'Otro',
 } as const;
 export type ReportReason = keyof typeof REPORT_REASONS;
+export const CLAIM_STATUS_LABELS: Record<string, string> = {
+  open: 'Abierto',
+  in_review: 'En revisión',
+  resolved: 'Resuelto',
+  rejected: 'Rechazado',
+};
+export const REPORT_STATUS_LABELS: Record<string, string> = {
+  open: 'Abierto',
+  reviewed: 'Revisado',
+  actioned: 'Medida tomada',
+  dismissed: 'Descartado',
+};
 
 export const SUPPORT_CATEGORIES = {
   payment: 'Pagos y comisión',
