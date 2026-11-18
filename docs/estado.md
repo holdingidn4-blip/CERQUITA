@@ -17,6 +17,7 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Eliminar cuenta corregido**: el registro de vistas de documentos ya no se borra en cascada (inmutable, se conserva).
 - **Notificaciones**: `send-push` valida su secreto contra Vault (`push_secret_matches`); no hay secretos en variables.
 - **Funciones cerradas sin sesión**: `anon` y PUBLIC ya no ejecutan ninguna función de `public`; la app con sesión conserva sus RPC. Desde `20261118000050` las funciones **nuevas** también nacen cerradas (antes el valor global seguía dando EXECUTE a PUBLIC).
+- **Inicio del cliente rediseñado:** buscador de oficios (sin tildes), íconos propios por oficio, franja “Verificados por oficio · Pagas al terminar · Sin adelantos”, pedido activo destacado y conteo de profesionales cerca arriba; el mapa queda al final.
 - **Profesional que no llega:** el pro indica en su oferta en cuánto llega; al aceptar queda la llegada acordada. Pasada la tolerancia (15 min), el cliente cambia de profesional: el pedido vuelve a las otras ofertas, se registra la falta y con 3 en 30 días se pausan sus ofertas. El pro nuevo no ve el chat ni el GPS del anterior.
 
 ## Desplegado (producción del piloto)
@@ -86,4 +87,5 @@ Cálculo: verificado 8/51 = **15,7 %** · implementado sin verificar 36/51 = **7
 - “El profesional no llega”: migraciones `20261118000100` (estado `no_show`) y `20261118000200` (hora de llegada, `report_no_show`, `pro_no_shows`, `my_reliability`, pausa por faltas, chat y GPS por asignación), con app (cotizar, ofertas, servicio del cliente y del pro, aviso en solicitudes) y reglas en `docs/reglas-negocio.md`.
 - Seguridad: `20261118000050` corrige los privilegios por defecto (las funciones nuevas nacían ejecutables sin sesión). En producción hoy no hay funciones abiertas; importa para las migraciones que vengan.
 - CI: versión del CLI de Supabase fija (3.1.0) para que no falle al consultar “latest”.
-- Siguiente: aplicar las 3 migraciones en producción (autorización), nuevo inicio del cliente y guion de prueba en 2 teléfonos.
+- Inicio del cliente rediseñado (capturas a 390 px revisadas; e2e 120 pasos en verde).
+- Siguiente: aplicar las 3 migraciones en producción (autorización), tiempo de revisión visible de constancias y guion de prueba en 2 teléfonos.
