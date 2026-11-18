@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.1.0
       - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,realtime
       - run: supabase db lint -s public,private --level warning --fail-on error
       - run: supabase test db
@@ -65,7 +65,7 @@ jobs:
           cache: pnpm
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.1.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,realtime
