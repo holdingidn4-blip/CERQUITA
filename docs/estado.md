@@ -91,4 +91,5 @@ Cálculo: verificado 8/51 = **15,7 %** · implementado sin verificar 36/51 = **7
 - CI: versión del CLI de Supabase fija (3.1.0) para que no falle al consultar “latest”.
 - Inicio del cliente rediseñado (capturas a 390 px revisadas; e2e 120 pasos en verde).
 - Tiempo de revisión visible de constancias (app y panel; e2e 123 pasos).
-- Siguiente: aplicar las 4 migraciones en producción (autorización) y guion de prueba en 2 teléfonos.
+- Guion de prueba en 2 teléfonos listo: `docs/prueba-telefonos.md` (20 pasos, cada uno ligado a una fila de la tabla A).
+- Siguiente: aplicar las 4 migraciones en producción y build 3 del APK (requiere autorización); luego la prueba en teléfonos.
