@@ -23,6 +23,15 @@ export const MATERIALS_PROVIDER_LABELS: Record<MaterialsProvider, string> = {
   pro: 'Los compra el profesional (con boleta)',
 };
 
+/** Tiendas del catálogo de materiales (`materials_catalog.store`). */
+export const MATERIAL_STORE_LABELS: Record<string, string> = {
+  promart: 'Promart',
+  sodimac: 'Sodimac',
+  maestro: 'Maestro',
+  ferreteria: 'Ferretería',
+  otro: 'Otro',
+};
+
 /** Aviso antifraude que se muestra al cliente y al profesional. TODO(decidir): respaldo legal del seguro y la garantía. */
 export const OFF_APP_WARNING =
   'Los pagos fuera de la app pierden el Seguro Cerquita y la Garantía por 30 días.';

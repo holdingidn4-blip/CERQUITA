@@ -2,7 +2,7 @@ import {
   formatMinutes,
   formatSoles,
   PAYMENT_METHOD_LABELS,
-  proofReviewDue,
+  responseDue,
   timeAgo,
 } from '@cerquita/shared';
 import type { Metadata } from 'next';
@@ -39,7 +39,7 @@ export default async function Constancias({ searchParams }: PageProps<'/constanc
   ]);
   // Plazo de respuesta que la app le promete al profesional (settings: proof_review_hours).
   const reviewHours = Number(hoursRow?.value) || 2;
-  const dues = (proofs ?? []).map((p) => proofReviewDue(p.created_at, reviewHours));
+  const dues = (proofs ?? []).map((p) => responseDue(p.created_at, reviewHours));
   const overdue = dues.filter((d) => d.overdue).length;
   const debts = await Promise.all(
     (proofs ?? []).map(async (p) => {

@@ -1,6 +1,6 @@
 import {
   formatMinutes,
-  proofReviewDue,
+  responseDue,
   debtMessage,
   debtState,
   formatEntryAmount,
@@ -96,7 +96,7 @@ export default function Comision() {
           <View style={styles.section}>
             <Text style={styles.h2}>Constancias enviadas</Text>
             {proofs.map((p) => {
-              const due = p.status === 'pending' ? proofReviewDue(p.created_at, reviewHours) : null;
+              const due = p.status === 'pending' ? responseDue(p.created_at, reviewHours) : null;
               return (
                 <View key={p.id} style={styles.proof}>
                   <View style={styles.row}>

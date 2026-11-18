@@ -20,8 +20,8 @@ export const PROOF_STATUS_LABELS: Record<PaymentProofStatus, string> = {
   rejected: 'Rechazada',
 };
 
-/** Plazo de revisión de una constancia (`proof_review_hours` en settings). */
-export function proofReviewDue(
+/** Plazo de respuesta de soporte (constancias: `proof_review_hours`; tickets: `support_reply_hours`). */
+export function responseDue(
   createdAt: string | Date,
   hours: number,
   now: Date = new Date(),

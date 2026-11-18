@@ -16,8 +16,8 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] Proyecto EAS (`@holdingidn/cerquita`), variables de producción y llave de firma definitiva en EAS; primer AAB compilado (build `a1a6c154`).
 - [x] Vista alternativa cuando no hay clave de Google Maps (que la app no se cierre).
 - [x] Corregir `delete_my_account` con documentos ya vistos por soporte.
-- [x] El profesional no llega: hora de llegada en la oferta, cambio de profesional, faltas y pausa (falta aplicarlo en producción).
-- [x] Privilegios por defecto: las funciones nuevas nacen cerradas sin sesión (falta aplicarlo en producción).
+- [x] El profesional no llega: hora de llegada en la oferta, cambio de profesional, faltas y pausa (en producción desde el 18-11).
+- [x] Privilegios por defecto: las funciones nuevas nacen cerradas sin sesión (en producción desde el 18-11).
 - [ ] **(D)** Cupón para el cliente cuando el profesional no llega: decidir quién lo paga.
 - [ ] Prueba de punta a punta en 2 teléfonos reales: registro, verificación, pedido, cotización, GPS, chat, cierre, comisión y pago.
 - [ ] **(D)** Proveedor de SMS con cobertura en Perú cargado en Supabase Auth (hasta entonces solo entran números de prueba).
@@ -33,7 +33,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [ ] Sentry en la app (DSN) para ver fallas en los teléfonos.
 - [ ] Activar la limpieza de Storage en GitHub Actions.
 - [ ] Vigilar la cola de notificaciones y las tareas programadas (cron).
-- [x] Plazo de revisión visible para las constancias y alerta de vencidas en el panel (falta aplicarlo en producción).
+- [x] Plazos de respuesta visibles para constancias y tickets de ayuda, con vencidos en el panel.
 - [ ] Métricas del piloto en el panel: pedidos por día, tiempo a la primera oferta, % contratado.
 - [ ] Registro guiado del profesional con ejemplos de evidencia.
 - [ ] Validar la duración del video en el servidor.

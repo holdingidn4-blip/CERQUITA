@@ -1,4 +1,4 @@
-import { formatMoney, PRICING_UNIT_LABELS } from '@cerquita/shared';
+import { formatMoney, MATERIAL_STORE_LABELS, PRICING_UNIT_LABELS } from '@cerquita/shared';
 import type { Metadata } from 'next';
 
 import { createClient, requireStaff } from '@/lib/supabase/server';
@@ -9,13 +9,6 @@ import styles from '../panel.module.css';
 
 export const metadata: Metadata = { title: 'Tarifario · Cerquita Panel' };
 
-const STORES: Record<string, string> = {
-  promart: 'Promart',
-  sodimac: 'Sodimac',
-  maestro: 'Maestro',
-  ferreteria: 'Ferretería',
-  otro: 'Otro',
-};
 const soles = (c: number | null) => (c === null ? '' : (c / 100).toFixed(2));
 
 export default async function Tarifario() {
@@ -104,7 +97,7 @@ export default async function Tarifario() {
           {(catalog.data ?? []).map((m) => (
             <tr key={m.id}>
               <td>
-                {STORES[m.store] ?? m.store} · {m.brand} {m.name}
+                {MATERIAL_STORE_LABELS[m.store] ?? m.store} · {m.brand} {m.name}
                 <div className={styles.muted}>
                   {m.unit} · {formatMoney(m.reference_price_cents, m.currency_code)}
                   {!m.active && ' · inactivo'}

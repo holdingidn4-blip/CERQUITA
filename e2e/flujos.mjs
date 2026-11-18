@@ -83,6 +83,7 @@ try {
   await outsider.goto(`${ADMIN}/`, { waitUntil: 'networkidle' });
   check(outsider.url().endsWith('/login'), 'panel sin sesión → /login');
   await adminLogin(outsider, '900 000 002');
+  const pedroCodeAt = Date.now();
   await outsider.waitForURL('**/no-autorizado');
   ok('profesional sin rol de soporte → /no-autorizado');
 
@@ -604,6 +605,59 @@ try {
   await pro.waitForSelector('[data-testid=aviso-llegadas] >> text=Llevas 1 de 3');
   ok('el profesional ve su llegada incumplida');
 
+  // ─────────────── Fase 7 · Reevaluación en el domicilio y cancelación con tarifa de visita ───────────────
+  await client.click('[data-testid=oferta]:has-text("Pedro") >> text=Aceptar');
+  await client.waitForURL(`**/servicio/${job2}`);
+  const pedro = await phonePage();
+  // El número de Pedro ya pidió un código al inicio (panel): el servidor exige 60 s entre códigos.
+  await pedro.waitForTimeout(Math.max(0, 62000 - (Date.now() - pedroCodeAt)));
+  await mobileLogin(pedro, '900000002', 'Ofrezco mis servicios');
+  await pedro.waitForURL('**/solicitudes');
+  await pedro.goto(`${MOBILE}/trabajo/${job2}`, { waitUntil: 'networkidle' });
+  await pedro.click('text=Ir al domicilio');
+  await pedro.waitForSelector('text=En camino · GPS activo, el cliente te ve');
+  await pedro.fill(
+    '[aria-labelledby=code-label]',
+    sql(`select security_code from public.jobs where id = '${job2}'`),
+  );
+  await pedro.click('text=Llegué al domicilio');
+  await pedro.waitForSelector('text=Monto final');
+  await pedro.click('text=Reevaluar en sitio');
+  await pedro.waitForSelector('[data-testid=reevaluar]');
+  await pedro.fill('[aria-labelledby=labor-label]', '100');
+  await pedro.click('[role=radio]:has-text("Los compra el profesional")');
+  await pedro.fill('[aria-label="Buscar en el catálogo"]', 'Vainsa');
+  await pedro.click('text=/Vainsa Llave de paso/ >> nth=0');
+  await uploadPhoto(pedro, '', 'trabajo2.jpg', 'text=Subir foto de la boleta');
+  await pedro.waitForSelector('text=Boleta subida ✓');
+  await pedro.click('text=Enviar reevaluación al cliente');
+  await pedro.waitForSelector('text=Esperando que el cliente responda tu reevaluación');
+  ok('el pro reevalúa en sitio con materiales del catálogo y boleta');
+  await client.waitForSelector('[data-testid=alerta-reevaluacion]', { timeout: 15000 });
+  await client.click('text=Aprobar S/ 115.90');
+  await client.waitForSelector('text=Precio aprobado', { timeout: 15000 });
+  check(
+    sql(
+      `select status || '|' || labor_cents || '|' || materials_cents || '|' || materials_provided_by from public.jobs where id = '${job2}'`,
+    ) === 'price_renegotiated|10000|1590|pro',
+    'el cliente aprueba: mano de obra S/ 100 + materiales S/ 15.90 con boleta',
+  );
+  await client.click('text=Cancelar (pagas la visita)');
+  await client.fill('[aria-label="Motivo de la cancelación"]', 'Lo resuelvo otro día.');
+  await client.click('text=/Cancelar y pagar visita/');
+  await client.waitForSelector('text=Cancelaste después de la llegada', { timeout: 15000 });
+  const visitFee = Number(sql(`select visit_fee_cents from public.jobs where id = '${job2}'`));
+  check(visitFee > 0, 'cancelar en el domicilio cobra la tarifa de visita');
+  check(
+    sql(
+      `select amount_cents from public.wallet_entries where idempotency_key = 'job:${job2}:visit'`,
+    ) === String(-Math.round(visitFee / 10)),
+    'y anota la comisión del 10 % sobre la visita',
+  );
+  await pedro.reload({ waitUntil: 'networkidle' });
+  await pedro.waitForSelector('text=El cliente canceló en el domicilio');
+  ok('el pro ve que el cliente le debe la visita');
+
   // Pausa por deuda (pantalla 16): una deuda grande sin días de gracia.
   sql(`update public.settings set value = '0' where key = 'grace_days'`);
   sql(`select private.wallet_post('${luisId}', 'commission_debit', -4000, 'e2e:deuda')`);
@@ -845,6 +899,42 @@ try {
       'closed|Llamamos a Carla: todo bien.',
     'soporte cierra la alerta con nota',
   );
+
+  // ─────────────── Fase 8 · Ayuda: plazo de respuesta y respuesta de soporte ───────────────
+  await client.goto(`${MOBILE}/ajustes/ayuda`, { waitUntil: 'networkidle' });
+  await client.fill('[aria-label="Asunto"]', 'No veo mi pedido anterior');
+  await client.fill(
+    '[aria-label="Describe el problema"]',
+    'Ayer hice un pedido y ya no aparece en mi inicio.',
+  );
+  await client.click('text=Enviar');
+  await client.waitForSelector('text=Te respondemos aquí en menos de 8 h.');
+  check(
+    await client.isVisible(
+      '[data-testid=ticket]:has-text("No veo mi pedido anterior") >> text=/Te respondemos en menos de/',
+    ),
+    'el usuario envía una consulta y ve en cuánto le responden',
+  );
+  await admin.goto(`${ADMIN}/soporte`, { waitUntil: 'networkidle' });
+  const ticket = admin.locator('[data-testid=ticket]:has-text("No veo mi pedido anterior")');
+  await ticket.waitFor();
+  check(
+    await ticket.locator('[data-testid=plazo-ticket]:has-text("Vence en")').isVisible(),
+    'soporte ve el plazo del ticket',
+  );
+  await ticket
+    .locator('[aria-label="Respuesta para el usuario"]')
+    .fill('Lo revisamos: el pedido se canceló porque cambiaste de profesional.');
+  await ticket.locator('button:has-text("Responder") >> nth=0').click();
+  await ticket.locator('text=Respuesta enviada.').waitFor();
+  check(
+    sql(`select status from public.support_tickets where subject = 'No veo mi pedido anterior'`) ===
+      'answered',
+    'soporte responde el ticket',
+  );
+  await client.reload({ waitUntil: 'networkidle' });
+  await client.waitForSelector('[data-testid=ticket] >> text=Respuesta de soporte');
+  ok('el usuario ve la respuesta en la app');
 
   await client.goto(`${MOBILE}/ajustes`, { waitUntil: 'networkidle' });
   await client.waitForSelector('text=1 de 3');

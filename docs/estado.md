@@ -3,7 +3,7 @@
 Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Implementado
-- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (20 migraciones).
+- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (21 migraciones).
 - Ingreso por SMS (OTP), selector Cliente/Profesional, hook que solo admite +51 9XXXXXXXX, roles de soporte.
 - Registro del profesional y verificación por oficio: 9 oficios, 4 categorías, requisitos por categoría, cola y revisión en el panel.
 - Pedidos: tarifario sin regateo, fotos, video de diagnóstico (15 s, 48 h), visita de diagnóstico S/ 20, programación.
@@ -17,12 +17,12 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Eliminar cuenta corregido**: el registro de vistas de documentos ya no se borra en cascada (inmutable, se conserva).
 - **Notificaciones**: `send-push` valida su secreto contra Vault (`push_secret_matches`); no hay secretos en variables.
 - **Funciones cerradas sin sesión**: `anon` y PUBLIC ya no ejecutan ninguna función de `public`; la app con sesión conserva sus RPC. Desde `20261118000050` las funciones **nuevas** también nacen cerradas (antes el valor global seguía dando EXECUTE a PUBLIC).
-- **Tiempo de revisión visible:** el profesional ve “Te respondemos en menos de 2 h” en sus constancias (`proof_review_hours`) y un aviso si se pasa; el panel muestra el plazo de cada constancia y cuántas están vencidas.
+- **Tiempos de respuesta visibles:** constancias (`proof_review_hours`, 2 h) y tickets de ayuda (`support_reply_hours`, 8 h): la app dice en cuánto responde soporte y avisa si se pasa; el panel marca plazos y vencidos.
 - **Inicio del cliente rediseñado:** buscador de oficios (sin tildes), íconos propios por oficio, franja “Verificados por oficio · Pagas al terminar · Sin adelantos”, pedido activo destacado y conteo de profesionales cerca arriba; el mapa queda al final.
 - **Profesional que no llega:** el pro indica en su oferta en cuánto llega; al aceptar queda la llegada acordada. Pasada la tolerancia (15 min), el cliente cambia de profesional: el pedido vuelve a las otras ofertas, se registra la falta y con 3 en 30 días se pausan sus ofertas. El pro nuevo no ve el chat ni el GPS del anterior.
 
 ## Desplegado (producción del piloto)
-- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 16 migraciones (faltan aplicar `20261118000050`, `…100`, `…200` y `…300`; requieren autorización), seed de Huancayo, 29 tablas con RLS, 4 tareas cron.
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 20 migraciones (las del 18-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local; falta `20261118000400`, la app usa 8 h por defecto mientras tanto), seed de Huancayo, 30 tablas con RLS, 4 tareas cron.
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
 - **APK Android:** build 2 (0.1.0), 35,7 MB, apunta a producción. Enlace en `docs/produccion.md` → “APK del piloto”.
@@ -30,7 +30,8 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- Local (2026-11-18): e2e 123 pasos, pgTAP 425 (11 suites; `no_show` 33), unitarias 162. Todo en verde.
+- Local (2026-11-18): e2e 132 pasos, pgTAP 426 (11 suites; `no_show` 33), unitarias 162. Todo en verde.
+- e2e suma: reevaluación en el domicilio (materiales del catálogo y boleta) aprobada por el cliente, cancelación con tarifa de visita y su comisión, y ticket de ayuda respondido desde el panel.
 - CI en `main` (commit `f8a360c`, 2026-11-18): base, chequeo y e2e en verde (incluye no llega e inicio nuevo).
 - e2e suma: reclamo y reporte desde la app; en el panel reclamos, reportes, lista negra, tarifario y parámetros (revisora y admin); hora de llegada en la oferta y cambio de profesional cuando no llega.
 - CI en `main` (commit `cce8272`, 2026-11-17): unitarias, pgTAP completo (prelaunch 52) y e2e. Todo en verde.

@@ -2,6 +2,7 @@ import {
   formatMoney,
   materialsTotal,
   MATERIALS_PROVIDER_LABELS,
+  MATERIAL_STORE_LABELS,
   parseSolesToCents,
   type MaterialItem,
   type MaterialsProvider,
@@ -23,12 +24,6 @@ type CatalogItem = {
   store: string;
   unit: string;
   reference_price_cents: number;
-};
-const STORE_LABELS: Record<string, string> = {
-  promart: 'Promart',
-  sodimac: 'Sodimac',
-  ferreteria: 'Ferretería',
-  otro: 'Otro',
 };
 
 /** “Reevaluar en sitio”: mano de obra revisada + materiales (catálogo o manual) + quién los pone. */
@@ -163,7 +158,7 @@ export function ReevaluatePanel({ job, onDone }: { job: ServiceJob; onDone: () =
                   qty: 1,
                   unit_cents: r.reference_price_cents,
                   catalog_id: r.id,
-                  store: STORE_LABELS[r.store] ?? r.store,
+                  store: MATERIAL_STORE_LABELS[r.store] ?? r.store,
                 })
               }
             >
@@ -171,8 +166,8 @@ export function ReevaluatePanel({ job, onDone }: { job: ServiceJob; onDone: () =
                 {r.brand} {r.name}
               </Text>
               <Text style={styles.secondary}>
-                {STORE_LABELS[r.store]} · {formatMoney(r.reference_price_cents, job.currency_code)}{' '}
-                / {r.unit} (referencia)
+                {MATERIAL_STORE_LABELS[r.store] ?? r.store} ·{' '}
+                {formatMoney(r.reference_price_cents, job.currency_code)} / {r.unit} (referencia)
               </Text>
             </Pressable>
           ))}

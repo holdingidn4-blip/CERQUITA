@@ -1,4 +1,6 @@
 import {
+  formatMinutes,
+  responseDue,
   SUPPORT_CATEGORIES,
   TICKET_STATUS_LABELS,
   timeAgo,
@@ -10,6 +12,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { useSettingInt } from '@/lib/settings';
 import { supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
 import { colors, fonts, radii } from '@/theme';
@@ -33,6 +36,7 @@ export default function Ayuda() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const replyHours = useSettingInt('support_reply_hours') ?? 8;
 
   const load = useCallback(async () => {
     const { data } = await supabase
@@ -111,7 +115,7 @@ export default function Ayuda() {
           {error && <Text style={styles.error}>{error}</Text>}
           {sent && (
             <Text style={styles.ok}>
-              Recibimos tu consulta. Te responderemos aquí y con una notificación.
+              Recibimos tu consulta. Te respondemos aquí en menos de {replyHours} h.
             </Text>
           )}
           <Button label="Enviar" loading={busy} onPress={send} />
@@ -127,6 +131,18 @@ export default function Ayuda() {
               {SUPPORT_CATEGORIES[t.category]} · {timeAgo(t.created_at)}
             </Text>
             <Text style={styles.body}>{t.body}</Text>
+            {t.status === 'open' &&
+              !t.staff_reply &&
+              (() => {
+                const due = responseDue(t.created_at, replyHours);
+                return (
+                  <Text style={[styles.secondary, due.overdue && styles.overdue]}>
+                    {due.overdue
+                      ? 'Estamos tardando más de lo normal. Si es urgente, usa SOS o llama al 105.'
+                      : `Te respondemos en menos de ${formatMinutes(due.minutes)}.`}
+                  </Text>
+                );
+              })()}
             {t.staff_reply && (
               <View style={styles.reply}>
                 <Text style={styles.label}>Respuesta de soporte</Text>
@@ -141,6 +157,7 @@ export default function Ayuda() {
 }
 
 const styles = StyleSheet.create({
+  overdue: { color: '#7A5A12', fontFamily: fonts.bodySemibold },
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 12 },
   flex: { flex: 1 },

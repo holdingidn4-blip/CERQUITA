@@ -5,7 +5,7 @@ import {
   formatEntryAmount,
   formatMinutes,
   graceDaysLeft,
-  proofReviewDue,
+  responseDue,
 } from './ledger';
 
 const base = {
@@ -47,13 +47,13 @@ describe('formatEntryAmount', () => {
 describe('plazo de revisión de constancias', () => {
   const sent = new Date('2026-11-18T15:00:00Z');
   it('dentro del plazo: minutos que faltan', () => {
-    expect(proofReviewDue(sent, 2, new Date('2026-11-18T16:15:00Z'))).toEqual({
+    expect(responseDue(sent, 2, new Date('2026-11-18T16:15:00Z'))).toEqual({
       overdue: false,
       minutes: 45,
     });
   });
   it('vencida: minutos de atraso', () => {
-    expect(proofReviewDue(sent, 2, new Date('2026-11-18T17:30:00Z'))).toEqual({
+    expect(responseDue(sent, 2, new Date('2026-11-18T17:30:00Z'))).toEqual({
       overdue: true,
       minutes: 30,
     });

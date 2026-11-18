@@ -2,7 +2,7 @@
 -- suspensión, reversión de asientos, buscador, datos de pago y anti-abuso de SMS.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(52);
+select plan(53);
 delete from public.trade_rate_cards;
 
 create function pg_temp.as_user(p uuid, p_staff text default null) returns void
@@ -193,5 +193,6 @@ select ok(has_function_privilege('authenticated', 'public.answer_reevaluation(uu
   'la reevaluación tiene su grant explícito');
 select ok(has_function_privilege('supabase_auth_admin', 'public.hook_before_user_created(jsonb)', 'execute'), 'el hook de Auth sigue habilitado');
 
+select is(private.setting_int('support_reply_hours', 0), 8, 'el plazo de respuesta de ayuda está en settings (8 h)');
 select * from finish();
 rollback;
