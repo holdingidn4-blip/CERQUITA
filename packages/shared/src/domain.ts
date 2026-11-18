@@ -43,7 +43,14 @@ export const APPROVED_PRO_TRADE_STATUSES: readonly ProTradeStatus[] = [
   'approved_full',
 ];
 
-export const OFFER_STATUSES = ['pending', 'accepted', 'rejected', 'withdrawn', 'expired'] as const;
+export const OFFER_STATUSES = [
+  'pending',
+  'accepted',
+  'rejected',
+  'withdrawn',
+  'expired',
+  'no_show',
+] as const;
 export type OfferStatus = (typeof OFFER_STATUSES)[number];
 
 export const WALLET_ENTRY_TYPES = [

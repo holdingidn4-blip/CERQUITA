@@ -284,13 +284,6 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'document_access_log_document_id_fkey';
-            columns: ['document_id'];
-            isOneToOne: false;
-            referencedRelation: 'verification_documents';
-            referencedColumns: ['id'];
-          },
-          {
             foreignKeyName: 'document_access_log_viewer_id_fkey';
             columns: ['viewer_id'];
             isOneToOne: false;
@@ -374,6 +367,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -400,6 +394,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -426,6 +421,7 @@ export type Database = {
           accepted_offer_id?: string | null;
           approx_point: unknown;
           arrived_at?: string | null;
+          assigned_at?: string | null;
           cancel_reason?: string | null;
           cancelled_at?: string | null;
           cancelled_by?: string | null;
@@ -452,6 +448,7 @@ export type Database = {
           points_discount_cents?: number;
           points_redeemed?: number;
           pricing_unit?: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at?: string | null;
           reeval_answered_at?: string | null;
           reeval_items?: Json | null;
           reeval_labor_cents?: number | null;
@@ -477,6 +474,7 @@ export type Database = {
           accepted_offer_id?: string | null;
           approx_point?: unknown;
           arrived_at?: string | null;
+          assigned_at?: string | null;
           cancel_reason?: string | null;
           cancelled_at?: string | null;
           cancelled_by?: string | null;
@@ -503,6 +501,7 @@ export type Database = {
           points_discount_cents?: number;
           points_redeemed?: number;
           pricing_unit?: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at?: string | null;
           reeval_answered_at?: string | null;
           reeval_items?: Json | null;
           reeval_labor_cents?: number | null;
@@ -655,6 +654,7 @@ export type Database = {
       offers: {
         Row: {
           created_at: string;
+          eta_minutes: number | null;
           id: string;
           job_id: string;
           message: string | null;
@@ -665,6 +665,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          eta_minutes?: number | null;
           id?: string;
           job_id: string;
           message?: string | null;
@@ -674,6 +675,7 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          eta_minutes?: number | null;
           id?: string;
           job_id?: string;
           message?: string | null;
@@ -799,6 +801,56 @@ export type Database = {
           {
             foreignKeyName: 'points_entries_user_id_fkey';
             columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      pro_no_shows: {
+        Row: {
+          id: string;
+          job_id: string;
+          offer_id: string;
+          pro_id: string;
+          promised_arrival_at: string;
+          reported_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string;
+          job_id: string;
+          offer_id: string;
+          pro_id: string;
+          promised_arrival_at: string;
+          reported_at?: string;
+        };
+        Update: {
+          id?: string;
+          job_id?: string;
+          offer_id?: string;
+          pro_id?: string;
+          promised_arrival_at?: string;
+          reported_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pro_no_shows_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pro_no_shows_offer_id_fkey';
+            columns: ['offer_id'];
+            isOneToOne: true;
+            referencedRelation: 'offers';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pro_no_shows_pro_id_fkey';
+            columns: ['pro_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -1524,6 +1576,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1550,6 +1603,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1619,6 +1673,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1645,6 +1700,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1679,6 +1735,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1705,6 +1762,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1739,6 +1797,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1765,6 +1824,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1799,6 +1859,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1825,6 +1886,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1876,6 +1938,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1902,6 +1965,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1951,6 +2015,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -1977,6 +2042,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2034,6 +2100,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -2060,6 +2127,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2118,6 +2186,7 @@ export type Database = {
           avatar_url: string;
           created_at: string;
           distance_m: number;
+          eta_minutes: number;
           id: string;
           jobs_done: number;
           message: string;
@@ -2143,6 +2212,15 @@ export type Database = {
         }[];
       };
       my_points: { Args: Record<PropertyKey, never>; Returns: number };
+      my_reliability: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          no_shows: number;
+          paused: boolean;
+          strikes_limit: number;
+          window_days: number;
+        }[];
+      };
       my_verification: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -2248,6 +2326,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -2274,6 +2353,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2310,6 +2390,7 @@ export type Database = {
           id: string;
         }[];
       };
+      push_secret_matches: { Args: { p_secret: string }; Returns: boolean };
       register_push_token: { Args: { p_platform: string; p_token: string }; Returns: undefined };
       reply_ticket: {
         Args: { p_close?: boolean; p_reply: string; p_ticket: string };
@@ -2329,6 +2410,68 @@ export type Database = {
         SetofOptions: {
           from: '*';
           to: 'support_tickets';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      report_no_show: {
+        Args: { p_job: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          assigned_at: string | null;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          city_slug: string;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          created_at: string;
+          currency_code: string;
+          description: string;
+          diagnostic_visit: boolean;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
+          offered_price_cents: number;
+          photos: string[];
+          points_discount_cents: number;
+          points_redeemed: number;
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
+          schedule_kind: string;
+          scheduled_for: string | null;
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
+          trade_id: number;
+          units: number;
+          updated_at: string;
+          video_path: string | null;
+          video_seconds: number | null;
+          video_uploaded_at: string | null;
+          visit_fee_cents: number | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -2536,6 +2679,7 @@ export type Database = {
           accepted_offer_id: string | null;
           approx_point: unknown;
           arrived_at: string | null;
+          assigned_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           cancelled_by: string | null;
@@ -2562,6 +2706,7 @@ export type Database = {
           points_discount_cents: number;
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2672,7 +2817,7 @@ export type Database = {
         | 'rated'
         | 'cancelled';
       materials_provider: 'client' | 'pro';
-      offer_status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired';
+      offer_status: 'pending' | 'accepted' | 'rejected' | 'withdrawn' | 'expired' | 'no_show';
       payment_method: 'yape' | 'plin' | 'transfer';
       payment_proof_status: 'pending' | 'approved' | 'rejected';
       pricing_unit: 'job' | 'hour' | 'day';
@@ -2828,7 +2973,7 @@ export const Constants = {
         'cancelled',
       ],
       materials_provider: ['client', 'pro'],
-      offer_status: ['pending', 'accepted', 'rejected', 'withdrawn', 'expired'],
+      offer_status: ['pending', 'accepted', 'rejected', 'withdrawn', 'expired', 'no_show'],
       payment_method: ['yape', 'plin', 'transfer'],
       payment_proof_status: ['pending', 'approved', 'rejected'],
       pricing_unit: ['job', 'hour', 'day'],

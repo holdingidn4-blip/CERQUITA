@@ -321,6 +321,11 @@ try {
   await pro.waitForSelector('text=Comisión de la app (10 %)');
   check(await pro.isVisible('text=− S/ 9.50'), 'muestra la comisión del 10 % (S/ 9.50)');
   check(await pro.isVisible('text=S/ 85.50'), 'y lo que recibirá (S/ 85.50)');
+  await pro.click('[role=radio]:has-text("30 min")');
+  await pro.waitForSelector(
+    'text=Si no llegas a tiempo, el cliente puede elegir a otro profesional.',
+  );
+  ok('el pro indica en cuánto llega (30 min)');
   await pro.fill('[aria-labelledby=msg-label]', 'Llevo los repuestos.');
   await pro.click('text=Enviar cotización');
   await pro.waitForURL('**/solicitudes');
@@ -337,6 +342,10 @@ try {
   check(await client.isVisible('text=Tu precio'), 'marca la oferta con su precio');
   check(await client.isVisible('text=Contraoferta'), 'y la contraoferta');
   check(await client.isVisible('text=“Llevo los repuestos.”'), 'con el mensaje del pro');
+  check(
+    await client.isVisible('[data-testid=oferta]:has-text("Luis Q.") >> text=llega en 30 min'),
+    'y en cuánto llega',
+  );
   await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Ver perfil');
   await client.waitForSelector('text=Identidad verificada');
   check(await client.isVisible('text=Luis Quispe'), 'abre el perfil del profesional');
@@ -346,6 +355,10 @@ try {
   check(
     (await client.locator('text=S/ 95.00 >> visible=true').count()) > 0,
     'tras aceptar ve el servicio con el precio acordado',
+  );
+  check(
+    await client.isVisible('[data-testid=llegada] >> text=Llegada acordada'),
+    'y la hora de llegada acordada',
   );
   check(
     sql(
@@ -520,6 +533,56 @@ try {
     ) === '0',
     'aprobar crea el payment_credit y la deuda queda en S/ 0',
   );
+
+  // ─────────────── Fase 7 · El profesional no llega: el cliente cambia de profesional ───────────────
+  const job2 = sql(
+    `with ins as (
+       insert into public.jobs (client_id, trade_id, description, offered_price_cents, approx_point, exact_address)
+       values ('11111111-1111-1111-1111-111111111111', (select id from public.trades where slug = 'gasfiteria'),
+         'La terma no calienta el agua.', 8000, 'SRID=4326;POINT(-75.2049 -12.0651)', 'Jr. Los Pinos 245')
+       returning id
+     ) select id from ins`,
+  );
+  await pro.goto(`${MOBILE}/solicitudes/${job2}/cotizar`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('text=Tu cotización');
+  await pro.fill('[aria-label="Tu cotización en soles"]', '80');
+  await pro.click('[role=radio]:has-text("15 min")');
+  await pro.click('text=Enviar cotización');
+  await pro.waitForURL('**/solicitudes');
+  sql(
+    `insert into public.offers (job_id, pro_id, price_cents, eta_minutes) values ('${job2}', '22222222-2222-2222-2222-222222222222', 8500, 45)`,
+  );
+  await client.goto(`${MOBILE}/pedido/${job2}/ofertas`, { waitUntil: 'networkidle' });
+  await client.waitForSelector('[data-testid=oferta]:has-text("Luis Q.") >> text=llega en 15 min');
+  await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Aceptar');
+  await client.waitForURL(`**/servicio/${job2}`);
+  await client.waitForSelector('[data-testid=llegada] >> text=Faltan');
+  check(
+    !(await client.isVisible('text=Cambiar de profesional')),
+    'a tiempo, no se ofrece cambiar de profesional',
+  );
+  sql(
+    `update public.jobs set promised_arrival_at = now() - interval '20 minutes' where id = '${job2}'`,
+  );
+  await client.reload({ waitUntil: 'networkidle' });
+  await client.waitForSelector('text=no llegó a la hora acordada');
+  ok('pasada la tolerancia, el cliente ve que no llegó');
+  await client.click('text=Cambiar de profesional');
+  await client.waitForURL(`**/pedido/${job2}/ofertas`);
+  await client.waitForSelector('[data-testid=oferta]:has-text("Pedro")');
+  check(
+    sql(
+      `select o.status || '|' || (select count(*) from public.pro_no_shows n where n.offer_id = o.id) from public.offers o where o.job_id = '${job2}' and o.pro_id = '${luisId}'`,
+    ) === 'no_show|1',
+    'cambia de profesional: la falta queda registrada',
+  );
+  check(
+    sql(`select status from public.jobs where id = '${job2}'`) === 'with_offers',
+    'y el pedido vuelve a la otra oferta',
+  );
+  await pro.goto(`${MOBILE}/solicitudes`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('[data-testid=aviso-llegadas] >> text=Llevas 1 de 3');
+  ok('el profesional ve su llegada incumplida');
 
   // Pausa por deuda (pantalla 16): una deuda grande sin días de gracia.
   sql(`update public.settings set value = '0' where key = 'grace_days'`);

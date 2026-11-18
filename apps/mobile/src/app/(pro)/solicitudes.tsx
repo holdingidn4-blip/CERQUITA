@@ -45,6 +45,13 @@ type Status = {
   hasPresence: boolean;
 };
 
+type Reliability = {
+  no_shows: number;
+  strikes_limit: number;
+  window_days: number;
+  paused: boolean;
+};
+
 export default function Solicitudes() {
   const [status, setStatus] = useState<Status | null>(null);
   const [jobs, setJobs] = useState<NearbyJob[]>([]);
@@ -61,6 +68,8 @@ export default function Solicitudes() {
   }, []);
   const { debt } = useDebt();
   const paused = debt?.paused ?? false;
+  const [reliability, setReliability] = useState<Reliability | null>(null);
+  const noShowPaused = reliability?.paused ?? false;
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -98,6 +107,8 @@ export default function Solicitudes() {
       hasPresence: presence.data !== null,
     });
     setJobs((nearby.data ?? []) as NearbyJob[]);
+    const { data: rel } = await supabase.rpc('my_reliability');
+    setReliability((rel?.[0] as Reliability | undefined) ?? null);
   }, []);
 
   usePolling(load, 10000);
@@ -239,6 +250,22 @@ export default function Solicitudes() {
           </View>
         )}
 
+        {reliability && reliability.no_shows > 0 && (
+          <View
+            style={[styles.card, noShowPaused ? styles.pausedCard : styles.graceCard]}
+            testID="aviso-llegadas"
+          >
+            <Text style={styles.h2}>
+              {noShowPaused ? 'Tus nuevas ofertas están en pausa' : 'Llegadas incumplidas'}
+            </Text>
+            <Text style={styles.body}>
+              {noShowPaused
+                ? `Tienes ${reliability.no_shows} llegadas incumplidas en los últimos ${reliability.window_days} días. La pausa se levanta sola cuando bajen de ${reliability.strikes_limit}.`
+                : `Llevas ${reliability.no_shows} de ${reliability.strikes_limit} en ${reliability.window_days} días. Con ${reliability.strikes_limit}, tus ofertas nuevas se pausan.`}
+            </Text>
+          </View>
+        )}
+
         {active.map((job) => (
           <Pressable
             key={job.id}
@@ -349,6 +376,8 @@ export default function Solicitudes() {
               <Text style={styles.secondary}>Tu oferta ya no está activa.</Text>
             ) : paused ? (
               <Text style={styles.secondary}>Cotizar en pausa hasta que pagues tu comisión.</Text>
+            ) : noShowPaused ? (
+              <Text style={styles.secondary}>Cotizar en pausa por llegadas incumplidas.</Text>
             ) : (
               <View style={styles.actions}>
                 <Button

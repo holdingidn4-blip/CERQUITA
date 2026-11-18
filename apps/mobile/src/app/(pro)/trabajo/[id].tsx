@@ -1,4 +1,5 @@
 import {
+  formatArrival,
   formatRating,
   formatSoles,
   isTrackingStatus,
@@ -157,6 +158,12 @@ export default function Trabajo() {
         <Text style={styles.title} accessibilityRole="header">
           {headline[job.status] ?? SERVICE_LABELS[job.status]}
         </Text>
+        {(job.status === 'accepted' || job.status === 'on_the_way') && job.promised_arrival_at && (
+          <Text style={styles.secondary} testID="llegada-acordada">
+            Llegada acordada: {formatArrival(job.promised_arrival_at)}. Si no llegas a tiempo, el
+            cliente puede elegir a otro profesional.
+          </Text>
+        )}
 
         <View style={styles.card}>
           <View style={styles.row}>

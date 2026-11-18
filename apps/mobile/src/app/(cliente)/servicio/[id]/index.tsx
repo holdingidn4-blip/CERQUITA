@@ -1,6 +1,8 @@
 import {
+  arrivalState,
   distanceAndEta,
   etaMinutes,
+  formatArrival,
   formatRating,
   formatSoles,
   SERVICE_LABELS,
@@ -20,6 +22,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { confirm } from '@/lib/confirm';
+import { useSettingInt } from '@/lib/settings';
 import { InitialsAvatar } from '@/components/initials-avatar';
 import { MapPreview } from '@/components/map-preview';
 import { OffAppWarning } from '@/components/off-app-warning';
@@ -44,6 +48,8 @@ export default function Seguimiento() {
   const [claiming, setClaiming] = useState(false);
   const [claimSent, setClaimSent] = useState(false);
   const [claimText, setClaimText] = useState('');
+  const [switching, setSwitching] = useState(false);
+  const grace = useSettingInt('no_show_grace_minutes') ?? 15;
 
   useEffect(() => {
     if (!job?.trade_id) return;
@@ -65,6 +71,20 @@ export default function Seguimiento() {
     if (cancelError) return setError(cancelError.message);
     setCancelling(false);
     await reload();
+  }
+
+  async function switchPro() {
+    const ok = await confirm(
+      '¿Cambiar de profesional?',
+      'Verás las otras ofertas de tu pedido. No pagas nada por este cambio.',
+      'Cambiar',
+    );
+    if (!ok) return;
+    setSwitching(true);
+    const { error: switchError } = await supabase.rpc('report_no_show', { p_job: id });
+    setSwitching(false);
+    if (switchError) return setError(switchError.message);
+    router.replace({ pathname: '/pedido/[id]/ofertas', params: { id } });
   }
 
   if (job === undefined) {
@@ -93,6 +113,10 @@ export default function Seguimiento() {
     rated: 'Servicio confirmado',
     cancelled: 'Servicio cancelado',
   };
+  const arrival =
+    job.status === 'accepted' || job.status === 'on_the_way'
+      ? arrivalState(job.promised_arrival_at, grace)
+      : ({ kind: 'none' } as const);
   const step = serviceStepIndex(job.status);
   const atHome = job.status === 'at_home' || job.status === 'price_renegotiated';
 
@@ -112,6 +136,34 @@ export default function Seguimiento() {
               ? `Llega en ${eta} min · a ${distanceAndEta(live.distance_m).split(' · ')[0]} de ti`
               : 'Esperando su ubicación…'}
           </Text>
+        )}
+
+        {arrival.kind !== 'none' && job.promised_arrival_at && (
+          <View
+            style={[styles.card, arrival.kind === 'can_switch' && styles.lateCard]}
+            testID="llegada"
+          >
+            <Text style={styles.label}>
+              Llegada acordada: {formatArrival(job.promised_arrival_at)}
+            </Text>
+            {arrival.kind === 'on_time' && (
+              <Text style={styles.secondary}>Faltan {arrival.minutesLeft} min.</Text>
+            )}
+            {arrival.kind === 'late' && (
+              <Text style={styles.secondary}>
+                {first} lleva {arrival.minutesLate} min de retraso. Si no llega en{' '}
+                {grace - arrival.minutesLate} min, podrás elegir a otro profesional.
+              </Text>
+            )}
+            {arrival.kind === 'can_switch' && (
+              <>
+                <Text style={styles.body}>
+                  {first} no llegó a la hora acordada. ¿Buscamos otro profesional?
+                </Text>
+                <Button label="Cambiar de profesional" loading={switching} onPress={switchPro} />
+              </>
+            )}
+          </View>
         )}
 
         {live && (job.status === 'on_the_way' || job.status === 'at_home') && (
@@ -335,6 +387,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 16,
   },
+  lateCard: { backgroundColor: colors.amberSoft, borderColor: colors.amber },
   feeDue: {
     fontFamily: fonts.bodySemibold,
     fontSize: 14,

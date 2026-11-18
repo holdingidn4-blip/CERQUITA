@@ -3,7 +3,7 @@
 Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Implementado
-- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (14 migraciones).
+- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (19 migraciones).
 - Ingreso por SMS (OTP), selector Cliente/Profesional, hook que solo admite +51 9XXXXXXXX, roles de soporte.
 - Registro del profesional y verificación por oficio: 9 oficios, 4 categorías, requisitos por categoría, cola y revisión en el panel.
 - Pedidos: tarifario sin regateo, fotos, video de diagnóstico (15 s, 48 h), visita de diagnóstico S/ 20, programación.
@@ -16,10 +16,11 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **El panel ya no usa la llave `service_role`**: firma las URL de documentos con la sesión de soporte (política de Storage que exige vista registrada < 2 min).
 - **Eliminar cuenta corregido**: el registro de vistas de documentos ya no se borra en cascada (inmutable, se conserva).
 - **Notificaciones**: `send-push` valida su secreto contra Vault (`push_secret_matches`); no hay secretos en variables.
-- **Funciones cerradas sin sesión**: `anon` y PUBLIC ya no ejecutan ninguna función de `public`; la app con sesión conserva sus RPC.
+- **Funciones cerradas sin sesión**: `anon` y PUBLIC ya no ejecutan ninguna función de `public`; la app con sesión conserva sus RPC. Desde `20261118000050` las funciones **nuevas** también nacen cerradas (antes el valor global seguía dando EXECUTE a PUBLIC).
+- **Profesional que no llega:** el pro indica en su oferta en cuánto llega; al aceptar queda la llegada acordada. Pasada la tolerancia (15 min), el cliente cambia de profesional: el pedido vuelve a las otras ofertas, se registra la falta y con 3 en 30 días se pausan sus ofertas. El pro nuevo no ve el chat ni el GPS del anterior.
 
 ## Desplegado (producción del piloto)
-- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 16 migraciones, seed de Huancayo, 29 tablas con RLS, 4 tareas cron.
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 16 migraciones (faltan aplicar `20261118000050`, `…100` y `…200`; requieren autorización), seed de Huancayo, 29 tablas con RLS, 4 tareas cron.
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
 - **APK Android:** build 2 (0.1.0), 35,7 MB, apunta a producción. Enlace en `docs/produccion.md` → “APK del piloto”.
@@ -27,7 +28,8 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- e2e: 112 pasos (2026-11-18, local); suma reclamo y reporte desde la app y en el panel reclamos, reportes, lista negra, tarifario y parámetros con revisora y admin.
+- Local (2026-11-18): e2e 120 pasos, pgTAP 424 (11 suites; `no_show` 33), unitarias 159. Todo en verde.
+- e2e suma: reclamo y reporte desde la app; en el panel reclamos, reportes, lista negra, tarifario y parámetros (revisora y admin); hora de llegada en la oferta y cambio de profesional cuando no llega.
 - CI en `main` (commit `cce8272`, 2026-11-17): unitarias, pgTAP completo (prelaunch 52) y e2e. Todo en verde.
 - e2e confirma que el DNI se abre con URL firmada por la sesión de soporte (sin `service_role`) y que la vista queda registrada.
 - Producción (transacción revertida): un pro con DNI ya visto por soporte elimina su cuenta; documentos 0, vistas conservadas 1, perfil anonimizado.
@@ -37,13 +39,13 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **No probado todavía:** ingreso real con los números de prueba, cámara, GPS en segundo plano, push en un teléfono y flujo completo en físico.
 
 ## Avance técnico del piloto (A)
-Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pruebas unitarias/pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 48).
+Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pruebas unitarias/pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 51).
 
 | Funcionalidad | Peso | Estado | Fuente |
 | --- | --- | --- | --- |
 | Panel: acceso solo soporte y revisión de verificación | alto | Verificado | e2e Fases 3–4 (CI verde en `cce8272`) |
 | Panel: DNI con URL firmada y vista registrada | alto | Verificado | e2e (CI verde en `cce8272`) |
-| Panel: reclamos, reportes, lista negra, tarifario, parámetros | medio | Verificado | e2e Fase 9 (112 pasos, local y CI) |
+| Panel: reclamos, reportes, lista negra, tarifario, parámetros | medio | Verificado | e2e Fase 9 (local; CI de `a044307` falló por el CLI, no por las pruebas) |
 | Panel en producción con ingreso real | alto | Sin verificar | Solo `/login` y redirección; falta primer admin |
 | App: ingreso por SMS y modo Cliente/Profesional | alto | Sin verificar | e2e en export web |
 | App: registro del profesional y evidencia | alto | Sin verificar | e2e en export web |
@@ -54,13 +56,14 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | App: pausa por deuda y pago de comisión | alto | Sin verificar | e2e en export web |
 | App: chat interno con filtro | medio | Sin verificar | e2e en export web |
 | App: SOS, reportar/bloquear, eliminar cuenta | medio | Sin verificar | e2e en export web |
+| App: el profesional no llega (hora de llegada, cambio, faltas y pausa) | alto | Sin verificar | e2e en export web y pgTAP `no_show` |
 | App: notificaciones push | alto | Pendiente | Sin FCM; no llegan a teléfonos |
 | App: antifraude GPS en segundo plano | alto | Pendiente | P2 del roadmap |
 | Backend: matching y libro de comisiones en el servidor | alto | Sin verificar | pgTAP en CI |
 | Backend: cola y envío push (`send-push`) | medio | Sin verificar | 200/401 en producción |
 | Backend: limpieza de Storage | bajo | Pendiente | Action sin activar |
 
-Cálculo: verificado 8/48 = **16,7 %** · implementado sin verificar 33/48 = **68,8 %** · pendiente 7/48 = **14,6 %**.
+Cálculo: verificado 8/51 = **15,7 %** · implementado sin verificar 36/51 = **70,6 %** · pendiente 7/51 = **13,7 %**. (Sube el total porque entra una función nueva.)
 
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad:** permisos públicos cerrados y verificados en producción. Falta quitar `SUPABASE_SERVICE_ROLE_KEY` y `POSTGRES_*` de Vercel (dueño). Primer admin con un número sin código fijo (dueño).
@@ -79,8 +82,8 @@ Cálculo: verificado 8/48 = **16,7 %** · implementado sin verificar 33/48 = **6
 - `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación.
 
 ## Última tarea
-- Medición de avance separada en A (técnico, con pesos y fuentes) y B (bloqueos para lanzar).
-- Cierre de permisos en producción (autorizado por el dueño). La primera migración (`20261117000100`, solo `anon`) no bastaba: `anon` heredaba EXECUTE de PUBLIC. La segunda (`20261117000200`) quita PUBLIC y da grant explícito a las dos RPC de reevaluación que dependían de él.
-- Verificado: `anon` 0 funciones; `authenticated` conserva las 56 RPC; hook de Auth y `send-push` intactos. pgTAP `prelaunch` sube a 52 (corre en el CI).
-- Panel desplegado en Vercel y primer AAB de producción compilado en EAS (variables de producción cargadas en EAS).
-- Siguiente: primer administrador; Google Play (cuenta del dueño) y subir el AAB a prueba interna/cerrada.
+- Panel: e2e de reclamos, reportes, lista negra, tarifario y parámetros (pasa a verificado).
+- “El profesional no llega”: migraciones `20261118000100` (estado `no_show`) y `20261118000200` (hora de llegada, `report_no_show`, `pro_no_shows`, `my_reliability`, pausa por faltas, chat y GPS por asignación), con app (cotizar, ofertas, servicio del cliente y del pro, aviso en solicitudes) y reglas en `docs/reglas-negocio.md`.
+- Seguridad: `20261118000050` corrige los privilegios por defecto (las funciones nuevas nacían ejecutables sin sesión). En producción hoy no hay funciones abiertas; importa para las migraciones que vengan.
+- CI: versión del CLI de Supabase fija (3.1.0) para que no falle al consultar “latest”.
+- Siguiente: aplicar las 3 migraciones en producción (autorización), nuevo inicio del cliente y guion de prueba en 2 teléfonos.

@@ -1,7 +1,9 @@
 import {
   commissionCents,
   distanceAndEta,
+  ETA_OPTIONS,
   formatRate,
+  formatSchedule,
   formatSoles,
   jobTitle,
   MAX_JOB_PRICE_CENTS,
@@ -43,6 +45,7 @@ export default function Cotizar() {
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
+  const [eta, setEta] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [rateCard, setRateCard] = useState<RateCard | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,11 +101,14 @@ export default function Cotizar() {
 
   const priceCents = parseSolesToCents(amount);
   const withinCard = priceCents !== null && isWithinRateCard(priceCents, rateCard, job.units);
-  const valid =
+  // Pedido para "ahora": el profesional se compromete a una hora de llegada (como en las apps de taxi).
+  const needsEta = job.schedule_kind === 'now';
+  const validPrice =
     priceCents !== null &&
     priceCents >= MIN_JOB_PRICE_CENTS &&
     priceCents <= MAX_JOB_PRICE_CENTS &&
     withinCard;
+  const valid = validPrice && (!needsEta || eta !== null);
   // Con tarifario: mínimo, sugerido y máximo × unidades (sin regateo); sin tarifario: las de siempre.
   const suggestions = rateCard
     ? [
@@ -124,9 +130,12 @@ export default function Cotizar() {
     }
     setBusy(true);
     setError(null);
-    const { error: offerError } = await supabase
-      .from('offers')
-      .insert({ job_id: job.id, price_cents: priceCents, message: message.trim() || null });
+    const { error: offerError } = await supabase.from('offers').insert({
+      job_id: job.id,
+      price_cents: priceCents,
+      message: message.trim() || null,
+      eta_minutes: needsEta ? eta : null,
+    });
     setBusy(false);
     if (offerError) {
       setError(
@@ -231,12 +240,12 @@ export default function Cotizar() {
         <View style={styles.card}>
           <Line
             label="Tu cotización"
-            value={valid && priceCents !== null ? formatSoles(priceCents) : '—'}
+            value={validPrice && priceCents !== null ? formatSoles(priceCents) : '—'}
           />
           <Line
             label={`Comisión de la app (${formatRate(rateBps)})`}
             value={
-              valid && priceCents !== null
+              validPrice && priceCents !== null
                 ? `− ${formatSoles(commissionCents(priceCents, rateBps))}`
                 : '—'
             }
@@ -244,10 +253,44 @@ export default function Cotizar() {
           <View style={styles.divider} />
           <Line
             label="Recibirás"
-            value={valid && priceCents !== null ? formatSoles(netCents(priceCents, rateBps)) : '—'}
+            value={
+              validPrice && priceCents !== null ? formatSoles(netCents(priceCents, rateBps)) : '—'
+            }
             strong
           />
         </View>
+
+        {needsEta ? (
+          <View style={styles.field}>
+            <Text style={styles.label}>¿En cuánto llegas?</Text>
+            <View style={styles.chips}>
+              {ETA_OPTIONS.map((minutes) => {
+                const on = eta === minutes;
+                return (
+                  <Pressable
+                    key={minutes}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    onPress={() => setEta(minutes)}
+                    style={[styles.chip, on && styles.chipOn]}
+                  >
+                    <Text style={[styles.chipText, on && styles.chipTextOn]}>{minutes} min</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={styles.secondary}>
+              {eta === null
+                ? 'Elige en cuánto llegas para enviar tu cotización.'
+                : 'Si no llegas a tiempo, el cliente puede elegir a otro profesional.'}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.secondary}>
+            Llegada: {formatSchedule(job.scheduled_for, job.schedule_kind)}, la hora que eligió el
+            cliente.
+          </Text>
+        )}
 
         <View style={styles.field}>
           <Text style={styles.label} nativeID="msg-label">
@@ -258,7 +301,7 @@ export default function Cotizar() {
             style={[styles.input, styles.multiline]}
             value={message}
             onChangeText={setMessage}
-            placeholder="Ej. Llevo los repuestos, llego en 20 minutos."
+            placeholder="Ej. Llevo los repuestos."
             placeholderTextColor={colors.textSecondary}
             multiline
             maxLength={500}

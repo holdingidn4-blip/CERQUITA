@@ -16,6 +16,9 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] Proyecto EAS (`@holdingidn/cerquita`), variables de producción y llave de firma definitiva en EAS; primer AAB compilado (build `a1a6c154`).
 - [x] Vista alternativa cuando no hay clave de Google Maps (que la app no se cierre).
 - [x] Corregir `delete_my_account` con documentos ya vistos por soporte.
+- [x] El profesional no llega: hora de llegada en la oferta, cambio de profesional, faltas y pausa (falta aplicarlo en producción).
+- [x] Privilegios por defecto: las funciones nuevas nacen cerradas sin sesión (falta aplicarlo en producción).
+- [ ] **(D)** Cupón para el cliente cuando el profesional no llega: decidir quién lo paga.
 - [ ] Prueba de punta a punta en 2 teléfonos reales: registro, verificación, pedido, cotización, GPS, chat, cierre, comisión y pago.
 - [ ] **(D)** Proveedor de SMS con cobertura en Perú cargado en Supabase Auth (hasta entonces solo entran números de prueba).
 - [ ] **(D)** Números reales del administrador, revisores y primeros probadores.

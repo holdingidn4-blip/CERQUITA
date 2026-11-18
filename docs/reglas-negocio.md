@@ -58,13 +58,14 @@ Un profesional ve y puede cotizar un pedido solo si se cumple **todo** (`pro_is_
 - El cliente ve cuántos profesionales verificados hay cerca por oficio (`nearby_pros_summary`), nunca sus posiciones.
 
 ## 5. Cotizaciones
-- Una oferta por profesional y pedido: precio y mensaje opcional. Debe quedar entre el mínimo y el máximo del tarifario × unidades.
-- Estados: `pending` → `accepted` | `rejected` (al aceptarse otra) | `withdrawn` (la retira el pro) | `expired` (pedido cancelado).
+- Una oferta por profesional y pedido: precio, mensaje opcional y, en pedidos para “ahora”, en cuánto llega (`eta_minutes`, 15 a 90 en la app; 5 a 240 en la base). Debe quedar entre el mínimo y el máximo del tarifario × unidades.
+- Estados: `pending` → `accepted` | `rejected` (al aceptarse otra) | `withdrawn` (la retira el pro) | `expired` (pedido cancelado) | `no_show` (no llegó a tiempo).
 - El cliente compara precio, calificación, trabajos hechos y distancia (`job_offers`) y puede ver el perfil público del pro (`pro_profile`).
-- Al aceptar (`accept_offer`): la oferta pasa a aceptada, las demás a rechazadas y el pedido guarda la mano de obra y la tasa de comisión vigente (`commission_rate_bps`).
+- Al aceptar (`accept_offer`): la oferta pasa a aceptada, las demás a rechazadas y el pedido guarda la mano de obra, la tasa de comisión vigente (`commission_rate_bps`), la hora de asignación y la **llegada acordada** (ahora + minutos de la oferta, o `default_eta_minutes` si no los indicó; en pedidos programados, la hora programada).
 - Desde la aceptación el pro ve la dirección exacta. **El teléfono no se muestra a ninguna de las partes**: la comunicación es solo por el chat interno.
 
 ## 6. Servicio en curso
+- **El profesional no llega:** si pasa la llegada acordada más `no_show_grace_minutes` y el pro no marcó la llegada (sigue en Aceptado o En camino), el cliente puede **cambiar de profesional** (`report_no_show`): la oferta queda `no_show`, se registra la falta en `pro_no_shows`, las ofertas que se rechazaron al aceptar vuelven a `pending` (salvo pros en pausa o bloqueados) y el pedido vuelve a “con ofertas” o “publicado”, sin precio ni comisión congelados y sin costo para el cliente. El pro que faltó deja de ver ese pedido. Con `no_show_strikes` faltas en `no_show_window_days` días, sus ofertas nuevas se pausan; la pausa se levanta sola cuando las faltas salen de la ventana. El pro nuevo no ve el chat ni el GPS del anterior.
 - **Código de seguridad:** 4 dígitos, visible solo para el cliente mientras el pro va en camino. Sin el código correcto el pro no puede marcar que llegó.
 - **Ubicación en vivo:** solo el pro asignado puede enviar posiciones y solo entre “Ir al domicilio” y el fin del servicio. El cliente ve la última posición y la distancia. El rastro se borra a los 30 días.
 - **Reevaluación en sitio:** en el domicilio, el pro propone nueva mano de obra, quién pone los materiales, ítems del catálogo (`materials_catalog`; el servidor suma) y la boleta (`material-receipts`, obligatoria si él compra). El cliente aprueba (→ `price_renegotiated` con el nuevo desglose) o rechaza (puede cancelar pagando la visita).
@@ -129,9 +130,12 @@ Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `glob
 | `points_per_sol` · `point_value_cents` · `max_points_discount_pct` | 1 · 5 · 20 | Puntos |
 | `yape_number`, `plin_number`, `yape_qr_url`, `plin_qr_url`, `account_holder`, `bank_account` | vacío | Datos de cobro de la empresa |
 | `push_function_url` | vacío | URL de `send-push` (se fija al desplegar) |
+| `no_show_grace_minutes` · `no_show_strikes` · `no_show_window_days` · `default_eta_minutes` | 15 · 3 · 30 · 60 | Profesional que no llega: tolerancia, faltas para la pausa, ventana y llegada por defecto |
 
 ## 13. Decisiones abiertas (del dueño)
 - “Seguro Cerquita” y “Garantía por 30 días” aparecen en avisos de la app pero **no están definidos**: definirlos con un abogado o retirar el texto antes de abrir al público.
 - Tarifario y precios del catálogo de producción son **estimados**: validarlos con profesionales de Huancayo.
 - Términos y política de privacidad: borrador en `docs/legal/terminos-borrador.md`, falta revisión legal (Ley 29733, uso del GPS para antifraude).
 - Comprobantes de pago por la comisión (SUNAT): por definir con un contador.
+- Cupón para el cliente cuando el profesional no llega: falta decidir quién lo paga (el cliente le paga directo al profesional, así que Cerquita tendría que absorberlo en la comisión).
+- Saldo prepago del profesional para la comisión (opción B): decidido por el dueño, pendiente de confirmación legal (ver `docs/estado.md`). La regla 3 sigue vigente hasta entonces.

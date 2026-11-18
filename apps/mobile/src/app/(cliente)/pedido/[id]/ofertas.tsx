@@ -1,5 +1,6 @@
 import {
   distanceAndEta,
+  formatDistance,
   formatRating,
   formatSoles,
   OFFER_KIND_LABEL,
@@ -28,6 +29,7 @@ type Offer = {
   rating_avg: number | null;
   jobs_done: number;
   distance_m: number | null;
+  eta_minutes: number | null;
 };
 type Job = {
   id: string;
@@ -156,7 +158,11 @@ export default function Ofertas() {
               </View>
               <View style={styles.row}>
                 <Text style={[styles.secondary, styles.flex]}>
-                  {distanceAndEta(offer.distance_m)}
+                  {offer.eta_minutes
+                    ? [formatDistance(offer.distance_m), `llega en ${offer.eta_minutes} min`]
+                        .filter(Boolean)
+                        .join(' · ')
+                    : distanceAndEta(offer.distance_m)}
                 </Text>
                 <Text style={styles.verified}>Verificado</Text>
               </View>
