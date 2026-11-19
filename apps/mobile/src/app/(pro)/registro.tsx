@@ -143,7 +143,14 @@ function VerificationStep() {
       ...new Set(pending.flatMap((t) => missingFor(t))),
     ];
     if (missing.length > 0) {
-      setError(`Te falta: ${describeMissing(missing, data.minEvidence).join(', ')}.`);
+      // Referencias mínimas de servicio del hogar: vienen de settings (domestic_min_references).
+      const minReferences =
+        Object.values(data.requirements)
+          .flat()
+          .find((r) => r.requirement === 'reference')?.min_count ?? 2;
+      setError(
+        `Te falta: ${describeMissing(missing, data.minEvidence, minReferences).join(', ')}.`,
+      );
       return;
     }
     setSubmitting(true);
