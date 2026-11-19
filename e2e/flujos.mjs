@@ -928,6 +928,38 @@ try {
     'el admin agrega un material al catálogo en céntimos',
   );
 
+  // ─────────────── Fase 9 · Panel: métricas del piloto ───────────────
+  await boss.goto(`${ADMIN}/metricas?dias=14`, { waitUntil: 'networkidle' });
+  const since14 = `((now() at time zone 'America/Lima')::date - 13)::timestamp at time zone 'America/Lima'`;
+  const [published14, hired14] = sql(
+    `select count(*) || '|' || count(*) filter (where exists (select 1 from public.offers o where o.job_id = j.id and o.status in ('accepted', 'no_show'))) from public.jobs j where j.created_at >= ${since14}`,
+  ).split('|');
+  const tileValue = async (id) =>
+    (await boss.locator(`[data-testid=${id}]`).innerText()).split('\n').map((s) => s.trim());
+  check(
+    (await tileValue('m-publicados'))[1] === published14 && Number(published14) > 0,
+    `métricas: pedidos publicados en 14 días (${published14}) iguales a la base`,
+  );
+  check(
+    (await tileValue('m-contratados'))[2] === `${hired14} de ${published14}`,
+    'métricas: contratados con oferta aceptada',
+  );
+  await boss.locator('[data-testid^=dia-]').last().focus();
+  await boss.locator('[role=status]:has-text("Primera oferta:")').waitFor();
+  ok('métricas: con Tab sobre un día se ve su detalle');
+  await boss.click('summary:has-text("Ver la tabla por día")');
+  check(
+    (await boss.locator('[data-testid=tabla-metricas] tbody tr').count()) === 14,
+    'métricas: la tabla trae una fila por día',
+  );
+  await boss.click('a:has-text("Últimos 7 días")');
+  await boss.waitForURL('**/metricas?dias=7');
+  await boss.click('summary:has-text("Ver la tabla por día")');
+  check(
+    (await boss.locator('[data-testid=tabla-metricas] tbody tr').count()) === 7,
+    'métricas: el periodo cambia a 7 días',
+  );
+
   // ─────────────── Fase 9 · Panel: búsqueda, ficha de usuario y detalle de pedido ───────────────
   await boss.goto(`${ADMIN}/buscar?q=Luis`, { waitUntil: 'networkidle' });
   await boss.click('[data-testid=resultado]:has-text("Luis Quispe")');

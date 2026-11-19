@@ -1,9 +1,9 @@
 # Cerquita · Estado
 
-Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
+Actualizado: 2026-11-19. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Implementado
-- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (23 migraciones).
+- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (24 migraciones).
 - Ingreso por SMS (OTP), selector Cliente/Profesional, hook que solo admite +51 9XXXXXXXX, roles de soporte.
 - Registro del profesional y verificación por oficio: 9 oficios, 4 categorías, requisitos por categoría, cola y revisión en el panel.
 - Pedidos: tarifario sin regateo, fotos, video de diagnóstico (15 s, 48 h), visita de diagnóstico S/ 20, programación.
@@ -19,18 +19,19 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Funciones cerradas sin sesión**: `anon` y PUBLIC ya no ejecutan ninguna función de `public`; la app con sesión conserva sus RPC. Desde `20261118000050` las funciones **nuevas** también nacen cerradas (antes el valor global seguía dando EXECUTE a PUBLIC).
 - **Tiempos de respuesta visibles:** constancias (`proof_review_hours`, 2 h) y tickets de ayuda (`support_reply_hours`, 8 h): la app dice en cuánto responde soporte y avisa si se pasa; el panel marca plazos y vencidos.
 - **Inicio del cliente rediseñado:** buscador de oficios (sin tildes), íconos propios por oficio, franja “Verificados por oficio · Pagas al terminar · Sin adelantos”, pedido activo destacado y conteo de profesionales cerca arriba; el mapa queda al final.
+- **Métricas del piloto (Panel → Métricas):** pedidos publicados por día, % que recibió oferta, % contratado, mediana y percentil 90 del tiempo a la primera oferta, terminados y cancelados; 7/14/30/90 días en hora de Lima, con detalle por día y tabla. Solo soporte (`pilot_metrics`).
 - **Profesional que no llega:** el pro indica en su oferta en cuánto llega; al aceptar queda la llegada acordada. Pasada la tolerancia (15 min), el cliente cambia de profesional: el pedido vuelve a las otras ofertas, se registra la falta y con 3 en 30 días se pausan sus ofertas. El pro nuevo no ve el chat ni el GPS del anterior.
 
 ## Desplegado (producción del piloto)
-- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 23 migraciones (las del 18-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local), seed de Huancayo, 30 tablas con RLS, 5 tareas cron (suma `storage-cleanup`, cada hora).
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 24 migraciones (las del 18-11 y `pilot_metrics` del 19-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local), seed de Huancayo, 30 tablas con RLS, 5 tareas cron (suma `storage-cleanup`, cada hora).
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
-- **APK Android:** build 3 (0.1.0, commit `1c553a4`), 35,7 MB, apunta a producción; trae el profesional que no llega, el inicio nuevo y el plazo de constancias. Enlace en `docs/produccion.md` → “APK del piloto”.
+- **APK Android:** build 4 (0.1.0, commit `c6a5702`), 35,7 MB, apunta a producción; suma a lo del build 3 (profesional que no llega, inicio nuevo, plazos) la presencia en segundo plano corregida, la visita de diagnóstico publicable y el mínimo de referencias tomado de la configuración. Enlace en `docs/produccion.md` → “APK del piloto”.
 - **Panel:** https://cerquita-nine.vercel.app (Vercel, rama `main`, carpeta `apps/admin`; solo URL + clave publicable). Sin sesión redirige a `/login`.
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- Local (2026-11-19): e2e 145 pasos, pgTAP 433 (11 suites; `no_show` 33), unitarias 169. Todo en verde.
+- Local (2026-11-19): e2e 150 pasos (suma métricas: totales iguales a la base, detalle con Tab, tabla y cambio de periodo), pgTAP `metrics` 22 (solo el módulo nuevo; el resto corre en el CI), unitarias 190. Todo en verde.
 - e2e suma: reevaluación en el domicilio (materiales del catálogo y boleta) aprobada por el cliente, cancelación con tarifa de visita y su comisión, y ticket de ayuda respondido desde el panel.
 - CI en `main` (commit `f8a360c`, 2026-11-18): base, chequeo y e2e en verde (incluye no llega e inicio nuevo).
 - e2e suma: reclamo y reporte desde la app; en el panel reclamos, reportes, lista negra, tarifario y parámetros (revisora y admin); hora de llegada en la oferta y cambio de profesional cuando no llega.
@@ -39,11 +40,12 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - Producción (transacción revertida): un pro con DNI ya visto por soporte elimina su cuenta; documentos 0, vistas conservadas 1, perfil anonimizado.
 - Producción: `send-push` con secreto de Vault → 200 `{"sent":0}`; con secreto falso o sin secreto → 401 (repetido tras el cierre de permisos).
 - Producción (clave anónima, 2026-11-17): `my_account` y `sos_open_alerts` → 401 “permission denied”; lectura pública de oficios → 200.
-- APK build 3: arranque en emulador Android 14 OK (pantalla de ingreso); enlace verificado (200, 35,7 MB).
+- APK build 4: arranque en emulador Android OK (pantalla de ingreso, captura revisada); enlace verificado (200, 35,7 MB). Política temporal de subida borrada.
+- Producción: `pilot_metrics` con huella igual a la local; sin sesión no se ejecuta; con rol de soporte responde 14 días (0 pedidos aún).
 - **No probado todavía:** ingreso real con los números de prueba, cámara, GPS en segundo plano, push en un teléfono y flujo completo en físico.
 
 ## Avance técnico del piloto (A)
-Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pruebas unitarias/pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 53).
+Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pruebas unitarias/pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 55).
 
 | Funcionalidad | Peso | Estado | Fuente |
 | --- | --- | --- | --- |
@@ -51,6 +53,7 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | Panel: DNI con URL firmada y vista registrada | alto | Verificado | e2e (CI verde en `cce8272`) |
 | Panel: reclamos, reportes, lista negra, tarifario, parámetros | medio | Verificado | e2e Fase 9 (CI verde en `f8a360c`) |
 | Panel: soporte, sospechas, fichas de usuario, búsqueda y detalle de pedido | medio | Verificado | e2e Fases 8–9 (139 pasos) |
+| Panel: métricas del piloto (pedidos por día, primera oferta, % contratado) | medio | Verificado | e2e Fase 9 (150 pasos) |
 | Panel en producción con ingreso real | alto | Sin verificar | Solo `/login` y redirección; falta primer admin |
 | App: ingreso por SMS y modo Cliente/Profesional | alto | Sin verificar | e2e en export web |
 | App: registro del profesional y evidencia | alto | Sin verificar | e2e en export web |
@@ -68,7 +71,7 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | Backend: cola y envío push (`send-push`) | medio | Sin verificar | 200/401 en producción |
 | Backend: limpieza de Storage | bajo | Sin verificar | Edge Function + pg_cron en producción (200/401 verificados); en modo prueba: solo cuenta hasta activar `storage_cleanup_enabled` |
 
-Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 40/53 = **75,5 %** · pendiente 3/53 = **5,7 %** (solo push, que espera Firebase). (El total sube cuando entra una fila nueva.)
+Cálculo: verificado 12/55 = **21,8 %** · implementado sin verificar 40/55 = **72,7 %** · pendiente 3/55 = **5,5 %** (solo push, que espera Firebase). (El total sube cuando entra una fila nueva.)
 
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad:** permisos públicos cerrados y verificados en producción. Falta quitar `SUPABASE_SERVICE_ROLE_KEY` y `POSTGRES_*` de Vercel (dueño). Primer admin con un número sin código fijo (dueño).
@@ -87,8 +90,6 @@ Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 40/53 = **
 - `docs/demo/cerquita-demo.html` es una simulación: muestra teléfonos y simplifica la reevaluación.
 
 ## Última tarea
-- Producción (autorizado por el dueño): migraciones `20261118000050` a `…400` aplicadas y verificadas (huellas de funciones y políticas iguales a las locales; 0 funciones sin sesión). APK build 3 publicado y verificado.
-- Errores corregidos: **la presencia en segundo plano no se enviaba** (antifraude y reparto dependían de tener la app abierta); **la visita de diagnóstico no se podía publicar** (S/ 20 chocaba con el mínimo del tarifario; corregido en base, app y producción); en “Programado”, cambiar de día dejaba la hora en el día anterior; tienda Maestro sin etiqueta en la reevaluación; estados internos sin traducir en el panel (ficha de usuario, reportes, detalle de pedido); ventana de faltas fija en el código (ahora sale de settings).
-- Nuevo: plazo de respuesta visible para tickets de ayuda; faltas y llegada acordada en el panel.
-- e2e 145 pasos: suma pedido programado con visita de diagnóstico, reevaluación con boleta, cancelación con visita, ayuda respondida, búsqueda, ficha (revertir asiento, suspender), detalle de pedido y sospecha antifraude.
-- Siguiente: prueba en 2 teléfonos con el build 3 (`docs/prueba-telefonos.md`) y primer administrador.
+- **Métricas del piloto en el panel** (roadmap P1): función `pilot_metrics(p_days)` solo para soporte (días de Lima, ventana 1–90), página Panel → Métricas con resumen, gráfico por día (detalle al pasar el cursor o con Tab) y tabla. Aplicada en producción (autorizado) y verificada.
+- APK build 4 publicado y verificado en emulador (enlace en `docs/produccion.md`).
+- Siguiente: vigilancia de cron y cola de notificaciones en el panel (P1); prueba en 2 teléfonos con el build 4 (`docs/prueba-telefonos.md`) y primer administrador (dueño).

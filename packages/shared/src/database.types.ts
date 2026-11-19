@@ -2265,6 +2265,7 @@ export type Database = {
         }[];
       };
       outbox_mark_failed: { Args: { p_error: string; p_ids: number[] }; Returns: undefined };
+      pilot_metrics: { Args: { p_days?: number }; Returns: Json };
       price_hint: {
         Args: { p_trade: number };
         Returns: {

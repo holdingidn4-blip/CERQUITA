@@ -34,7 +34,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] Limpieza de Storage con Edge Function y pg_cron (sin llave en GitHub); en modo prueba hasta activar `storage_cleanup_enabled`.
 - [ ] Vigilar la cola de notificaciones y las tareas programadas (cron).
 - [x] Plazos de respuesta visibles para constancias y tickets de ayuda, con vencidos en el panel.
-- [ ] Métricas del piloto en el panel: pedidos por día, tiempo a la primera oferta, % contratado.
+- [x] Métricas del piloto en el panel: pedidos por día, tiempo a la primera oferta, % contratado (Panel → Métricas, 7/14/30/90 días).
 - [ ] Registro guiado del profesional con ejemplos de evidencia.
 - [ ] Validar la duración del video en el servidor.
 - [ ] **(D)** Supabase Pro (copias de seguridad diarias) antes de acumular datos reales.

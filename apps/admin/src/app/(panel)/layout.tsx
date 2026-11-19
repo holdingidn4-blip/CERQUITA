@@ -45,6 +45,9 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           <Link href="/buscar" className={styles.navItem}>
             Buscar
           </Link>
+          <Link href="/metricas" className={styles.navItem}>
+            Métricas
+          </Link>
           <Link href="/verificacion" className={styles.navItem}>
             Verificación <span className={styles.count}>{count ?? 0}</span>
           </Link>

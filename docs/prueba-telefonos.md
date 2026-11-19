@@ -5,7 +5,7 @@ Objetivo: recorrer el piloto en dos celulares Android reales para pasar las fila
 ## Antes de empezar
 - **Teléfono A (cliente)** y **teléfono B (profesional)**, Android 10 o más, con datos o wifi.
 - Dos números de prueba distintos cargados en Supabase (Authentication → Phone → números de prueba). El código es el fijo de esos números.
-- La versión más reciente del APK del piloto instalada en ambos (enlace en `docs/produccion.md` → “APK del piloto”). Las funciones nuevas (profesional que no llega, inicio nuevo, plazo de constancias) necesitan el **build 3** y las migraciones del 18-11 aplicadas en producción.
+- La versión más reciente del APK del piloto instalada en ambos (enlace en `docs/produccion.md` → “APK del piloto”). Las funciones nuevas (profesional que no llega, inicio nuevo, plazo de constancias) necesitan el **build 3 o posterior** (hoy build 4) y las migraciones del 18-11 aplicadas en producción.
 - Un usuario de soporte en el panel para aprobar el oficio (primer administrador o revisor). Sin eso, la prueba se detiene en el paso 4.
 - Estar cerca (menos de 3 km entre los dos teléfonos) y con el GPS encendido.
 

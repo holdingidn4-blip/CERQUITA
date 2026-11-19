@@ -1,0 +1,153 @@
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.filter {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.filter:hover {
+  border-color: var(--primary);
+}
+.filter[aria-current='page'] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tileLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.tileValue {
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text);
+}
+.tileSub {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.h2 {
+  font-size: 16px;
+}
+.note {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+/* Serie del gráfico: verde de la marca, un paso más claro para pasar croma y contraste (validado). */
+.chartWrap {
+  --chart-1: #168a70;
+  --chart-1-hover: #2a9a7e;
+  --chart-grid: #ece8dd;
+  position: relative;
+}
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+.axisText {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.valueText {
+  fill: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+.bar {
+  fill: var(--chart-1);
+}
+.barActive {
+  fill: var(--chart-1-hover);
+}
+.hit {
+  fill: transparent;
+  outline: none;
+}
+.hit:focus-visible {
+  stroke: var(--text);
+  stroke-width: 1.5;
+}
+.tooltip {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgb(23 35 31 / 12%);
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tooltip strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.tooltipDay {
+  font-size: 12px;
+}
+.key {
+  display: inline-block;
+  width: 12px;
+  height: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: var(--chart-1);
+}
+.tableWrap summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary);
+}
+.tableWrap[open] summary {
+  margin-bottom: 8px;
+}
+.num {
+  font-variant-numeric: tabular-nums;
+}
