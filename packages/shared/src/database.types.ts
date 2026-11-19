@@ -2264,6 +2264,7 @@ export type Database = {
           trade_id: number;
         }[];
       };
+      ops_health: { Args: Record<PropertyKey, never>; Returns: Json };
       outbox_mark_failed: { Args: { p_error: string; p_ids: number[] }; Returns: undefined };
       pilot_metrics: { Args: { p_days?: number }; Returns: Json };
       price_hint: {

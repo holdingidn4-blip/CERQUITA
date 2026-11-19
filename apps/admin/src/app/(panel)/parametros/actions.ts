@@ -30,6 +30,7 @@ const INTEGER_KEYS = new Set([
   'proof_review_hours',
   'support_reply_hours',
   'storage_cleanup_enabled',
+  'ops_outbox_stale_minutes',
 ]);
 
 export async function saveParam(

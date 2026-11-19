@@ -151,3 +151,15 @@
 .num {
   font-variant-numeric: tabular-nums;
 }
+.alert {
+  background: var(--amber-soft);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.alert ul {
+  padding-left: 18px;
+}

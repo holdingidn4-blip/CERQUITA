@@ -32,6 +32,7 @@ const LABELS: Record<string, string> = {
   support_reply_hours: 'Plazo de respuesta de ayuda (horas)',
   storage_cleanup_enabled: 'Limpieza de Storage: 1 borra huérfanos, 0 solo los cuenta',
   storage_cleanup_url: 'URL de la Edge Function storage-cleanup',
+  ops_outbox_stale_minutes: 'Aviso de notificaciones atascadas en cola (min)',
 };
 
 export default async function Parametros() {

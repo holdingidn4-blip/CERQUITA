@@ -132,6 +132,7 @@ Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `glob
 | `push_function_url` | vacío | URL de `send-push` (se fija al desplegar) |
 | `proof_review_hours` | 2 | Plazo de respuesta que la app promete al revisar una constancia; el panel marca las vencidas |
 | `no_show_grace_minutes` · `no_show_strikes` · `no_show_window_days` · `default_eta_minutes` | 15 · 3 · 30 · 60 | Profesional que no llega: tolerancia, faltas para la pausa, ventana y llegada por defecto |
+| `ops_outbox_stale_minutes` | 10 | Panel → Sistema avisa si una notificación lleva más de estos minutos en cola |
 
 ## 13. Decisiones abiertas (del dueño)
 - “Seguro Cerquita” y “Garantía por 30 días” aparecen en avisos de la app pero **no están definidos**: definirlos con un abogado o retirar el texto antes de abrir al público.

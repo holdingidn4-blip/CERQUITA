@@ -960,6 +960,31 @@ try {
     'métricas: el periodo cambia a 7 días',
   );
 
+  // ─────────────── Fase 9 · Panel: estado del sistema (cron, cola y llamadas) ───────────────
+  await boss.goto(`${ADMIN}/sistema`, { waitUntil: 'networkidle' });
+  check(
+    (await boss.locator('[data-testid^=tarea-]').count()) ===
+      Number(sql(`select count(*) from cron.job`)),
+    'sistema: lista todas las tareas programadas',
+  );
+  check(
+    await boss
+      .locator(
+        '[data-testid=tarea-dispatch-push] :text-matches("Bien|Corriendo|Aún no corre|Falló")',
+      )
+      .isVisible(),
+    'sistema: cada tarea muestra su estado con texto',
+  );
+  check(
+    (await boss.locator('[data-testid=cola-pendientes]').innerText()).split('\n')[1].trim() ===
+      sql(`select count(*) from public.notification_outbox where status = 'pending'`),
+    'sistema: pendientes en la cola iguales a la base',
+  );
+  check(
+    (await boss.locator('[data-testid=sistema-ok], [data-testid=sistema-avisos]').count()) === 1,
+    'sistema: resumen “todo en orden” o lista de avisos',
+  );
+
   // ─────────────── Fase 9 · Panel: búsqueda, ficha de usuario y detalle de pedido ───────────────
   await boss.goto(`${ADMIN}/buscar?q=Luis`, { waitUntil: 'networkidle' });
   await boss.click('[data-testid=resultado]:has-text("Luis Quispe")');

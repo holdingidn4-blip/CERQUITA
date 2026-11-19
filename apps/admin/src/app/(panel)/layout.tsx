@@ -1,4 +1,4 @@
-import { maskPhone } from '@cerquita/shared';
+import { maskPhone, type OpsHealth, opsIssues } from '@cerquita/shared';
 import Link from 'next/link';
 
 import { createClient, requireStaff } from '@/lib/supabase/server';
@@ -31,6 +31,8 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
     .from('user_reports')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'open');
+  const { data: health } = await supabase.rpc('ops_health');
+  const systemIssues = health ? opsIssues(health as unknown as OpsHealth).length : 0;
   const { data: me } = await supabase
     .from('profiles')
     .select('full_name')
@@ -47,6 +49,9 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           </Link>
           <Link href="/metricas" className={styles.navItem}>
             Métricas
+          </Link>
+          <Link href="/sistema" className={styles.navItem}>
+            Sistema <span className={styles.count}>{systemIssues}</span>
           </Link>
           <Link href="/verificacion" className={styles.navItem}>
             Verificación <span className={styles.count}>{count ?? 0}</span>
