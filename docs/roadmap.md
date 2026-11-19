@@ -31,7 +31,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 ## P1 · Primeras semanas del piloto
 - [ ] Captcha (Turnstile u hCaptcha) y límites de envío de SMS.
 - [ ] Sentry en la app (DSN) para ver fallas en los teléfonos.
-- [ ] Activar la limpieza de Storage en GitHub Actions.
+- [x] Limpieza de Storage con Edge Function y pg_cron (sin llave en GitHub); en modo prueba hasta activar `storage_cleanup_enabled`.
 - [ ] Vigilar la cola de notificaciones y las tareas programadas (cron).
 - [x] Plazos de respuesta visibles para constancias y tickets de ayuda, con vencidos en el panel.
 - [ ] Métricas del piloto en el panel: pedidos por día, tiempo a la primera oferta, % contratado.

@@ -23,6 +23,13 @@ const INTEGER_KEYS = new Set([
   'bypass_minutes',
   'bypass_radius_m',
   'bypass_max_per_week',
+  'no_show_grace_minutes',
+  'no_show_strikes',
+  'no_show_window_days',
+  'default_eta_minutes',
+  'proof_review_hours',
+  'support_reply_hours',
+  'storage_cleanup_enabled',
 ]);
 
 export async function saveParam(
@@ -39,6 +46,8 @@ export async function saveParam(
   if (INTEGER_KEYS.has(key)) {
     if (!/^\d+$/.test(raw)) return { error: 'Debe ser un número entero.', saved: false };
     value = Number(raw);
+    if (key === 'storage_cleanup_enabled' && value > 1)
+      return { error: 'Usa 1 para borrar o 0 para solo contar.', saved: false };
     if (key === 'commission_rate_bps' && value > 10000)
       return { error: 'Máximo 10000 (100 %).', saved: false };
   }

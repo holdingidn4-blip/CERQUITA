@@ -24,6 +24,14 @@ const LABELS: Record<string, string> = {
   bank_account: 'Cuenta bancaria (transferencias)',
   push_function_url: 'URL de la Edge Function send-push',
   diagnostic_visit_fee_cents: 'Visita de diagnóstico (céntimos)',
+  no_show_grace_minutes: 'Tolerancia de llegada antes de poder cambiar de profesional (min)',
+  no_show_strikes: 'Llegadas incumplidas que pausan las ofertas',
+  no_show_window_days: 'Ventana de llegadas incumplidas (días)',
+  default_eta_minutes: 'Llegada por defecto si la oferta no la indica (min)',
+  proof_review_hours: 'Plazo de revisión de constancias (horas)',
+  support_reply_hours: 'Plazo de respuesta de ayuda (horas)',
+  storage_cleanup_enabled: 'Limpieza de Storage: 1 borra huérfanos, 0 solo los cuenta',
+  storage_cleanup_url: 'URL de la Edge Function storage-cleanup',
 };
 
 export default async function Parametros() {

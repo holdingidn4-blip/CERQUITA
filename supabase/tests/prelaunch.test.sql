@@ -2,7 +2,7 @@
 -- suspensión, reversión de asientos, buscador, datos de pago y anti-abuso de SMS.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(53);
+select plan(56);
 delete from public.trade_rate_cards;
 
 create function pg_temp.as_user(p uuid, p_staff text default null) returns void
@@ -194,5 +194,9 @@ select ok(has_function_privilege('authenticated', 'public.answer_reevaluation(uu
 select ok(has_function_privilege('supabase_auth_admin', 'public.hook_before_user_created(jsonb)', 'execute'), 'el hook de Auth sigue habilitado');
 
 select is(private.setting_int('support_reply_hours', 0), 8, 'el plazo de respuesta de ayuda está en settings (8 h)');
+select is((select string_agg(key || '=' || (value #>> '{}'), ',' order by key) from public.settings where key like 'storage_cleanup%'),
+  'storage_cleanup_enabled=0,storage_cleanup_url=', 'la limpieza de Storage arranca en modo prueba (no borra)');
+select ok(exists (select 1 from cron.job where jobname = 'storage-cleanup' and schedule = '17 * * * *'), 'la limpieza corre cada hora con pg_cron');
+select ok(not has_function_privilege('authenticated', 'private.dispatch_storage_cleanup()', 'execute'), 'nadie con sesión dispara la limpieza');
 select * from finish();
 rollback;

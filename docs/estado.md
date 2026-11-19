@@ -3,7 +3,7 @@
 Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Implementado
-- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (22 migraciones).
+- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (23 migraciones).
 - Ingreso por SMS (OTP), selector Cliente/Profesional, hook que solo admite +51 9XXXXXXXX, roles de soporte.
 - Registro del profesional y verificación por oficio: 9 oficios, 4 categorías, requisitos por categoría, cola y revisión en el panel.
 - Pedidos: tarifario sin regateo, fotos, video de diagnóstico (15 s, 48 h), visita de diagnóstico S/ 20, programación.
@@ -22,7 +22,7 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Profesional que no llega:** el pro indica en su oferta en cuánto llega; al aceptar queda la llegada acordada. Pasada la tolerancia (15 min), el cliente cambia de profesional: el pedido vuelve a las otras ofertas, se registra la falta y con 3 en 30 días se pausan sus ofertas. El pro nuevo no ve el chat ni el GPS del anterior.
 
 ## Desplegado (producción del piloto)
-- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 22 migraciones (las del 18-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local), seed de Huancayo, 30 tablas con RLS, 4 tareas cron.
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 23 migraciones (las del 18-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local), seed de Huancayo, 30 tablas con RLS, 5 tareas cron (suma `storage-cleanup`, cada hora).
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
 - **APK Android:** build 3 (0.1.0, commit `1c553a4`), 35,7 MB, apunta a producción; trae el profesional que no llega, el inicio nuevo y el plazo de constancias. Enlace en `docs/produccion.md` → “APK del piloto”.
@@ -30,7 +30,7 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- Local (2026-11-19): e2e 145 pasos, pgTAP 430 (11 suites; `no_show` 33), unitarias 166. Todo en verde.
+- Local (2026-11-19): e2e 145 pasos, pgTAP 433 (11 suites; `no_show` 33), unitarias 169. Todo en verde.
 - e2e suma: reevaluación en el domicilio (materiales del catálogo y boleta) aprobada por el cliente, cancelación con tarifa de visita y su comisión, y ticket de ayuda respondido desde el panel.
 - CI en `main` (commit `f8a360c`, 2026-11-18): base, chequeo y e2e en verde (incluye no llega e inicio nuevo).
 - e2e suma: reclamo y reporte desde la app; en el panel reclamos, reportes, lista negra, tarifario y parámetros (revisora y admin); hora de llegada en la oferta y cambio de profesional cuando no llega.
@@ -66,9 +66,9 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | App: antifraude GPS en segundo plano (en línea) | alto | Sin verificar | Corregido el 19-11: la tarea no enviaba la presencia; requiere teléfono |
 | Backend: matching y libro de comisiones en el servidor | alto | Sin verificar | pgTAP en CI |
 | Backend: cola y envío push (`send-push`) | medio | Sin verificar | 200/401 en producción |
-| Backend: limpieza de Storage | bajo | Pendiente | Action sin activar |
+| Backend: limpieza de Storage | bajo | Sin verificar | Edge Function + pg_cron en producción (200/401 verificados); en modo prueba: solo cuenta hasta activar `storage_cleanup_enabled` |
 
-Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 39/53 = **73,6 %** · pendiente 4/53 = **7,5 %**. (El total sube cuando entra una fila nueva.)
+Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 40/53 = **75,5 %** · pendiente 3/53 = **5,7 %** (solo push, que espera Firebase). (El total sube cuando entra una fila nueva.)
 
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad:** permisos públicos cerrados y verificados en producción. Falta quitar `SUPABASE_SERVICE_ROLE_KEY` y `POSTGRES_*` de Vercel (dueño). Primer admin con un número sin código fijo (dueño).
@@ -77,7 +77,7 @@ Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 39/53 = **
 - **Legal:** términos y privacidad revisados por abogado y publicados; registro ante la ANPDP (Ley 29733); Libro de Reclamaciones; decidir Seguro Cerquita y Garantía 30 días (dueño + abogado). Desbloquea publicar en tiendas.
 - **Tarifario:** validar tarifario, tarifa de visita, catálogo y precios de referencia con profesionales de Huancayo; confirmar 105/116/106 (dueño con profesionales). Desbloquea datos reales del piloto.
 - **Fuera de estas categorías:** prueba en 2 teléfonos físicos con números de prueba (Claude coordina; dueño presta teléfonos). Es lo que pasa A de "sin verificar" a "verificado".
-- No bloqueantes: captcha, Sentry, limpieza de Storage, proyecto `cerquita-demo` (`vfquejeijminjxxyozqg`, pausado; se puede borrar).
+- No bloqueantes: captcha, Sentry, activar el borrado de la limpieza de Storage (Parámetros), proyecto `cerquita-demo` (`vfquejeijminjxxyozqg`, pausado; se puede borrar).
 - **Decisión del dueño (2026-11-18): saldo prepago para pagar comisiones (opción B).** Lectura de trabajo: un saldo de circuito cerrado (solo lo acepta Cerquita, no es convertible a efectivo, no se transfiere ni da cambio) queda fuera de la definición de dinero electrónico (Ley 29985, art. 2 b y d), así que no exigiría licencia de la SBS. Pendiente de confirmación legal. Riesgo de tienda: confirmar que la comisión por un servicio consumido fuera de la app está exenta del cobro de Apple y Google. Condiciones: solo paga comisiones de Cerquita; sin devolución en efectivo; recarga por pasarela autorizada o agentes; tratamiento contable de anticipo de clientes. Requiere cambiar la regla 3. Mientras tanto la regla 3 sigue vigente y el piloto usa el modelo A (deuda, pausa y constancia).
 
 ## Errores conocidos
