@@ -64,3 +64,16 @@ export function isTrackingStatus(status: JobStatus): boolean {
 export function sanitizeSecurityCode(input: string): string {
   return input.replace(/\D/g, '').slice(0, 4);
 }
+
+/**
+ * A dónde va una posición recibida en segundo plano: al rastro del servicio (con servicio activo)
+ * o a la presencia del pro en línea (solo la última posición, para reparto y antifraude).
+ */
+export function backgroundLocationTarget(
+  mode: string | null,
+  jobId: string | null,
+): 'job' | 'presence' | null {
+  if (mode === 'job' && jobId) return 'job';
+  if (mode === 'presence') return 'presence';
+  return null;
+}

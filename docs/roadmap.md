@@ -45,7 +45,8 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 ## P2 · Antes de abrir al público
 - [ ] **(D)** iOS: cuenta de Apple Developer, build y TestFlight.
 - [ ] Publicación en Google Play (producción) y App Store.
-- [ ] Envío de posición en segundo plano fuera de un servicio (antifraude), con su texto en la política de privacidad.
+- [x] Envío de posición en segundo plano con el pro en línea (antifraude y reparto), corregido el 19-11; falta probarlo en teléfono.
+- [ ] **(D)** Texto del uso del GPS en segundo plano en la política de privacidad (abogado).
 - [ ] Recordatorios para pedidos programados.
 - [ ] Sentry en el panel.
 - [ ] Dominio propio para el panel y las páginas legales.

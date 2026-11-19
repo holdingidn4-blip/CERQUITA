@@ -30,7 +30,7 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- Local (2026-11-19): e2e 145 pasos, pgTAP 430 (11 suites; `no_show` 33), unitarias 163. Todo en verde.
+- Local (2026-11-19): e2e 145 pasos, pgTAP 430 (11 suites; `no_show` 33), unitarias 166. Todo en verde.
 - e2e suma: reevaluación en el domicilio (materiales del catálogo y boleta) aprobada por el cliente, cancelación con tarifa de visita y su comisión, y ticket de ayuda respondido desde el panel.
 - CI en `main` (commit `f8a360c`, 2026-11-18): base, chequeo y e2e en verde (incluye no llega e inicio nuevo).
 - e2e suma: reclamo y reporte desde la app; en el panel reclamos, reportes, lista negra, tarifario y parámetros (revisora y admin); hora de llegada en la oferta y cambio de profesional cuando no llega.
@@ -63,12 +63,12 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, prue
 | App: SOS, reportar/bloquear, eliminar cuenta | medio | Sin verificar | e2e en export web |
 | App: el profesional no llega (hora de llegada, cambio, faltas y pausa) | alto | Sin verificar | e2e en export web y pgTAP `no_show` |
 | App: notificaciones push | alto | Pendiente | Sin FCM; no llegan a teléfonos |
-| App: antifraude GPS en segundo plano | alto | Pendiente | P2 del roadmap |
+| App: antifraude GPS en segundo plano (en línea) | alto | Sin verificar | Corregido el 19-11: la tarea no enviaba la presencia; requiere teléfono |
 | Backend: matching y libro de comisiones en el servidor | alto | Sin verificar | pgTAP en CI |
 | Backend: cola y envío push (`send-push`) | medio | Sin verificar | 200/401 en producción |
 | Backend: limpieza de Storage | bajo | Pendiente | Action sin activar |
 
-Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 36/53 = **67,9 %** · pendiente 7/53 = **13,2 %**. (El total sube cuando entra una fila nueva.)
+Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 39/53 = **73,6 %** · pendiente 4/53 = **7,5 %**. (El total sube cuando entra una fila nueva.)
 
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad:** permisos públicos cerrados y verificados en producción. Falta quitar `SUPABASE_SERVICE_ROLE_KEY` y `POSTGRES_*` de Vercel (dueño). Primer admin con un número sin código fijo (dueño).
@@ -88,7 +88,7 @@ Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 36/53 = **
 
 ## Última tarea
 - Producción (autorizado por el dueño): migraciones `20261118000050` a `…400` aplicadas y verificadas (huellas de funciones y políticas iguales a las locales; 0 funciones sin sesión). APK build 3 publicado y verificado.
-- Errores corregidos: **la visita de diagnóstico no se podía publicar** (S/ 20 chocaba con el mínimo del tarifario; corregido en base, app y producción); en “Programado”, cambiar de día dejaba la hora en el día anterior; tienda Maestro sin etiqueta en la reevaluación; estados internos sin traducir en el panel (ficha de usuario, reportes, detalle de pedido); ventana de faltas fija en el código (ahora sale de settings).
+- Errores corregidos: **la presencia en segundo plano no se enviaba** (antifraude y reparto dependían de tener la app abierta); **la visita de diagnóstico no se podía publicar** (S/ 20 chocaba con el mínimo del tarifario; corregido en base, app y producción); en “Programado”, cambiar de día dejaba la hora en el día anterior; tienda Maestro sin etiqueta en la reevaluación; estados internos sin traducir en el panel (ficha de usuario, reportes, detalle de pedido); ventana de faltas fija en el código (ahora sale de settings).
 - Nuevo: plazo de respuesta visible para tickets de ayuda; faltas y llegada acordada en el panel.
 - e2e 145 pasos: suma pedido programado con visita de diagnóstico, reevaluación con boleta, cancelación con visita, ayuda respondida, búsqueda, ficha (revertir asiento, suspender), detalle de pedido y sospecha antifraude.
 - Siguiente: prueba en 2 teléfonos con el build 3 (`docs/prueba-telefonos.md`) y primer administrador.

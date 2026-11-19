@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  backgroundLocationTarget,
   isTrackingStatus,
   sanitizeSecurityCode,
   serviceStepIndex,
@@ -34,5 +35,18 @@ describe('utilidades', () => {
   });
   it('código de seguridad', () => {
     expect(sanitizeSecurityCode('12a3-45')).toBe('1234');
+  });
+});
+
+describe('posición en segundo plano', () => {
+  it('con servicio activo va al rastro del servicio', () => {
+    expect(backgroundLocationTarget('job', 'abc')).toBe('job');
+  });
+  it('en línea sin servicio va a la presencia (antes no se enviaba)', () => {
+    expect(backgroundLocationTarget('presence', null)).toBe('presence');
+  });
+  it('sin modo o con el servicio ya cerrado no se envía', () => {
+    expect(backgroundLocationTarget(null, null)).toBeNull();
+    expect(backgroundLocationTarget('job', null)).toBeNull();
   });
 });

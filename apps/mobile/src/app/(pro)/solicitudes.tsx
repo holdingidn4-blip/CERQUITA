@@ -13,7 +13,7 @@ import {
   SERVICE_LABELS,
   type JobStatus,
 } from '@cerquita/shared';
-import { Link, router } from 'expo-router';
+import { Link, router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -127,6 +127,12 @@ export default function Solicitudes() {
     const id = setInterval(ping, 60000);
     return () => clearInterval(id);
   }, [online]);
+  // Al volver a Solicitudes (por ejemplo, después de terminar un servicio) se reanuda la presencia.
+  useFocusEffect(
+    useCallback(() => {
+      if (online) startPresence().catch(() => undefined);
+    }, [online]),
+  );
 
   async function toggleOnline(next: boolean) {
     const { data: session } = await supabase.auth.getSession();

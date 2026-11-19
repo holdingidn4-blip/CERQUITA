@@ -31,6 +31,7 @@ Objetivo: recorrer el piloto en dos celulares Android reales para pasar las fila
 | 16 | A | Tocar “Cambiar de profesional” | Vuelve a las ofertas; B ve “Llegadas incumplidas: 1 de 3” | App: el profesional no llega | |
 | 17 | A | SOS: esperar la cuenta regresiva | Soporte ve la alerta en el panel y la cierra | App: SOS | |
 | 18 | A | Desde el perfil del profesional: “Reportar o bloquear” | “Reportaste y bloqueaste…”; aparece en Panel → Reportes | App: reportar y bloquear | |
+| 18b | B | En línea, sin servicio: bloquear el teléfono 5 minutos y caminar unos 150 m | Avísame: reviso en la base que su posición se actualizó con la app en segundo plano | App: antifraude GPS en segundo plano | |
 | 19 | B | Cerrar la app por completo y volver a abrirla | La sesión sigue abierta | App: ingreso y modo | |
 | 20 | A | Ajustes → Eliminar cuenta (al final) | Vuelve al ingreso | App: eliminar cuenta | |
 

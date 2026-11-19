@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { trackingIntervalMs, type JobStatus } from '@cerquita/shared';
+import { backgroundLocationTarget, trackingIntervalMs, type JobStatus } from '@cerquita/shared';
 import * as Battery from 'expo-battery';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
@@ -40,9 +40,20 @@ if (Platform.OS !== 'web') {
     TRACKING_TASK,
     async ({ data, error }) => {
       if (error || !data?.locations?.length) return;
-      const jobId = await AsyncStorage.getItem(JOB_KEY);
       const last = data.locations[data.locations.length - 1];
-      if (jobId && last) await send(jobId, last.coords.latitude, last.coords.longitude);
+      if (!last) return;
+      const [mode, jobId] = await Promise.all([
+        AsyncStorage.getItem(MODE_KEY),
+        AsyncStorage.getItem(JOB_KEY),
+      ]);
+      const target = backgroundLocationTarget(mode, jobId);
+      if (!target) return;
+      // En segundo plano el refresco automático está apagado: getSession renueva el token vencido.
+      await supabase.auth.getSession();
+      const { latitude, longitude } = last.coords;
+      if (target === 'job' && jobId) await send(jobId, latitude, longitude);
+      // Presencia: solo la última posición va al servidor (sin historial), para reparto y antifraude.
+      else await supabase.rpc('update_presence', { p_lat: latitude, p_lng: longitude });
     },
   );
 }
