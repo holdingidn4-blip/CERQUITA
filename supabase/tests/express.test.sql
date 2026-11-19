@@ -2,7 +2,7 @@
 -- Puntos Cerquita, ranking, reclamos y catálogo con Maestro.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(47);
+select plan(51);
 -- Las semillas traen un tarifario de ejemplo; cada prueba define el suyo (se revierte al final).
 delete from public.trade_rate_cards;
 
@@ -161,5 +161,23 @@ select throws_ok(format('select public.file_claim(%L, %L)', :'j1', 'Reclamo ajen
 select pg_temp.as_user(:s, 'support');
 select is((select jsonb_array_length(identity_docs) from public.claims_queue()), 1, 'soporte ve los documentos verificados del técnico para el reclamo');
 
+-- ───────── Visita de diagnóstico con tarifario (S/ 20 está bajo el mínimo del oficio) ─────────
+select pg_temp.as_postgres();
+insert into public.trade_rate_cards (trade_id, city_slug, unit, label, min_cents, suggested_cents, max_cents, visit_fee_cents)
+select id, 'huancayo', 'job', 'Gasfitería', 3500, 8000, 25000, 3000 from public.trades where slug = 'gasfiteria';
+select pg_temp.as_user(:c);
+select lives_ok(format('insert into public.jobs (trade_id, description, offered_price_cents, approx_point, exact_address, diagnostic_visit) values (%s, %L, 2000, %L, %L, true)',
+  (select id from public.trades where slug = 'gasfiteria'), 'Revisar fuga con tarifario', 'SRID=4326;POINT(-75.2049 -12.0651)', 'Jr. Ica 200'),
+  'con tarifario, la visita de diagnóstico se publica a S/ 20');
+select throws_ok(format('insert into public.jobs (trade_id, description, offered_price_cents, approx_point, exact_address) values (%s, %L, 2000, %L, %L)',
+  (select id from public.trades where slug = 'gasfiteria'), 'Trabajo normal barato', 'SRID=4326;POINT(-75.2049 -12.0651)', 'Jr. Ica 201'),
+  'P0001', null, 'un pedido normal sigue respetando el mínimo del tarifario');
+select pg_temp.as_user(:p);
+select throws_ok(format('insert into public.offers (job_id, price_cents) values (%L, 1500)',
+  (select id from public.jobs where description = 'Revisar fuga con tarifario')),
+  'P0001', null, 'la oferta de una visita no baja de la tarifa de diagnóstico');
+select lives_ok(format('insert into public.offers (job_id, price_cents) values (%L, 2000)',
+  (select id from public.jobs where description = 'Revisar fuga con tarifario')),
+  'el pro acepta la visita a S/ 20');
 select * from finish();
 rollback;

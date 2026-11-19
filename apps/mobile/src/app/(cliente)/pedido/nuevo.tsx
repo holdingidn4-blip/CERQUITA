@@ -44,6 +44,8 @@ export default function NuevoPedido() {
   const [scheduleKind, setScheduleKind] = useState<ScheduleKind>('now');
   const [scheduledFor, setScheduledFor] = useState<Date | null>(null);
   const [dayIndex, setDayIndex] = useState(0);
+  // Hora elegida en “Programado”: al cambiar de día se conserva (antes quedaba en el día anterior).
+  const [scheduledHour, setScheduledHour] = useState<number | null>(null);
   const [diagnosticFee, setDiagnosticFee] = useState<number | null>(null);
   const [address, setAddress] = useState('');
   const [reference, setReference] = useState('');
@@ -311,6 +313,7 @@ export default function NuevoPedido() {
                 onPress={() => {
                   setScheduleKind(k);
                   setScheduledFor(null);
+                  setScheduledHour(null);
                 }}
                 style={[styles.scheduleChip, scheduleKind === k && styles.scheduleChipOn]}
               >
@@ -356,7 +359,11 @@ export default function NuevoPedido() {
                     key={`${day.m}-${day.d}`}
                     accessibilityRole="radio"
                     accessibilityState={{ selected: dayIndex === i }}
-                    onPress={() => setDayIndex(i)}
+                    onPress={() => {
+                      setDayIndex(i);
+                      if (scheduledHour !== null)
+                        setScheduledFor(limaDate(day.y, day.m, day.d, scheduledHour));
+                    }}
                     style={[styles.hourChip, dayIndex === i && styles.scheduleChipOn]}
                   >
                     <Text style={[styles.scheduleText, dayIndex === i && styles.scheduleTextOn]}>
@@ -375,7 +382,10 @@ export default function NuevoPedido() {
                       key={h}
                       accessibilityRole="radio"
                       accessibilityState={{ selected: on }}
-                      onPress={() => setScheduledFor(d)}
+                      onPress={() => {
+                        setScheduledHour(h);
+                        setScheduledFor(d);
+                      }}
                       style={[styles.hourChip, on && styles.scheduleChipOn]}
                     >
                       <Text style={[styles.scheduleText, on && styles.scheduleTextOn]}>

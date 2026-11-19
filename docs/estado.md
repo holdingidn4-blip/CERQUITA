@@ -3,7 +3,7 @@
 Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Implementado
-- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (21 migraciones).
+- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (22 migraciones).
 - Ingreso por SMS (OTP), selector Cliente/Profesional, hook que solo admite +51 9XXXXXXXX, roles de soporte.
 - Registro del profesional y verificación por oficio: 9 oficios, 4 categorías, requisitos por categoría, cola y revisión en el panel.
 - Pedidos: tarifario sin regateo, fotos, video de diagnóstico (15 s, 48 h), visita de diagnóstico S/ 20, programación.
@@ -22,7 +22,7 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **Profesional que no llega:** el pro indica en su oferta en cuánto llega; al aceptar queda la llegada acordada. Pasada la tolerancia (15 min), el cliente cambia de profesional: el pedido vuelve a las otras ofertas, se registra la falta y con 3 en 30 días se pausan sus ofertas. El pro nuevo no ve el chat ni el GPS del anterior.
 
 ## Desplegado (producción del piloto)
-- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 20 migraciones (las del 18-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local; falta `20261118000400`, la app usa 8 h por defecto mientras tanto), seed de Huancayo, 30 tablas con RLS, 4 tareas cron.
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 22 migraciones (las del 18-11 aplicadas con autorización del dueño y verificadas: mismas huellas que en local), seed de Huancayo, 30 tablas con RLS, 4 tareas cron.
 - **Auth:** proveedor Phone activo con Twilio (cuenta trial: solo SMS a números verificados) + números de prueba con OTP fijo (los cargó el dueño).
 - **Notificaciones:** Edge Function `send-push` v1 activa (sin JWT, valida secreto de Vault); `push_function_url` fijada; cron `dispatch-push` cada minuto.
 - **APK Android:** build 3 (0.1.0, commit `1c553a4`), 35,7 MB, apunta a producción; trae el profesional que no llega, el inicio nuevo y el plazo de constancias. Enlace en `docs/produccion.md` → “APK del piloto”.
@@ -30,7 +30,7 @@ Actualizado: 2026-11-18. Se **reescribe** en cada tarea (máx. 100 líneas, sin 
 - **AAB (Google Play):** EAS `@holdingidn/cerquita`, perfil `production`, versionCode 2, llave de firma creada y guardada en EAS. Build `a1a6c154` terminado (versión 0.1.0, commit `106fcc4`); el `.aab` se descarga desde la página del build en expo.dev. No se instala directo en el teléfono: es para subir a Google Play.
 
 ## Pruebas (última corrida)
-- Local (2026-11-18): e2e 139 pasos, pgTAP 426 (11 suites; `no_show` 33), unitarias 163. Todo en verde.
+- Local (2026-11-19): e2e 145 pasos, pgTAP 430 (11 suites; `no_show` 33), unitarias 163. Todo en verde.
 - e2e suma: reevaluación en el domicilio (materiales del catálogo y boleta) aprobada por el cliente, cancelación con tarifa de visita y su comisión, y ticket de ayuda respondido desde el panel.
 - CI en `main` (commit `f8a360c`, 2026-11-18): base, chequeo y e2e en verde (incluye no llega e inicio nuevo).
 - e2e suma: reclamo y reporte desde la app; en el panel reclamos, reportes, lista negra, tarifario y parámetros (revisora y admin); hora de llegada en la oferta y cambio de profesional cuando no llega.
@@ -88,7 +88,7 @@ Cálculo: verificado 10/53 = **18,9 %** · implementado sin verificar 36/53 = **
 
 ## Última tarea
 - Producción (autorizado por el dueño): migraciones `20261118000050` a `…400` aplicadas y verificadas (huellas de funciones y políticas iguales a las locales; 0 funciones sin sesión). APK build 3 publicado y verificado.
-- Errores corregidos: tienda Maestro sin etiqueta en la reevaluación; estados internos sin traducir en el panel (ficha de usuario, reportes, detalle de pedido); ventana de faltas fija en el código (ahora sale de settings).
+- Errores corregidos: **la visita de diagnóstico no se podía publicar** (S/ 20 chocaba con el mínimo del tarifario; corregido en base, app y producción); en “Programado”, cambiar de día dejaba la hora en el día anterior; tienda Maestro sin etiqueta en la reevaluación; estados internos sin traducir en el panel (ficha de usuario, reportes, detalle de pedido); ventana de faltas fija en el código (ahora sale de settings).
 - Nuevo: plazo de respuesta visible para tickets de ayuda; faltas y llegada acordada en el panel.
-- e2e 139 pasos: suma reevaluación con boleta, cancelación con visita, ayuda respondida, búsqueda, ficha (revertir asiento, suspender), detalle de pedido y sospecha antifraude.
+- e2e 145 pasos: suma pedido programado con visita de diagnóstico, reevaluación con boleta, cancelación con visita, ayuda respondida, búsqueda, ficha (revertir asiento, suspender), detalle de pedido y sospecha antifraude.
 - Siguiente: prueba en 2 teléfonos con el build 3 (`docs/prueba-telefonos.md`) y primer administrador.

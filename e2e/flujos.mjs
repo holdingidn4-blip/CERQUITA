@@ -658,6 +658,68 @@ try {
   await pedro.waitForSelector('text=El cliente canceló en el domicilio');
   ok('el pro ve que el cliente le debe la visita');
 
+  // ─────────────── Fase 7 · Pedido programado con visita de diagnóstico ───────────────
+  await client.goto(`${MOBILE}/inicio`, { waitUntil: 'networkidle' });
+  await client.click('[aria-label="Pedir Gasfitero"]');
+  await client.waitForURL('**/pedido/nuevo**');
+  await client.fill('textarea', 'Revisar por qué baja la presión del agua en la ducha.');
+  await client.click('[role=checkbox]:has-text("Visita de diagnóstico presencial")');
+  await client.click('[role=radio]:has-text("Programado")');
+  await client.click('[role=radio]:has-text("10:00")');
+  const dayChips = client.locator('[role=radio]', {
+    hasText: /^(dom|lun|mar|mié|jue|vie|sáb) \d{1,2} [a-z]{3}$/,
+  });
+  await dayChips.nth(1).click();
+  await client.fill('input[autocomplete=street-address]', 'Jr. Los Pinos 245');
+  await client.click('text=Buscar profesionales cerca');
+  await client.waitForURL('**/ofertas');
+  const job3 = sql(
+    "select id from public.jobs where description like 'Revisar por qué baja la presión%'",
+  );
+  // Se eligió 10:00 y después el segundo día (pasado mañana): la hora debe pasar a ese día.
+  check(
+    sql(
+      `select schedule_kind || '|' || diagnostic_visit || '|' || (to_char(scheduled_for at time zone 'America/Lima', 'YYYY-MM-DD HH24:MI') = to_char((now() at time zone 'America/Lima')::date + 2, 'YYYY-MM-DD') || ' 10:00') from public.jobs where id = '${job3}'`,
+    ) === 'scheduled|true|true',
+    'pedido programado con visita: al cambiar de día se conserva la hora elegida',
+  );
+  await pro.goto(`${MOBILE}/solicitudes/${job3}/cotizar`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('text=/la hora que eligió el cliente/');
+  check(
+    !(await pro.isVisible('text=¿En cuánto llegas?')),
+    'en un pedido programado el pro no elige hora de llegada',
+  );
+  check(
+    await pro.isVisible('text=/Visita de diagnóstico: desde S\\/ 20\\.00/'),
+    'la visita de diagnóstico se cotiza desde la tarifa de visita, no desde el mínimo del oficio',
+  );
+  await pro.fill('[aria-label="Tu cotización en soles"]', '20');
+  await pro.click('text=Enviar cotización');
+  await pro.waitForURL('**/solicitudes');
+  await client.waitForSelector('[data-testid=oferta]:has-text("Luis Q.")', { timeout: 15000 });
+  await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Aceptar');
+  await client.waitForURL(`**/servicio/${job3}`);
+  check(
+    sql(
+      `select (promised_arrival_at = scheduled_for)::text from public.jobs where id = '${job3}'`,
+    ) === 'true',
+    'la llegada acordada es la hora programada',
+  );
+  check(
+    sql(`select final_price_cents from public.jobs where id = '${job3}'`) === '2000',
+    'la visita de diagnóstico se acepta a S/ 20',
+  );
+  await client.click('text=Cancelar pedido');
+  await client.fill('[aria-label="Motivo de la cancelación"]', 'Ya lo arreglé yo.');
+  await client.click('text=Confirmar cancelación');
+  await client.waitForSelector('text=Servicio cancelado', { timeout: 15000 });
+  check(
+    sql(
+      `select status || '|' || coalesce(visit_fee_cents::text, 'sin visita') from public.jobs where id = '${job3}'`,
+    ) === 'cancelled|sin visita',
+    'cancelar antes de la llegada no cobra visita',
+  );
+
   // Pausa por deuda (pantalla 16): una deuda grande sin días de gracia.
   sql(`update public.settings set value = '0' where key = 'grace_days'`);
   sql(`select private.wallet_post('${luisId}', 'commission_debit', -4000, 'e2e:deuda')`);

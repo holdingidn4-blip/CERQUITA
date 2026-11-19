@@ -48,6 +48,7 @@ export default function Cotizar() {
   const [eta, setEta] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [rateCard, setRateCard] = useState<RateCard | null>(null);
+  const [diagnosticFee, setDiagnosticFee] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,11 +63,17 @@ export default function Cotizar() {
           .eq('unit', found.pricing_unit)
           .maybeSingle();
         setRateCard(card ?? null);
+        if (found.diagnostic_visit) {
+          const { data: fee } = await supabase.rpc('diagnostic_visit_fee');
+          setDiagnosticFee(fee ?? null);
+        }
       }
       if (found)
         setAmount(
           String(
-            quoteSuggestions(found.offered_price_cents)[1] ?? found.offered_price_cents,
+            found.diagnostic_visit
+              ? found.offered_price_cents
+              : (quoteSuggestions(found.offered_price_cents)[1] ?? found.offered_price_cents),
           ).replace(/00$/, ''),
         );
       if (found?.photos.length) {
@@ -100,7 +107,12 @@ export default function Cotizar() {
   }
 
   const priceCents = parseSolesToCents(amount);
-  const withinCard = priceCents !== null && isWithinRateCard(priceCents, rateCard, job.units);
+  // Visita de diagnóstico: el piso es la tarifa de visita, no el mínimo del oficio (igual que el servidor).
+  const card =
+    rateCard && job.diagnostic_visit && diagnosticFee !== null
+      ? { ...rateCard, min_cents: Math.min(rateCard.min_cents, diagnosticFee) }
+      : rateCard;
+  const withinCard = priceCents !== null && isWithinRateCard(priceCents, card, job.units);
   // Pedido para "ahora": el profesional se compromete a una hora de llegada (como en las apps de taxi).
   const needsEta = job.schedule_kind === 'now';
   const validPrice =
@@ -110,14 +122,15 @@ export default function Cotizar() {
     withinCard;
   const valid = validPrice && (!needsEta || eta !== null);
   // Con tarifario: mínimo, sugerido y máximo × unidades (sin regateo); sin tarifario: las de siempre.
-  const suggestions = rateCard
+  const suggestions = card
     ? [
         ...new Set([
+          ...(job.diagnostic_visit ? [job.offered_price_cents] : []),
           ...quoteSuggestions(job.offered_price_cents),
-          ...rateCardSuggestions(rateCard, job.units),
+          ...rateCardSuggestions(card, job.units),
         ]),
       ]
-        .filter((c) => isWithinRateCard(c, rateCard, job.units))
+        .filter((c) => isWithinRateCard(c, card, job.units))
         .sort((a, b) => a - b)
     : quoteSuggestions(job.offered_price_cents);
 
@@ -182,10 +195,11 @@ export default function Cotizar() {
               {unitPriceLabel(job.offered_price_cents, job.pricing_unit, job.units)}
             </Text>
           )}
-          {rateCard && (
+          {card && (
             <Text style={styles.secondary}>
-              Tarifario Huancayo: {formatSoles(rateCard.min_cents * job.units)} –{' '}
-              {formatSoles(rateCard.max_cents * job.units)}
+              {job.diagnostic_visit
+                ? `Visita de diagnóstico: desde ${formatSoles(card.min_cents)}. La mano de obra la cotizas en el domicilio con “Reevaluar en sitio”.`
+                : `Tarifario Huancayo: ${formatSoles(card.min_cents * job.units)} – ${formatSoles(card.max_cents * job.units)}`}
             </Text>
           )}
           <Text style={styles.body}>{job.description}</Text>
