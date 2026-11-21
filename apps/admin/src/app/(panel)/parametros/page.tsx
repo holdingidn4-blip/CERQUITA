@@ -33,6 +33,7 @@ const LABELS: Record<string, string> = {
   storage_cleanup_enabled: 'Limpieza de Storage: 1 borra huérfanos, 0 solo los cuenta',
   storage_cleanup_url: 'URL de la Edge Function storage-cleanup',
   ops_outbox_stale_minutes: 'Aviso de notificaciones atascadas en cola (min)',
+  schedule_reminder_minutes: 'Recordatorio de pedidos programados (min antes)',
 };
 
 export default async function Parametros() {

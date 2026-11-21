@@ -36,6 +36,7 @@ export const CRON_JOB_LABELS: Record<string, string> = {
   'dispatch-push': 'Envío de notificaciones (cada minuto)',
   'detect-bypass': 'Detección de tratos por fuera (cada 5 min)',
   'storage-cleanup': 'Limpieza de archivos huérfanos (cada hora)',
+  'schedule-reminders': 'Recordatorios de pedidos programados (cada 5 min)',
   'purge-job-tracks': 'Borrado del rastro GPS de más de 30 días (diario)',
   'purge-outbox': 'Limpieza de notificaciones de más de 30 días (diario)',
 };

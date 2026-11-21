@@ -38,7 +38,7 @@ Con un token personal válido o acceso directo, usar `scripts/deploy-production.
 | --- | --- |
 | Proyecto | Crear el proyecto en la región más cercana (São Paulo, `sa-east-1`). Plan con backups diarios. |
 | Migraciones | `bash scripts/deploy-production.sh` (vincula, `db push --dry-run`, pide confirmación y aplica las 13 migraciones). Habilita `pg_cron` y `pg_net`. |
-| Cron | Quedan programados: `purge-job-tracks` (rastro GPS a 30 días), `detect-bypass` (cada 5 min), `dispatch-push` (cada minuto) y `purge-outbox` (30 días). Verificar en Dashboard → Integrations → Cron. |
+| Cron | Quedan programados: `purge-job-tracks` (rastro GPS a 30 días), `detect-bypass` (cada 5 min), `dispatch-push` (cada minuto), `purge-outbox` (30 días), `storage-cleanup` (cada hora) y `schedule-reminders` (cada 5 min). Su estado se ve en Panel → Sistema. Verificar en Dashboard → Integrations → Cron. |
 | Edge Function | `send-push` (Expo Push). El script la despliega, guarda `PUSH_FUNCTION_SECRET` en secrets y en Vault, y fija `settings.push_function_url`. |
 | SMS | Dashboard → Authentication → Providers → Phone: Twilio (o MessageBird/Vonage) con las credenciales de `.env.production.example`. Plantilla: “Tu código de Cerquita es {{ .Code }}. No lo compartas con nadie.” **No** cargar los números de `test_otp`. |
 | Anti-abuso SMS | Dashboard → Authentication → Hooks → **Before user created** → `public.hook_before_user_created` (solo +51 9XXXXXXXX). Rate limits sugeridos: SMS 60/h, sign-in 10 por 5 min por IP, verificaciones 15 por 5 min por IP. Captcha: Turnstile u hCaptcha (Supabase no soporta reCAPTCHA v3); exige enviar `captchaToken` desde la app y el panel. |

@@ -47,7 +47,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [ ] Publicación en Google Play (producción) y App Store.
 - [x] Envío de posición en segundo plano con el pro en línea (antifraude y reparto), corregido el 19-11; falta probarlo en teléfono.
 - [ ] **(D)** Texto del uso del GPS en segundo plano en la política de privacidad (abogado).
-- [ ] Recordatorios para pedidos programados.
+- [x] Recordatorios para pedidos programados (cron cada 5 min, una vez por pedido, `schedule_reminder_minutes` antes).
 - [ ] Sentry en el panel.
 - [ ] Dominio propio para el panel y las páginas legales.
 

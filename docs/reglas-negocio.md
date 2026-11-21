@@ -23,6 +23,7 @@ Equivalencias: “orders” = `jobs` · “commission ledger” = `wallet_entrie
 
 ## 3. Pedidos
 - El cliente publica: oficio, descripción, hasta 6 fotos, precio que ofrece, cantidad de horas o días si aplica, dirección exacta y cuándo (`schedule_kind`: ahora, hoy más tarde o programado hasta 30 días con `scheduled_for`).
+- **Recordatorio de pedidos programados:** `schedule_reminder_minutes` (60) antes de la hora llega un aviso, una sola vez por pedido: con profesional asignado, al cliente y al pro; sin profesional, al cliente para que elija una oferta o espere. No se avisa un pedido publicado ya dentro de esa ventana.
 - **Tarifario sin regateo** (`trade_rate_cards` por oficio, ciudad y unidad): el pedido no puede bajar del mínimo × unidades. Ciudad y moneda se fijan al publicar (`active_city`, `currency_code`).
 - **Privacidad:** el servidor guarda la zona redondeada a 3 decimales (~100 m) y la dirección exacta aparte; nadie la ve hasta que el cliente acepta una oferta.
 - **Diagnóstico exprés:** video opcional de ≤ 15 s en el bucket privado `temp_media`; deja de poder abrirse a las 48 h y se borra.
@@ -132,6 +133,7 @@ Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `glob
 | `push_function_url` | vacío | URL de `send-push` (se fija al desplegar) |
 | `proof_review_hours` | 2 | Plazo de respuesta que la app promete al revisar una constancia; el panel marca las vencidas |
 | `no_show_grace_minutes` · `no_show_strikes` · `no_show_window_days` · `default_eta_minutes` | 15 · 3 · 30 · 60 | Profesional que no llega: tolerancia, faltas para la pausa, ventana y llegada por defecto |
+| `schedule_reminder_minutes` | 60 | Recordatorio de un pedido programado: al cliente y al pro asignado, o al cliente si aún no tiene profesional |
 | `ops_outbox_stale_minutes` | 10 | Panel → Sistema avisa si una notificación lleva más de estos minutos en cola |
 
 ## 13. Decisiones abiertas (del dueño)

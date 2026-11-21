@@ -57,8 +57,8 @@ select public.ops_health()::text as h \gset
 \set h '(\'' :h '\'::jsonb)'
 select set_eq(
   format('select c ->> ''name'' from jsonb_array_elements(%L::jsonb -> ''cron'') c', :h),
-  array['purge-job-tracks', 'detect-bypass', 'dispatch-push', 'purge-outbox', 'storage-cleanup'],
-  'lista las 5 tareas programadas'
+  array['purge-job-tracks', 'detect-bypass', 'dispatch-push', 'purge-outbox', 'storage-cleanup', 'schedule-reminders'],
+  'lista las 6 tareas programadas'
 );
 select is((select c ->> 'last_status' from jsonb_array_elements(:h -> 'cron') c where c ->> 'name' = 'dispatch-push'),
   'succeeded', 'última corrida del envío de notificaciones: bien');

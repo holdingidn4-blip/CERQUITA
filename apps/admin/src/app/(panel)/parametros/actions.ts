@@ -31,6 +31,7 @@ const INTEGER_KEYS = new Set([
   'support_reply_hours',
   'storage_cleanup_enabled',
   'ops_outbox_stale_minutes',
+  'schedule_reminder_minutes',
 ]);
 
 export async function saveParam(

@@ -403,6 +403,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -457,6 +458,7 @@ export type Database = {
           reeval_proposed_at?: string | null;
           reeval_receipt_path?: string | null;
           schedule_kind?: string;
+          schedule_reminded_at?: string | null;
           scheduled_for?: string | null;
           security_code?: string | null;
           started_at?: string | null;
@@ -510,6 +512,7 @@ export type Database = {
           reeval_proposed_at?: string | null;
           reeval_receipt_path?: string | null;
           schedule_kind?: string;
+          schedule_reminded_at?: string | null;
           scheduled_for?: string | null;
           security_code?: string | null;
           started_at?: string | null;
@@ -1612,6 +1615,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -1709,6 +1713,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -1771,6 +1776,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -1833,6 +1839,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -1895,6 +1902,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -1974,6 +1982,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -2051,6 +2060,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -2136,6 +2146,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -2364,6 +2375,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -2458,6 +2470,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
@@ -2717,6 +2730,7 @@ export type Database = {
           reeval_proposed_at: string | null;
           reeval_receipt_path: string | null;
           schedule_kind: string;
+          schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
           started_at: string | null;
