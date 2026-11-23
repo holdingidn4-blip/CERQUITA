@@ -74,7 +74,8 @@ select is((select extensions.st_x(approx_point::extensions.geometry) from public
 select pg_temp.as_user(:p);
 select is((select count(*)::int from public.jobs where id = :job_a), 1, 'pro elegible ve el pedido');
 select is(public.job_exact_address(:job_a), null, 'pro no ve la dirección antes de aceptar');
-select is(public.job_counterpart_phone(:job_a), null, 'pro no ve el teléfono antes de aceptar');
+select ok(not has_function_privilege('authenticated', 'public.job_counterpart_phone(uuid)', 'execute'),
+  'nadie puede pedir el teléfono de la otra parte (función retirada)');
 select pg_temp.as_user(:q);
 select is((select count(*)::int from public.jobs where id = :job_a), 0, 'pro fuera del radio NO ve el pedido');
 select pg_temp.as_user(:r);
@@ -114,9 +115,10 @@ update public.jobs set status = 'accepted', accepted_offer_id = (select id from 
   final_price_cents = 9000, commission_rate_bps = 1000 where id = :job_a;
 select pg_temp.as_user(:p);
 select is(public.job_exact_address(:job_a), 'Av. Larco 123, dpto 4', 'pro asignado ve la dirección');
-select is(public.job_counterpart_phone(:job_a), null, 'chat 100 % interno: ni el pro asignado ve el teléfono del cliente');
+select is((select count(*)::int from public.public_profiles(array[:a]) where to_jsonb(public_profiles) ? 'phone'), 0,
+  'chat 100 % interno: el perfil público no trae teléfono');
 select pg_temp.as_user(:a);
-select is(public.job_counterpart_phone(:job_a), null, 'ni el cliente ve el teléfono del pro');
+select is((select phone from public.profiles where id = :p), null, 'ni el cliente ve el teléfono del pro (RLS sobre profiles)');
 
 -- ───────── job_tracks: regla 5 ─────────
 select pg_temp.as_user(:p);

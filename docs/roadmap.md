@@ -28,6 +28,16 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [ ] **(D)** Validar tarifario, tarifa de visita y catálogo con profesionales de Huancayo.
 - [ ] **(D)** Términos y política de privacidad publicados; decidir “Seguro Cerquita” y “Garantía 30 días” o retirar el aviso.
 
+## Lanzamiento (F1–F8)
+- [x] F1 Seguridad con evidencia (`docs/seguridad.md`): borrar cuenta, panel sin `service_role`, permisos y advisors, panel desplegado, enlace del APK.
+- [ ] F2 Registro del profesional paso a paso y usabilidad de la app del pro.
+- [ ] F3 Cotización con desglose, aceptación con versión y cierre con fotos y comprobante.
+- [ ] F4 Reputación, niveles, lista negra con apelación y capacitaciones.
+- [ ] F5 Diseño (tokens únicos, claro/oscuro, landing).
+- [ ] F6 Push listo, SMS, Maps y Yape/Plin manual.
+- [ ] F7 Ciclo de pruebas y corrección.
+- [ ] F8 Google Play: AAB, APK de EAS, ficha, privacidad y términos, prueba cerrada.
+
 ## P1 · Primeras semanas del piloto
 - [ ] Captcha (Turnstile u hCaptcha) y límites de envío de SMS.
 - [ ] Sentry en la app (DSN) para ver fallas en los teléfonos.
