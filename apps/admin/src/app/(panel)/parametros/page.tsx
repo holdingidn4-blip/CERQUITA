@@ -40,6 +40,15 @@ const LABELS: Record<string, string> = {
   no_show_coupon_monthly_cap_cents: 'Tope mensual de cupones por faltas (céntimos)',
   coupon_valid_days: 'Vigencia del cupón (días)',
   no_show_appeal_days: 'Plazo del profesional para apelar una falta (días)',
+  rating_min_visible: 'Calificaciones mínimas para mostrar el promedio',
+  level_verified_jobs: 'Nivel Verificado: avance mínimo (trabajos)',
+  level_trusted_jobs: 'Nivel De confianza: avance mínimo (trabajos, sin quejas)',
+  level_featured_jobs: 'Nivel Destacado: avance mínimo (trabajos, sin quejas)',
+  level_featured_min_rating_x10: 'Nivel Destacado: calificación mínima × 10 (45 = 4,5)',
+  level_points_per_job: 'Puntos de capacitación que equivalen a 1 trabajo',
+  supervision_sample_pct: 'Muestreo de supervisión en oficios de riesgo (%)',
+  training_code_window_hours: 'Horas que vale el código tras el inicio de la charla',
+  training_quiz_max_attempts: 'Intentos del cuestionario de capacitación',
 };
 
 export default async function Parametros() {

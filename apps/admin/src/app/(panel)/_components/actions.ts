@@ -169,3 +169,77 @@ export async function reviewNoShowAppeal(
   revalidatePath('/apelaciones');
   return { error: null, ok: 'Apelación resuelta.' };
 }
+
+export async function blacklistPerson(
+  userId: string,
+  _p: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  await requireStaff();
+  const rawDays = String(form.get('days') ?? '').trim();
+  if (rawDays && !/^\d+$/.test(rawDays)) return { error: 'Los días deben ser un número entero.' };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('admin_blacklist_person', {
+    p_profile: userId,
+    p_reason: note(form),
+    p_days: rawDays ? Number(rawDays) : (null as unknown as number),
+  });
+  if (error) return { error: error.message };
+  revalidatePath(`/usuarios/${userId}`);
+  revalidatePath('/lista-negra');
+  return { error: null, ok: 'Agregado a la lista negra.' };
+}
+
+export async function liftBlacklist(
+  entryId: string,
+  _p: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  await requireStaff();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('admin_lift_blacklist', {
+    p_entry: entryId,
+    p_note: note(form),
+  });
+  if (error) return { error: error.message };
+  revalidatePath('/lista-negra');
+  return { error: null, ok: 'Restricción levantada.' };
+}
+
+export async function reviewBlacklistAppeal(
+  entryId: string,
+  _p: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  await requireStaff();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('review_blacklist_appeal', {
+    p_entry: entryId,
+    p_accept: form.get('decision') === 'accept',
+    p_note: note(form),
+  });
+  if (error) return { error: error.message };
+  revalidatePath('/lista-negra');
+  return { error: null, ok: 'Apelación resuelta.' };
+}
+
+export async function reviewSupervision(
+  id: string,
+  _p: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  await requireStaff();
+  const checked = (key: string) => form.get(key) === 'on';
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('review_supervision', {
+    p_supervision: id,
+    p_arrival: checked('arrival'),
+    p_treatment: checked('treatment'),
+    p_scope: checked('scope'),
+    p_safety: checked('safety'),
+    p_note: note(form),
+  });
+  if (error) return { error: error.message };
+  revalidatePath('/supervision');
+  return { error: null, ok: 'Supervisión guardada.' };
+}

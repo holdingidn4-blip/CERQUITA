@@ -37,6 +37,15 @@ const INTEGER_KEYS = new Set([
   'no_show_coupon_monthly_cap_cents',
   'coupon_valid_days',
   'no_show_appeal_days',
+  'rating_min_visible',
+  'level_verified_jobs',
+  'level_trusted_jobs',
+  'level_featured_jobs',
+  'level_featured_min_rating_x10',
+  'level_points_per_job',
+  'supervision_sample_pct',
+  'training_code_window_hours',
+  'training_quiz_max_attempts',
 ]);
 
 export async function saveParam(
@@ -55,6 +64,8 @@ export async function saveParam(
     value = Number(raw);
     if (key === 'storage_cleanup_enabled' && value > 1)
       return { error: 'Usa 1 para borrar o 0 para solo contar.', saved: false };
+    if (key === 'supervision_sample_pct' && value > 100)
+      return { error: 'Es un porcentaje: de 0 a 100.', saved: false };
     if (key === 'commission_rate_bps' && value > 10000)
       return { error: 'Máximo 10000 (100 %).', saved: false };
   }

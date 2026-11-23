@@ -18,7 +18,7 @@ import { notFound } from 'next/navigation';
 import { createClient, requireStaff } from '@/lib/supabase/server';
 
 import { ActionForm } from '../../_components/action-form';
-import { reverseEntry, setSuspension } from '../../_components/actions';
+import { blacklistPerson, reverseEntry, setSuspension } from '../../_components/actions';
 import styles from '../../panel.module.css';
 
 export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
@@ -33,6 +33,17 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
     .maybeSingle();
   // Ventana de llegadas incumplidas (settings: no_show_window_days).
   const windowDays = Number(windowRow?.value) || 30;
+  const { data: blacklist } = await supabase
+    .from('blacklist_entries')
+    .select('id, reason, until, lifted_at, appeal_status')
+    .eq('profile_id', id)
+    .is('lifted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  const nowIso = new Date().toISOString();
+  const blacklisted = (blacklist ?? []).find(
+    (b) => b.appeal_status !== 'accepted' && (!b.until || b.until > nowIso),
+  );
   const [
     { data: p },
     { data: trades },
@@ -102,6 +113,31 @@ export default async function Usuario({ params }: PageProps<'/usuarios/[id]'>) {
           </span>
         )}
       </header>
+
+      <section className={styles.section} data-testid="ficha-lista-negra">
+        <h2>Lista negra</h2>
+        <p className={styles.muted}>
+          No podrá pedir, cotizar ni registrarse otra vez (se vincula a su DNI y sus teléfonos).
+          Sigue pudiendo entrar para ver el motivo y apelar.
+        </p>
+        {blacklisted ? (
+          <p>
+            <span className={styles.badge} data-tone="danger">
+              En la lista negra: {blacklisted.reason}
+            </span>{' '}
+            <Link href="/lista-negra">Ver en Lista negra</Link>
+          </p>
+        ) : staff.staffRole === 'reviewer' ? (
+          <p className={styles.muted}>Solo soporte o un administrador puede agregar.</p>
+        ) : (
+          <ActionForm
+            action={blacklistPerson.bind(null, id)}
+            placeholder="Motivo de la lista negra"
+            fields={[{ name: 'days', placeholder: 'Días (vacío = indefinido)' }]}
+            buttons={[{ label: 'Agregar a la lista negra', tone: 'danger' }]}
+          />
+        )}
+      </section>
 
       <section className={styles.section}>
         <h2>Suspensión manual</h2>

@@ -342,3 +342,51 @@ a.navItem:hover {
 .factList dt {
   color: var(--text-secondary);
 }
+.h2 {
+  font-size: 17px;
+  margin: 20px 0 8px;
+}
+.check {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 14px;
+  min-height: 32px;
+}
+.qrGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 12px;
+}
+.qrCard {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+  background: var(--surface);
+}
+.qrCard svg {
+  width: 140px;
+  height: 140px;
+}
+.code {
+  font-family: ui-monospace, monospace;
+  font-size: 16px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px;
+  font: inherit;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
