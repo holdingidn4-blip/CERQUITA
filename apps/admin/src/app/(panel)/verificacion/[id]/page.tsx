@@ -1,4 +1,15 @@
-import { DOCUMENT_LABELS, maskPhone, observationProgress, proTradeView } from '@cerquita/shared';
+import {
+  ageOn,
+  BACKGROUND_RESULT_LABELS,
+  DOCUMENT_LABELS,
+  formatClock,
+  maskPhone,
+  observationProgress,
+  PRO_TRADE_STATUS_LABELS,
+  proTradeView,
+  RISK_HELP,
+  RISK_LABELS,
+} from '@cerquita/shared';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -57,6 +68,31 @@ export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) 
       {data.reason && <p className={styles.muted}>Motivo anterior: “{data.reason}”</p>}
 
       <section className={styles.section}>
+        <h2>Datos y oficio</h2>
+        <dl className={styles.factList}>
+          <dt>Riesgo</dt>
+          <dd>
+            {RISK_LABELS[data.risk]}: {RISK_HELP[data.risk]}
+          </dd>
+          <dt>DNI</dt>
+          <dd data-testid="dni-datos">
+            {data.identityData
+              ? `${data.identityData.dni} · nació el ${data.identityData.birthDate.split('-').reverse().join('/')} · ${ageOn(data.identityData.birthDate, new Date(data.updatedAt))} años ${ageOn(data.identityData.birthDate, new Date(data.updatedAt)) >= 18 ? '(mayor de edad ✓)' : '(MENOR DE EDAD)'}`
+              : 'Sin datos del DNI'}
+          </dd>
+          <dt>Especialidades</dt>
+          <dd>{data.specialties.join(', ') || 'Ninguna'}</dd>
+          <dt>Antecedentes</dt>
+          <dd data-testid="antecedentes-resultado">
+            {data.background
+              ? `${BACKGROUND_RESULT_LABELS[data.background.result]} (revisado)`
+              : 'Por revisar con el certificado'}
+          </dd>
+        </dl>
+        <p className={styles.muted}>Compara los datos con la foto del DNI antes de aprobar.</p>
+      </section>
+
+      <section className={styles.section}>
         <h2>Identidad</h2>
         <ul className={styles.docs}>
           {data.identity.map(({ kind, doc }) => (
@@ -89,6 +125,8 @@ export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) 
               <li key={doc.id} className={styles.doc}>
                 <span>
                   {DOCUMENT_LABELS[doc.kind]} {i + 1}
+                  {doc.description && ` · “${doc.description}”`}
+                  {doc.durationSeconds !== null && ` · ${formatClock(doc.durationSeconds)} min`}
                 </span>
                 <a
                   href={`/documentos/${doc.id}`}
@@ -103,9 +141,31 @@ export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) 
           </ul>
         )}
         <p className={styles.rule}>
-          Regla: identidad + al menos dos evidencias. Al aprobar entra “en observación” hasta{' '}
-          {data.ratingsForFull} calificaciones de 4★ o más.
+          Regla por riesgo: alto = fotos + certificado técnico; confianza = 2 referencias; habilidad
+          = 3 a 5 fotos con descripción. Todos: DNI, selfie, antecedentes, especialidad y video. Al
+          aprobar entra “en observación” hasta {data.ratingsForFull} calificaciones de 4★ o más.
         </p>
+        {data.missing.length > 0 && (
+          <p className={styles.missing}>Falta: {data.missing.join(', ')}</p>
+        )}
+      </section>
+
+      <section className={styles.section}>
+        <h2>Historial</h2>
+        <ol className={styles.timeline} data-testid="historial">
+          {data.events.map((e) => (
+            <li key={e.id}>
+              {new Date(e.at).toLocaleString('es-PE', {
+                timeZone: 'America/Lima',
+                dateStyle: 'short',
+                timeStyle: 'short',
+              })}{' '}
+              · {e.from ? `${PRO_TRADE_STATUS_LABELS[e.from]} → ` : ''}
+              {PRO_TRADE_STATUS_LABELS[e.to]} · {e.actor ?? 'sistema'}
+              {e.reason && ` · “${e.reason}”`}
+            </li>
+          ))}
+        </ol>
       </section>
 
       {pending ? (

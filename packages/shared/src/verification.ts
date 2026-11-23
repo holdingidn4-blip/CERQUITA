@@ -9,6 +9,13 @@ export const IDENTITY_KINDS = [
 ] as const satisfies readonly VerificationDocumentKind[];
 export type IdentityKind = (typeof IDENTITY_KINDS)[number];
 
+/** Fotos de identidad del paso 1 (el certificado de antecedentes va en su propio paso). */
+export const ID_PHOTO_KINDS = [
+  'dni_front',
+  'dni_back',
+  'selfie',
+] as const satisfies readonly VerificationDocumentKind[];
+
 /** Evidencia por oficio. */
 export const EVIDENCE_KINDS = [
   'work_photo',
@@ -21,7 +28,7 @@ export const DOCUMENT_LABELS: Record<VerificationDocumentKind, string> = {
   dni_front: 'DNI (frente)',
   dni_back: 'DNI (reverso)',
   selfie: 'Selfie sosteniendo tu DNI',
-  background: 'Certificado de antecedentes',
+  background: 'Certificado de antecedentes penales',
   work_photo: 'Foto de un trabajo',
   certificate: 'Certificado del oficio',
   reference: 'Referencia',
@@ -30,6 +37,7 @@ export const DOCUMENT_LABELS: Record<VerificationDocumentKind, string> = {
   driver_record: 'Récord de conductor (MTC / SAT)',
   police_record: 'Antecedentes policiales',
   criminal_record: 'Antecedentes penales',
+  verification_video: 'Video de verificación',
 };
 
 export type Tone = 'success' | 'info' | 'warning' | 'danger' | 'neutral';
@@ -67,9 +75,10 @@ export function proTradeView({
       };
     case 'submitted':
       return {
-        label: 'Enviado',
+        label: 'Recibido',
         tone: 'info',
-        description: 'Recibimos tu evidencia. Un revisor del rubro la mirará pronto.',
+        description:
+          'Recibimos tus pruebas. Un revisor las mira en menos de 24 horas y te avisamos.',
         canAddEvidence: false,
       };
     case 'in_review':
@@ -82,7 +91,7 @@ export function proTradeView({
       };
     case 'needs_info':
       return {
-        label: 'Falta información',
+        label: 'Te pedimos más pruebas',
         tone: 'warning',
         description: reason
           ? `Motivo del revisor: “${reason}”`
@@ -106,7 +115,7 @@ export function proTradeView({
       };
     case 'rejected':
       return {
-        label: 'Rechazado',
+        label: 'No aprobado',
         tone: 'danger',
         description: reason
           ? `Motivo del revisor: “${reason}”. Podrás reintentar en 30 días.`
@@ -128,19 +137,25 @@ export function observationProgress(goodRatings: number, ratingsForFull: number)
   return `${Math.min(goodRatings, ratingsForFull)} de ${ratingsForFull}`;
 }
 
+const MISSING_LABELS: Record<string, string> = {
+  identity_data: 'Tu número de DNI y fecha de nacimiento',
+  specialty: 'Qué trabajos haces (especialidad)',
+  certificate: 'Certificado técnico del oficio',
+  verification_video: 'Video de 1 a 3 minutos',
+  background: 'Certificado de antecedentes penales',
+};
+
 /** Convierte la respuesta de pro_trade_missing() en textos para el usuario. */
 export function describeMissing(
   missing: readonly string[],
-  minEvidence: number,
-  minReferences = 2,
+  minFor: (item: string) => number | undefined = () => undefined,
 ): string[] {
-  return missing.map((item) =>
-    item === 'evidence'
-      ? `Al menos ${minEvidence} pruebas de tu oficio`
-      : item === 'reference'
-        ? `Al menos ${minReferences} referencias`
-        : (DOCUMENT_LABELS[item as VerificationDocumentKind] ?? item),
-  );
+  return missing.map((item) => {
+    const n = minFor(item);
+    if (item === 'work_photo') return n ? `${n} fotos de tus trabajos` : 'Fotos de tus trabajos';
+    if (item === 'reference') return n ? `${n} referencias` : 'Referencias';
+    return MISSING_LABELS[item] ?? DOCUMENT_LABELS[item as VerificationDocumentKind] ?? item;
+  });
 }
 
 /** Ruta en el bucket privado: siempre dentro de la carpeta del profesional. */
@@ -151,7 +166,7 @@ export function verificationPath(
   extension: string,
 ): string {
   const ext = extension.replace(/^\./, '').toLowerCase();
-  if (!/^(jpg|jpeg|png|webp|pdf)$/.test(ext))
+  if (!/^(jpg|jpeg|png|webp|pdf|mp4|mov|webm)$/.test(ext))
     throw new Error(`Tipo de archivo no permitido: ${ext}`);
   return `${proId}/${kind}-${fileId}.${ext}`;
 }

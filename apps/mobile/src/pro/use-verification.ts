@@ -11,7 +11,8 @@ import { Alert, Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
-export type Trade = Pick<Tables<'trades'>, 'id' | 'slug' | 'name' | 'pro_name'>;
+export type Trade = Pick<Tables<'trades'>, 'id' | 'slug' | 'name' | 'pro_name' | 'risk_level'>;
+export type Specialty = { id: number; tradeId: number; name: string };
 export type ProTrade = {
   id: string;
   tradeId: number;
@@ -19,25 +20,44 @@ export type ProTrade = {
   reason: string | null;
   goodRatings: number;
   reviewedAt: string | null;
+  specialtyIds: number[];
+  /** Lo que falta para enviarlo, según el servidor (`pro_trade_missing`). */
+  missing: string[];
 };
 export type DocumentMeta = {
   id: string;
   kind: VerificationDocumentKind;
   proTradeId: string | null;
+  description: string | null;
+};
+
+export type VerificationSettings = {
+  minEvidence: number;
+  ratingsForFull: number;
+  skillMinPhotos: number;
+  skillMaxPhotos: number;
+  videoMinSeconds: number;
+  videoMaxSeconds: number;
+  reviewHours: number;
 };
 
 export type VerificationData = {
   userId: string;
+  identity: { dni: string; birthDate: string } | null;
   trades: Trade[];
+  specialties: Specialty[];
   proTrades: ProTrade[];
   documents: DocumentMeta[];
   identityVerified: boolean;
   radiusM: number | null;
-  minEvidence: number;
-  ratingsForFull: number;
-  /** Requisitos por oficio según su categoría (trade_requirements en el servidor). */
+  settings: VerificationSettings;
+  /** Hay certificado de antecedentes subido o un resultado vigente. */
+  hasBackground: boolean;
+  /** Requisitos por oficio según su riesgo (trade_requirements en el servidor). */
   requirements: Record<number, { requirement: string; min_count: number }[]>;
 };
+
+export const isEditable = (status: ProTradeStatus) => status === 'draft' || status === 'needs_info';
 
 const randomId = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
@@ -95,54 +115,113 @@ export function useVerification() {
     const { data: auth } = await supabase.auth.getSession();
     const userId = auth.session?.user.id;
     if (!userId) return;
-    const [trades, proTrades, documents, verification, presence, settings] = await Promise.all([
-      supabase.from('trades').select('id, slug, name, pro_name').eq('active', true).order('id'),
-      supabase
-        .from('pro_trades')
-        .select('id, trade_id, status, reason, good_ratings_count, reviewed_at')
-        .eq('pro_id', userId)
-        .order('created_at'),
-      supabase.from('verification_documents').select('id, kind, pro_trade_id').eq('pro_id', userId),
-      supabase.rpc('my_verification'),
-      supabase.from('pro_presence').select('radius_m').eq('pro_id', userId).maybeSingle(),
-      supabase.from('settings').select('key, value').eq('scope', 'global'),
-    ]);
-    const failed = [trades, proTrades, documents, verification, presence, settings].find(
-      (r) => r.error,
-    );
+    const [trades, specialties, proTrades, documents, verification, presence, settings, identity] =
+      await Promise.all([
+        supabase
+          .from('trades')
+          .select('id, slug, name, pro_name, risk_level')
+          .eq('active', true)
+          .order('id'),
+        supabase
+          .from('trade_specialties')
+          .select('id, trade_id, name')
+          .eq('active', true)
+          .order('id'),
+        supabase
+          .from('pro_trades')
+          .select(
+            'id, trade_id, status, reason, good_ratings_count, reviewed_at, pro_trade_specialties(specialty_id)',
+          )
+          .eq('pro_id', userId)
+          .order('created_at'),
+        supabase
+          .from('verification_documents')
+          .select('id, kind, pro_trade_id, description')
+          .eq('pro_id', userId),
+        supabase.rpc('my_verification'),
+        supabase.from('pro_presence').select('radius_m').eq('pro_id', userId).maybeSingle(),
+        supabase.from('settings').select('key, value').eq('scope', 'global'),
+        supabase
+          .from('pro_identity')
+          .select('dni_number, birth_date')
+          .eq('pro_id', userId)
+          .maybeSingle(),
+      ]);
+    const failed = [
+      trades,
+      specialties,
+      proTrades,
+      documents,
+      verification,
+      presence,
+      settings,
+      identity,
+    ].find((r) => r.error);
     if (failed?.error) {
-      setError('No pudimos cargar tu verificación. Revisa tu conexión.');
+      setError('No pudimos cargar tu registro. Revisa tu conexión.');
       return;
     }
+    const rows = proTrades.data ?? [];
+    const [missing, requirements] = await Promise.all([
+      Promise.all(
+        rows.map(async (t) => {
+          const { data: m } = await supabase.rpc('pro_trade_missing', { p_pro_trade: t.id });
+          return m ?? [];
+        }),
+      ),
+      Promise.all(
+        [...new Set(rows.map((t) => t.trade_id))].map(async (tradeId) => {
+          const { data: req } = await supabase.rpc('trade_requirements', { p_trade: tradeId });
+          return [tradeId, req ?? []] as const;
+        }),
+      ),
+    ]);
+    const docs = (documents.data ?? []).map((d) => ({
+      id: d.id,
+      kind: d.kind,
+      proTradeId: d.pro_trade_id,
+      description: d.description,
+    }));
+    const list = rows.map((t, i) => ({
+      id: t.id,
+      tradeId: t.trade_id,
+      status: t.status,
+      reason: t.reason,
+      goodRatings: t.good_ratings_count,
+      reviewedAt: t.reviewed_at,
+      specialtyIds: (t.pro_trade_specialties ?? []).map((s) => s.specialty_id),
+      missing: missing[i] ?? [],
+    }));
+    const s = settings.data ?? [];
     setError(null);
     setData({
       userId,
+      identity: identity.data
+        ? { dni: identity.data.dni_number, birthDate: identity.data.birth_date }
+        : null,
       trades: trades.data ?? [],
-      proTrades: (proTrades.data ?? []).map((t) => ({
-        id: t.id,
-        tradeId: t.trade_id,
-        status: t.status,
-        reason: t.reason,
-        goodRatings: t.good_ratings_count,
-        reviewedAt: t.reviewed_at,
+      specialties: (specialties.data ?? []).map((sp) => ({
+        id: sp.id,
+        tradeId: sp.trade_id,
+        name: sp.name,
       })),
-      documents: (documents.data ?? []).map((d) => ({
-        id: d.id,
-        kind: d.kind,
-        proTradeId: d.pro_trade_id,
-      })),
+      proTrades: list,
+      documents: docs,
       identityVerified: verification.data?.[0]?.identity_verified ?? false,
       radiusM: presence.data?.radius_m ?? null,
-      minEvidence: settingInt(settings.data ?? [], 'min_trade_evidence', 2),
-      ratingsForFull: settingInt(settings.data ?? [], 'full_approval_ratings', 3),
-      requirements: Object.fromEntries(
-        await Promise.all(
-          [...new Set((proTrades.data ?? []).map((t) => t.trade_id))].map(async (tradeId) => {
-            const { data: req } = await supabase.rpc('trade_requirements', { p_trade: tradeId });
-            return [tradeId, req ?? []] as const;
-          }),
-        ),
-      ),
+      settings: {
+        minEvidence: settingInt(s, 'min_trade_evidence', 2),
+        ratingsForFull: settingInt(s, 'full_approval_ratings', 3),
+        skillMinPhotos: settingInt(s, 'skill_min_photos', 3),
+        skillMaxPhotos: settingInt(s, 'skill_max_photos', 5),
+        videoMinSeconds: settingInt(s, 'verification_video_min_seconds', 60),
+        videoMaxSeconds: settingInt(s, 'verification_video_max_seconds', 180),
+        reviewHours: settingInt(s, 'review_alert_hours', 24),
+      },
+      hasBackground:
+        docs.some((d) => d.kind === 'background' && d.proTradeId === null) ||
+        (list.length > 0 && list.every((t) => !t.missing.includes('background'))),
+      requirements: Object.fromEntries(requirements),
     });
   }, []);
 
@@ -151,6 +230,32 @@ export function useVerification() {
     useCallback(() => {
       load();
     }, [load]),
+  );
+
+  /** Guarda el nombre (como en el DNI). */
+  const saveName = useCallback(
+    async (fullName: string): Promise<string | null> => {
+      if (!data) return null;
+      const { error: saveError } = await supabase
+        .from('profiles')
+        .update({ full_name: fullName.trim() })
+        .eq('id', data.userId);
+      return saveError ? 'No pudimos guardar tu nombre. Intenta de nuevo.' : null;
+    },
+    [data],
+  );
+
+  /** Número de DNI y fecha de nacimiento (el servidor valida que sea mayor de 18). */
+  const saveIdentity = useCallback(
+    async (dni: string, birthDate: string): Promise<string | null> => {
+      const { error: saveError } = await supabase.rpc('save_pro_identity', {
+        p_dni: dni,
+        p_birth_date: birthDate,
+      });
+      await load();
+      return saveError ? saveError.message : null;
+    },
+    [load],
   );
 
   /** Marca o desmarca un oficio. Solo los borradores se pueden quitar. */
@@ -169,48 +274,113 @@ export function useVerification() {
     [data, load],
   );
 
-  /** Sube una imagen al bucket privado y registra su metadato. */
-  const upload = useCallback(
-    async (kind: VerificationDocumentKind, proTradeId: string | null = null) => {
-      if (!data) return;
-      const asset = await pickImage();
-      if (!asset) return;
-      const key = proTradeId ?? kind;
-      setUploading(key);
-      setError(null);
-      try {
-        const path = verificationPath(data.userId, kind, randomId(), extensionOf(asset));
-        const body = await (await fetch(asset.uri)).arrayBuffer();
-        const contentType = asset.mimeType ?? 'image/jpeg';
-        const { error: storageError } = await supabase.storage
-          .from('verification')
-          .upload(path, body, { contentType, upsert: false });
-        if (storageError) throw storageError;
-        const { error: rowError } = await supabase
-          .from('verification_documents')
-          .insert({ pro_id: data.userId, pro_trade_id: proTradeId, kind, storage_path: path });
-        if (rowError) throw rowError;
-        await load();
-      } catch {
-        setError('No pudimos subir la foto. Prueba con otra imagen o revisa tu conexión.');
-      } finally {
-        setUploading(null);
-      }
-    },
-    [data, load],
-  );
-
-  /** Envía un oficio a revisión. Devuelve el mensaje de error del servidor, si hubo. */
-  const submit = useCallback(
-    async (proTradeId: string): Promise<string | null> => {
-      const { error: submitError } = await supabase.rpc('submit_pro_trade', {
+  /** Especialidades de un oficio (catálogo cerrado). */
+  const setSpecialties = useCallback(
+    async (proTradeId: string, ids: number[]) => {
+      const { error: saveError } = await supabase.rpc('set_pro_trade_specialties', {
         p_pro_trade: proTradeId,
+        p_specialties: ids,
       });
+      if (saveError) setError(saveError.message);
       await load();
-      return submitError ? submitError.message : null;
     },
     [load],
   );
+
+  /** Sube un archivo al bucket privado y registra su metadato. */
+  const store = useCallback(
+    async (
+      file: { uri: string; mimeType: string; extension: string },
+      kind: VerificationDocumentKind,
+      proTradeId: string | null,
+      extra: { description?: string; durationSeconds?: number } = {},
+    ): Promise<string | null> => {
+      if (!data) return null;
+      const path = verificationPath(data.userId, kind, randomId(), file.extension);
+      const body = await (await fetch(file.uri)).arrayBuffer();
+      const { error: storageError } = await supabase.storage
+        .from('verification')
+        .upload(path, body, { contentType: file.mimeType, upsert: false });
+      if (storageError)
+        return 'No pudimos subir el archivo. Revisa tu conexión e intenta de nuevo.';
+      const { error: rowError } = await supabase.from('verification_documents').insert({
+        pro_id: data.userId,
+        pro_trade_id: proTradeId,
+        kind,
+        storage_path: path,
+        description: extra.description ?? null,
+        duration_seconds: extra.durationSeconds ?? null,
+      });
+      if (rowError) {
+        await supabase.storage.from('verification').remove([path]);
+        return rowError.message;
+      }
+      return null;
+    },
+    [data],
+  );
+
+  /** Pide una foto (cámara o galería) y la sube. */
+  const upload = useCallback(
+    async (
+      kind: VerificationDocumentKind,
+      proTradeId: string | null = null,
+      description?: string,
+    ) => {
+      if (!data) return;
+      const asset = await pickImage();
+      if (!asset) return;
+      setUploading(proTradeId ? `${proTradeId}:${kind}` : kind);
+      setError(null);
+      const failure = await store(
+        { uri: asset.uri, mimeType: asset.mimeType ?? 'image/jpeg', extension: extensionOf(asset) },
+        kind,
+        proTradeId,
+        { description },
+      );
+      if (failure) setError(failure);
+      await load();
+      setUploading(null);
+    },
+    [data, load, store],
+  );
+
+  /** Sube el video de verificación grabado en la app. */
+  const uploadVideo = useCallback(
+    async (
+      proTradeId: string,
+      video: { uri: string; mimeType: string; extension: string; durationSeconds: number },
+    ) => {
+      setUploading(`${proTradeId}:verification_video`);
+      setError(null);
+      const failure = await store(video, 'verification_video', proTradeId, {
+        durationSeconds: Math.round(video.durationSeconds),
+      });
+      if (failure) setError(failure);
+      await load();
+      setUploading(null);
+      return failure;
+    },
+    [load, store],
+  );
+
+  /** Envía a revisión los oficios completos. Devuelve el error del servidor, si hubo. */
+  const submitReady = useCallback(async (): Promise<string | null> => {
+    if (!data) return null;
+    for (const trade of data.proTrades.filter(
+      (t) => isEditable(t.status) && t.missing.length === 0,
+    )) {
+      const { error: submitError } = await supabase.rpc('submit_pro_trade', {
+        p_pro_trade: trade.id,
+      });
+      if (submitError) {
+        await load();
+        return submitError.message;
+      }
+    }
+    await load();
+    return null;
+  }, [data, load]);
 
   const setRadius = useCallback(
     async (radiusM: number) => {
@@ -228,5 +398,19 @@ export function useVerification() {
     [data, load],
   );
 
-  return { data, error, setError, uploading, load, toggleTrade, upload, submit, setRadius };
+  return {
+    data,
+    error,
+    setError,
+    uploading,
+    load,
+    saveName,
+    saveIdentity,
+    toggleTrade,
+    setSpecialties,
+    upload,
+    uploadVideo,
+    submitReady,
+    setRadius,
+  };
 }

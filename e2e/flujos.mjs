@@ -130,61 +130,118 @@ try {
   await client.waitForSelector('text=¿Qué necesitas hoy?');
   ok('la sesión persiste al recargar');
 
-  // ─────────────── Fase 4 · Registro del profesional ───────────────
+  // ─────────────── Fase 4 · Registro del profesional (asistente de 6 pasos) ───────────────
   const pro = await phonePage();
+  const until = async (query, expected) => {
+    for (let i = 0; i < 100; i++) {
+      if (sql(query) === expected) return;
+      await pro.waitForTimeout(100);
+    }
+    throw new Error(`Esperaba ${expected} en: ${query} (hay ${sql(query)})`);
+  };
+  const next = (label = 'Seguir') => pro.getByRole('button', { name: label, exact: true }).click();
   await mobileLogin(pro, '900000003', 'Ofrezco mis servicios');
   await pro.waitForURL('**/registro');
-  await pro.waitForSelector('text=Paso 1 de 3');
-  ok('pro nuevo empieza el registro en el paso 1');
-  await pro.fill('input[autocomplete=name]', 'Luis Quispe');
-  await pro.click('text=Continuar');
-  await pro.waitForSelector('text=Paso 2 de 3 · Verificación');
-  await pro.click('[role=checkbox]:has-text("Gasfitero")');
-  await pro.waitForSelector('text=Prueba de tu oficio');
-  ok('elige el oficio Gasfitero');
-  await pro.click('text=Continuar');
-  await pro.waitForSelector('text=Te falta:');
-  ok('no deja continuar sin documentos');
-
-  await uploadPhoto(pro, 'Subir DNI (frente)', 'dni_front.jpg');
-  await pro.waitForSelector('[aria-label="Subir DNI (frente)"]', { state: 'detached' });
-  await uploadPhoto(pro, 'Subir DNI (reverso)', 'dni_back.jpg');
-  await pro.waitForSelector('[aria-label="Subir DNI (reverso)"]', { state: 'detached' });
-  await uploadPhoto(pro, 'Subir Selfie sosteniendo tu DNI', 'selfie.jpg');
-  await pro.waitForSelector('[aria-label="Subir Selfie sosteniendo tu DNI"]', {
-    state: 'detached',
-  });
-  await uploadPhoto(pro, 'Subir Certificado de antecedentes', 'antecedentes.jpg');
-  await pro.waitForSelector('[aria-label="Subir Certificado de antecedentes"]', {
-    state: 'detached',
-  });
-  ok('sube DNI, selfie y antecedentes al bucket privado');
-  await uploadPhoto(pro, 'Subir Gasfitero', 'trabajo1.jpg');
-  await pro.waitForSelector('text=1 de 2');
-  await uploadPhoto(pro, 'Subir Gasfitero', 'trabajo2.jpg');
-  await pro.waitForSelector('text=2 de 2');
-  ok('sube dos pruebas del oficio');
+  await pro.waitForSelector('text=Paso 1 de 6 · Tus datos y DNI');
+  ok('pro nuevo empieza el registro en el paso 1 de 6');
+  await pro.click('text=¿Por qué te pedimos esto?');
+  await pro.waitForSelector('text=Tu DNI no se muestra a nadie');
+  ok('cada paso explica por qué pide los datos');
+  await pro.fill('[aria-label="Nombre y apellido"]', 'Luis Quispe');
+  await pro.fill('[aria-label="Número de DNI"]', '45678901');
+  await pro.fill('[aria-label="Día de nacimiento"]', '01');
+  await pro.fill('[aria-label="Mes de nacimiento"]', '01');
+  await pro.fill('[aria-label="Año de nacimiento"]', String(new Date().getFullYear() - 17));
+  await next('Guardar y seguir');
+  await pro.waitForSelector('text=Debes ser mayor de 18 años para ofrecer servicios en Cerquita');
+  ok('no deja registrarse a un menor de 18 (lo valida el servidor)');
+  await pro.fill('[aria-label="Año de nacimiento"]', '1990');
+  await next('Guardar y seguir');
+  await pro.waitForSelector('text=Falta tomar las fotos de tu DNI y tu selfie');
   const proId = sql("select id from public.profiles where phone = '51900000003'");
   check(
     sql(
-      `select count(*) from storage.objects where bucket_id = 'verification' and name like '${proId}/%'`,
-    ) === '6',
-    'los 6 archivos están en storage dentro de su carpeta',
+      `select dni_number || '|' || birth_date from public.pro_identity where pro_id = '${proId}'`,
+    ) === '45678901|1990-01-01',
+    'guarda DNI y fecha de nacimiento',
   );
-  await pro.click('[role=radio]:has-text("hasta 5 km")');
-  for (
-    let i = 0;
-    i < 50 &&
-    sql(`select coalesce(radius_m, 0) from public.pro_presence where pro_id = '${proId}'`) !==
-      '5000';
-    i++
-  ) {
-    await pro.waitForTimeout(100);
-  }
-  await pro.click('text=Continuar');
+  const docs = (kind, extra = '') =>
+    `select count(*) from public.verification_documents where pro_id = '${proId}' and kind = '${kind}'${extra}`;
+  await uploadPhoto(pro, '', 'dni_front.jpg', '[aria-label="Tomar foto: DNI (frente)"]');
+  await until(docs('dni_front'), '1');
+  await uploadPhoto(pro, '', 'dni_back.jpg', '[aria-label="Tomar foto: DNI (reverso)"]');
+  await until(docs('dni_back'), '1');
+  await uploadPhoto(pro, '', 'selfie.jpg', '[aria-label="Tomar foto: Selfie sosteniendo tu DNI"]');
+  await until(docs('selfie'), '1');
+  await next('Guardar y seguir');
+  await pro.waitForSelector('text=Paso 2 de 6 · Tus oficios');
+  ok('sube DNI y selfie y pasa a elegir oficios');
+
+  await pro.click('[role=checkbox][aria-label="Gasfitero"]');
+  await pro.waitForSelector('text=¿Qué trabajos haces?');
+  await next();
+  await pro.waitForSelector('text=Marca al menos un trabajo que haces en cada oficio.');
+  ok('pide elegir al menos una especialidad');
+  await pro.click('[role=checkbox]:has-text("Agua y desagüe")');
+  await until(
+    `select count(*) from public.pro_trade_specialties s join public.pro_trades p on p.id = s.pro_trade_id where p.pro_id = '${proId}'`,
+    '1',
+  );
+  await next();
+  await pro.waitForSelector('text=Paso 3 de 6 · Pruebas de tu trabajo');
+  ok('elige Gasfitero (riesgo alto) y su especialidad');
+
+  const photoButton = '[aria-label="Tomar o elegir foto: Fotos de tus trabajos"]';
+  await pro.click('text=Ver cómo tomar una buena foto');
+  await pro.waitForSelector('text=Así no');
+  ok('muestra ejemplos de foto buena y mala');
+  await uploadPhoto(pro, '', 'trabajo1.jpg', photoButton);
+  await until(docs('work_photo'), '1');
+  await pro.reload();
+  await pro.waitForSelector('text=Paso 3 de 6 · Pruebas de tu trabajo');
+  ok('al volver retoma en el paso donde se quedó (autoguardado)');
+  await uploadPhoto(pro, '', 'trabajo2.jpg', photoButton);
+  await until(docs('work_photo'), '2');
+  await uploadPhoto(
+    pro,
+    '',
+    'trabajo1.jpg',
+    '[aria-label="Tomar o elegir foto: Certificado técnico"]',
+  );
+  await until(docs('certificate'), '1');
+  await pro.click('[aria-label="Grabar video: Video de 1 a 3 minutos"]');
+  await pro.waitForSelector('text=Video de verificación');
+  await uploadPhoto(pro, '', 'video.webm', 'text=Elegir video');
+  await until(docs('verification_video', ' and duration_seconds between 60 and 70'), '1');
+  ok('sube 2 fotos, certificado técnico y video de verificación (65 s)');
+  await next();
+  await pro.waitForSelector('text=Paso 4 de 6 · Antecedentes');
+  await uploadPhoto(
+    pro,
+    '',
+    'antecedentes.jpg',
+    '[aria-label="Tomar o elegir foto: Certificado de antecedentes penales"]',
+  );
+  await until(docs('background'), '1');
+  await next();
+  await pro.waitForSelector('text=Paso 5 de 6 · Zona de trabajo');
+  await pro.click('[role=radio]:has-text("Hasta 5 km")');
+  await until(
+    `select coalesce(radius_m, 0) from public.pro_presence where pro_id = '${proId}'`,
+    '5000',
+  );
+  await next();
+  await pro.waitForSelector('text=Paso 6 de 6 · Revisa y envía');
+  check(
+    sql(
+      `select count(*) from storage.objects where bucket_id = 'verification' and name like '${proId}/%'`,
+    ) === '8',
+    'los 8 archivos están en storage dentro de su carpeta',
+  );
+  await next('Enviar a revisión');
   await pro.waitForURL('**/oficios');
-  await pro.waitForSelector('text=Enviado');
-  ok('envía a revisión y ve "Enviado" en Mis oficios');
+  await pro.waitForSelector('text=En revisión · te avisamos en 24 h');
+  ok('envía a revisión y ve "En revisión · te avisamos en 24 h"');
   check(
     sql(`select radius_m from public.pro_presence where pro_id = '${proId}'`) === '5000',
     'guarda la zona de trabajo (5 km)',
@@ -192,9 +249,17 @@ try {
 
   // ─────────────── Fase 4 · Revisión en el panel ───────────────
   await admin.goto(`${ADMIN}/verificacion`, { waitUntil: 'networkidle' });
+  check(
+    await admin.isVisible('li:has-text("Luis Quispe · Gasfitero") >> text=Riesgo alto'),
+    'la cola muestra el riesgo del oficio',
+  );
   await admin.click('text=Luis Quispe · Gasfitero');
   await admin.waitForSelector('text=En revisión');
   ok('al abrir el caso pasa a "En revisión"');
+  check(
+    /45678901.*mayor de edad ✓/.test(await admin.locator('[data-testid=dni-datos]').innerText()),
+    'soporte ve DNI, edad y que es mayor de edad',
+  );
   await pro.reload();
   await pro.waitForSelector('text=Un revisor del rubro está mirando');
   ok('el pro ve "En revisión" en su app');
@@ -225,32 +290,58 @@ try {
   );
   check(unsigned.status() >= 400, 'el bucket no es público');
 
-  await admin.click('button:has-text("Pedir más datos")');
+  await admin.click('button:has-text("Pedir más evidencia")');
   await admin.waitForSelector('text=Escribe el motivo');
   ok('pedir datos sin motivo muestra error');
   await admin.fill('textarea[name=reason]', 'Sube una foto tuya en el lugar del trabajo.');
-  await admin.click('button:has-text("Pedir más datos")');
-  await admin.waitForSelector('text=Pedimos más datos al profesional');
-  ok('pide más datos con motivo');
+  await admin.click('button:has-text("Pedir más evidencia")');
+  await admin.waitForSelector('text=Pedimos más evidencia al profesional');
+  ok('pide más evidencia con motivo');
 
   await pro.reload();
-  await pro.waitForSelector('text=Falta información');
+  await pro.waitForSelector('text=Te pedimos más pruebas');
   check(
     await pro.isVisible('text=Sube una foto tuya en el lugar del trabajo.'),
     'el pro ve el motivo del revisor',
   );
-  await uploadPhoto(pro, '', 'trabajo1.jpg', 'text=Subir más evidencia');
-  await pro.waitForSelector('text=Evidencia: 3 de 2');
-  await pro.click('text=Enviar a revisión');
-  await pro.waitForSelector('text=Enviado');
+  await pro.click('text=Revisar y enviar');
+  await pro.waitForSelector('text=Paso 6 de 6 · Revisa y envía');
+  await pro.click('[aria-label^="Pruebas: Gasfitero"]');
+  await pro.waitForSelector('text=El revisor pide: “Sube una foto tuya en el lugar del trabajo.”');
+  await uploadPhoto(pro, '', 'trabajo1.jpg', photoButton);
+  await until(docs('work_photo'), '3');
+  await next();
+  await pro.waitForSelector('text=Paso 4 de 6 · Antecedentes');
+  await next();
+  await next();
+  await pro.waitForSelector('text=Paso 6 de 6 · Revisa y envía');
+  await next('Enviar a revisión');
+  await pro.waitForSelector('text=En revisión · te avisamos en 24 h');
   ok('sube más evidencia y reenvía');
 
   await admin.goto(`${ADMIN}/verificacion`, { waitUntil: 'networkidle' });
   check(await admin.isVisible('text=Reenviado'), 'la cola marca el caso como reenviado');
   await admin.click('text=Luis Quispe · Gasfitero');
   await admin.click('button:has-text("Aprobar (en observación)")');
+  await admin.waitForSelector('text=marca el resultado de antecedentes');
+  ok('aprobar exige el resultado de antecedentes');
+  await admin.check('[aria-label="Antecedentes: Apto"]');
+  await admin.click('button:has-text("Aprobar (en observación)")');
   await admin.waitForSelector('text=Oficio aprobado: queda en observación.');
-  ok('la revisora aprueba');
+  ok('la revisora aprueba con antecedentes "apto"');
+  check(
+    sql(docs('background')) === '0' &&
+      sql(
+        `select result from public.pro_background_checks b join public.pro_trades p on p.id = b.pro_trade_id where p.pro_id = '${proId}'`,
+      ) === 'apto',
+    'se guarda solo el resultado y el certificado se borra',
+  );
+  check(
+    sql(
+      `select count(*) from public.pro_trade_events e join public.pro_trades p on p.id = e.pro_trade_id where p.pro_id = '${proId}' and e.actor_id is not null`,
+    ) === '7',
+    'historial: creado, enviado, en revisión, más evidencia, reenviado, en revisión y aprobado, con responsable',
+  );
   if (process.env.SCREENSHOT_DIR) {
     await admin.screenshot({ path: `${process.env.SCREENSHOT_DIR}/admin-cola.png` });
   }
@@ -990,7 +1081,7 @@ try {
   await boss.click('[data-testid=resultado]:has-text("Luis Quispe")');
   await boss.waitForURL(`**/usuarios/${luisId}`);
   check(
-    (await boss.isVisible('text=/Gasfitero \\(En observación\\)/')) &&
+    (await boss.isVisible('text=/Gasfitero \\(Aprobada · en observación\\)/')) &&
       (await boss.isVisible(
         '[data-testid=llegadas-incumplidas]:has-text("Llegadas incumplidas en 30 días: 1")',
       )) &&

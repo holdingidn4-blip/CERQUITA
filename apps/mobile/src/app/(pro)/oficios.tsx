@@ -1,8 +1,8 @@
 import {
   describeMissing,
-  IDENTITY_KINDS,
   observationProgress,
   proTradeView,
+  stepOfRequirement,
   type Tone,
 } from '@cerquita/shared';
 import { Link, router } from 'expo-router';
@@ -19,7 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
-import { useVerification, type ProTrade } from '@/pro/use-verification';
+import { isEditable, useVerification } from '@/pro/use-verification';
 import { colors, fonts, radii } from '@/theme';
 
 const TONES: Record<Tone, { bg: string; fg: string }> = {
@@ -30,10 +30,10 @@ const TONES: Record<Tone, { bg: string; fg: string }> = {
   neutral: { bg: '#ECE8DD', fg: '#2F3B36' },
 };
 
+/** Estado de la verificación: qué se aprobó por oficio, qué está en revisión y qué falta. */
 export default function Oficios() {
-  const { data, error, setError, uploading, upload, submit, load } = useVerification();
+  const { data, error, load } = useVerification();
   const [refreshing, setRefreshing] = useState(false);
-  const [sending, setSending] = useState<string | null>(null);
 
   if (!data) {
     return (
@@ -47,17 +47,19 @@ export default function Oficios() {
     );
   }
 
-  const identityMissing = IDENTITY_KINDS.filter(
-    (k) => !data.documents.some((d) => d.kind === k && d.proTradeId === null),
+  const tradeName = (tradeId: number) => data.trades.find((t) => t.id === tradeId)?.pro_name ?? '';
+  const minOf = (tradeId: number, item: string) =>
+    data.requirements[tradeId]?.find((r) => r.requirement === item)?.min_count;
+  const inReview = data.proTrades.filter(
+    (t) => t.status === 'submitted' || t.status === 'in_review',
   );
-  const evidence = (id: string) => data.documents.filter((d) => d.proTradeId === id).length;
-
-  async function resend(trade: ProTrade) {
-    setSending(trade.id);
-    const failure = await submit(trade.id);
-    setSending(null);
-    setError(failure);
-  }
+  const approved = data.proTrades.filter(
+    (t) => t.status === 'approved_observation' || t.status === 'approved_full',
+  );
+  const pending = data.proTrades.filter((t) => isEditable(t.status));
+  const identityPending = pending.flatMap((t) =>
+    t.missing.filter((m) => stepOfRequirement(m) === 'datos' || m === 'background'),
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -76,12 +78,30 @@ export default function Oficios() {
       >
         <View style={styles.titleRow}>
           <Text style={styles.title} accessibilityRole="header">
-            Mis oficios
+            Tu verificación
           </Text>
           <Link href="/ajustes" style={styles.link}>
             Cuenta
           </Link>
         </View>
+
+        {inReview.length > 0 && (
+          <View style={[styles.banner, { backgroundColor: TONES.info.bg }]} testID="aviso-revision">
+            <Text style={styles.bannerTitle}>
+              En revisión · te avisamos en {data.settings.reviewHours} h
+            </Text>
+            <Text style={styles.body}>
+              {inReview.map((t) => tradeName(t.tradeId)).join(', ')}. No necesitas hacer nada más
+              por ahora.
+            </Text>
+          </View>
+        )}
+        {approved.length > 0 && (
+          <View style={[styles.banner, { backgroundColor: TONES.success.bg }]}>
+            <Text style={styles.bannerTitle}>Ya recibes pedidos de:</Text>
+            <Text style={styles.body}>{approved.map((t) => tradeName(t.tradeId)).join(', ')}</Text>
+          </View>
+        )}
 
         <View style={[styles.card, styles.identity]}>
           <View
@@ -97,33 +117,30 @@ export default function Oficios() {
             <Text style={styles.secondary}>
               {data.identityVerified
                 ? 'DNI, selfie y antecedentes revisados'
-                : identityMissing.length > 0
-                  ? `Falta: ${describeMissing(identityMissing, data.minEvidence).join(', ')}`
+                : identityPending.length > 0
+                  ? `Falta: ${describeMissing([...new Set(identityPending)]).join(', ')}`
                   : 'La revisamos junto con tu primer oficio'}
             </Text>
           </View>
         </View>
-
-        <Text style={styles.secondary}>Cada oficio se verifica por separado</Text>
 
         {data.proTrades.length === 0 && (
           <Text style={styles.secondary}>Aún no agregas oficios.</Text>
         )}
 
         {data.proTrades.map((trade) => {
-          const name = data.trades.find((t) => t.id === trade.tradeId)?.pro_name ?? '';
           const view = proTradeView({
             status: trade.status,
-            tradeName: data.trades.find((t) => t.id === trade.tradeId)?.name ?? name,
-            ratingsForFull: data.ratingsForFull,
+            tradeName: data.trades.find((t) => t.id === trade.tradeId)?.name ?? '',
+            ratingsForFull: data.settings.ratingsForFull,
             reason: trade.reason,
           });
           const tone = TONES[view.tone];
-          const count = evidence(trade.id);
+          const editable = isEditable(trade.status);
           return (
             <View key={trade.id} style={[styles.card, styles.trade]} testID={`oficio-${trade.id}`}>
               <View style={styles.tradeHeader}>
-                <Text style={styles.cardTitle}>{name}</Text>
+                <Text style={styles.cardTitle}>{tradeName(trade.tradeId)}</Text>
                 <Text style={[styles.badge, { backgroundColor: tone.bg, color: tone.fg }]}>
                   {view.label}
                 </Text>
@@ -131,26 +148,21 @@ export default function Oficios() {
               <Text style={styles.body}>{view.description}</Text>
               {trade.status === 'approved_observation' && (
                 <Text style={styles.progress}>
-                  {observationProgress(trade.goodRatings, data.ratingsForFull)}
+                  Calificaciones buenas:{' '}
+                  {observationProgress(trade.goodRatings, data.settings.ratingsForFull)}
                 </Text>
               )}
-              {view.canAddEvidence && (
-                <View style={styles.actions}>
-                  <Text style={styles.secondary}>
-                    Evidencia: {count} de {data.minEvidence}
-                  </Text>
-                  <Button
-                    variant="outline"
-                    label="Subir más evidencia"
-                    loading={uploading === trade.id}
-                    onPress={() => upload('work_photo', trade.id)}
-                  />
-                  <Button
-                    label="Enviar a revisión"
-                    loading={sending === trade.id}
-                    onPress={() => resend(trade)}
-                  />
-                </View>
+              {editable && trade.missing.length > 0 && (
+                <Text style={styles.secondary}>
+                  Falta:{' '}
+                  {describeMissing(trade.missing, (item) => minOf(trade.tradeId, item)).join(', ')}
+                </Text>
+              )}
+              {editable && (
+                <Button
+                  label={trade.missing.length > 0 ? 'Completar lo que falta' : 'Revisar y enviar'}
+                  onPress={() => router.push('/registro')}
+                />
               )}
             </View>
           );
@@ -171,7 +183,7 @@ export default function Oficios() {
         </Pressable>
         <View style={styles.note}>
           <Text style={styles.noteText}>
-            Solo ves pedidos de oficios aprobados, mientras estés en línea y dentro de tu radio.
+            Te llegan pedidos de los oficios aprobados mientras estés en línea y dentro de tu zona.
           </Text>
         </View>
         <Link href="/solicitudes" style={styles.link}>
@@ -223,7 +235,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   progress: { fontFamily: fonts.display, fontSize: 14, color: colors.primary },
-  actions: { gap: 8, marginTop: 4 },
+  banner: { borderRadius: radii.md, padding: 14, gap: 4 },
+  bannerTitle: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
   addButton: {
     height: 52,
     borderRadius: 14,

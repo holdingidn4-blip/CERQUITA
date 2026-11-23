@@ -12,6 +12,7 @@
     "@supabase/supabase-js": "^2.119.0",
     "expo": "~58.0.23",
     "expo-battery": "~58.0.3",
+    "expo-camera": "~58.0.14",
     "expo-constants": "~58.0.15",
     "expo-device": "~58.0.5",
     "expo-font": "~58.0.11",
@@ -56,7 +57,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "echo 'sin pruebas a\u00fan en mobile'",
+    "test": "echo 'sin pruebas aún en mobile'",
     "doctor": "expo-doctor",
     "dev": "expo start"
   },

@@ -40,12 +40,12 @@ export const PRO_TRADE_STATUSES = [
 export type ProTradeStatus = (typeof PRO_TRADE_STATUSES)[number];
 export const PRO_TRADE_STATUS_LABELS: Record<ProTradeStatus, string> = {
   draft: 'Borrador',
-  submitted: 'Enviado',
+  submitted: 'Recibida',
   in_review: 'En revisión',
-  needs_info: 'Falta información',
-  approved_observation: 'En observación',
-  approved_full: 'Aprobado',
-  rejected: 'Rechazado',
+  needs_info: 'Pide más evidencia',
+  approved_observation: 'Aprobada · en observación',
+  approved_full: 'Aprobada',
+  rejected: 'Rechazada',
   suspended: 'Suspendido',
 };
 
@@ -103,6 +103,7 @@ export const VERIFICATION_DOCUMENT_KINDS = [
   'driver_record', // récord de conductor MTC / papeletas SAT
   'police_record', // antecedentes policiales
   'criminal_record', // antecedentes penales
+  'verification_video', // video de 1 a 3 min grabado en la app (F2)
 ] as const;
 export type VerificationDocumentKind = (typeof VERIFICATION_DOCUMENT_KINDS)[number];
 

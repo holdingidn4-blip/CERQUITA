@@ -1,11 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { PRO_TRADE_STATUSES } from './domain';
-import {
-  describeMissing,
-  observationProgress,
-  proTradeView,
-  verificationPath,
-} from './verification';
+import { observationProgress, proTradeView, verificationPath } from './verification';
 
 const base = { tradeName: 'Gasfitería', ratingsForFull: 3, reason: null };
 
@@ -22,7 +17,7 @@ describe('proTradeView', () => {
     );
   });
 
-  it('Falta información muestra el motivo y permite subir más', () => {
+  it('Más pruebas muestra el motivo y permite subir más', () => {
     const view = proTradeView({ ...base, status: 'needs_info', reason: 'Foto con fecha' });
     expect(view.description).toBe('Motivo del revisor: “Foto con fecha”');
     expect(view.canAddEvidence).toBe(true);
@@ -40,16 +35,6 @@ describe('observationProgress', () => {
   it('cuenta hasta el máximo', () => {
     expect(observationProgress(1, 3)).toBe('1 de 3');
     expect(observationProgress(5, 3)).toBe('3 de 3');
-  });
-});
-
-describe('describeMissing', () => {
-  it('traduce los faltantes del servidor', () => {
-    expect(describeMissing(['dni_front', 'selfie', 'evidence'], 2)).toEqual([
-      'DNI (frente)',
-      'Selfie sosteniendo tu DNI',
-      'Al menos 2 pruebas de tu oficio',
-    ]);
   });
 });
 
