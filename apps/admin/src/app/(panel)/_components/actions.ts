@@ -152,3 +152,20 @@ export async function addCatalogItem(_p: ActionState, form: FormData): Promise<A
   revalidatePath('/tarifario');
   return { error: null, ok: 'Material agregado.' };
 }
+
+export async function reviewNoShowAppeal(
+  id: string,
+  _p: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  await requireStaff();
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('review_no_show_appeal', {
+    p_no_show: id,
+    p_accept: form.get('decision') === 'accept',
+    p_note: note(form),
+  });
+  if (error) return { error: error.message };
+  revalidatePath('/apelaciones');
+  return { error: null, ok: 'Apelación resuelta.' };
+}

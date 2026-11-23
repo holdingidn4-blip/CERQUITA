@@ -31,6 +31,10 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
     .from('user_reports')
     .select('id', { count: 'exact', head: true })
     .eq('status', 'open');
+  const { count: appeals } = await supabase
+    .from('pro_no_shows')
+    .select('id', { count: 'exact', head: true })
+    .eq('appeal_status', 'pending');
   const { data: health } = await supabase.rpc('ops_health');
   const systemIssues = health ? opsIssues(health as unknown as OpsHealth).length : 0;
   const { data: me } = await supabase
@@ -70,6 +74,9 @@ export default async function PanelLayout({ children }: LayoutProps<'/'>) {
           </Link>
           <Link href="/reportes" className={styles.navItem}>
             Reportes <span className={styles.count}>{reportsOpen ?? 0}</span>
+          </Link>
+          <Link href="/apelaciones" className={styles.navItem}>
+            Apelaciones <span className={styles.count}>{appeals ?? 0}</span>
           </Link>
           <Link href="/reclamos" className={styles.navItem}>
             Reclamos

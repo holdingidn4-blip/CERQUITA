@@ -269,6 +269,9 @@ export default function Solicitudes() {
                 ? `Tienes ${reliability.no_shows} llegadas incumplidas en los últimos ${reliability.window_days} días. La pausa se levanta sola cuando bajen de ${reliability.strikes_limit}.`
                 : `Llevas ${reliability.no_shows} de ${reliability.strikes_limit} en ${reliability.window_days} días. Con ${reliability.strikes_limit}, tus ofertas nuevas se pausan.`}
             </Text>
+            <Pressable accessibilityRole="link" onPress={() => router.push('/llegadas')}>
+              <Text style={styles.linkText}>Ver detalle y apelar</Text>
+            </Pressable>
           </View>
         )}
 
@@ -413,6 +416,12 @@ export default function Solicitudes() {
 }
 
 const styles = StyleSheet.create({
+  linkText: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 15,
+    color: colors.primary,
+    paddingVertical: 6,
+  },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, gap: 12 },
