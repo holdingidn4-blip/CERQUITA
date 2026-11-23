@@ -49,6 +49,96 @@ export type Database = {
           },
         ];
       };
+      blacklist_entries: {
+        Row: {
+          appeal_note: string | null;
+          appeal_reviewed_at: string | null;
+          appeal_reviewed_by: string | null;
+          appeal_status: string | null;
+          appeal_text: string | null;
+          appealed_at: string | null;
+          created_at: string;
+          created_by: string;
+          device_hashes: string[];
+          dni_number: string | null;
+          id: string;
+          lift_note: string | null;
+          lifted_at: string | null;
+          lifted_by: string | null;
+          profile_id: string | null;
+          reason: string;
+          until: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          appeal_note?: string | null;
+          appeal_reviewed_at?: string | null;
+          appeal_reviewed_by?: string | null;
+          appeal_status?: string | null;
+          appeal_text?: string | null;
+          appealed_at?: string | null;
+          created_at?: string;
+          created_by: string;
+          device_hashes?: string[];
+          dni_number?: string | null;
+          id?: string;
+          lift_note?: string | null;
+          lifted_at?: string | null;
+          lifted_by?: string | null;
+          profile_id?: string | null;
+          reason: string;
+          until?: string | null;
+        };
+        Update: {
+          appeal_note?: string | null;
+          appeal_reviewed_at?: string | null;
+          appeal_reviewed_by?: string | null;
+          appeal_status?: string | null;
+          appeal_text?: string | null;
+          appealed_at?: string | null;
+          created_at?: string;
+          created_by?: string;
+          device_hashes?: string[];
+          dni_number?: string | null;
+          id?: string;
+          lift_note?: string | null;
+          lifted_at?: string | null;
+          lifted_by?: string | null;
+          profile_id?: string | null;
+          reason?: string;
+          until?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'blacklist_entries_appeal_reviewed_by_fkey';
+            columns: ['appeal_reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'blacklist_entries_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'blacklist_entries_lifted_by_fkey';
+            columns: ['lifted_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'blacklist_entries_profile_id_fkey';
+            columns: ['profile_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       blacklisted_locations: {
         Row: {
           active: boolean;
@@ -385,6 +475,77 @@ export type Database = {
           {
             foreignKeyName: 'job_messages_sender_id_fkey';
             columns: ['sender_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      job_supervisions: {
+        Row: {
+          arrival_ok: boolean | null;
+          created_at: string;
+          id: string;
+          job_id: string;
+          note: string | null;
+          pro_id: string;
+          reason: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          safety_ok: boolean | null;
+          scope_ok: boolean | null;
+          status: string;
+          treatment_ok: boolean | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          arrival_ok?: boolean | null;
+          created_at?: string;
+          id?: string;
+          job_id: string;
+          note?: string | null;
+          pro_id: string;
+          reason: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          safety_ok?: boolean | null;
+          scope_ok?: boolean | null;
+          status?: string;
+          treatment_ok?: boolean | null;
+        };
+        Update: {
+          arrival_ok?: boolean | null;
+          created_at?: string;
+          id?: string;
+          job_id?: string;
+          note?: string | null;
+          pro_id?: string;
+          reason?: string;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          safety_ok?: boolean | null;
+          scope_ok?: boolean | null;
+          status?: string;
+          treatment_ok?: boolean | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'job_supervisions_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'job_supervisions_pro_id_fkey';
+            columns: ['pro_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'job_supervisions_reviewed_by_fkey';
+            columns: ['reviewed_by'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -1097,6 +1258,55 @@ export type Database = {
           },
         ];
       };
+      pro_points_entries: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          idempotency_key: string;
+          kind: string;
+          points: number;
+          pro_id: string;
+          reason: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          idempotency_key: string;
+          kind: string;
+          points: number;
+          pro_id: string;
+          reason?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          idempotency_key?: string;
+          kind?: string;
+          points?: number;
+          pro_id?: string;
+          reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pro_points_entries_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pro_points_entries_pro_id_fkey';
+            columns: ['pro_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       pro_presence: {
         Row: {
           last_point: unknown;
@@ -1745,6 +1955,169 @@ export type Database = {
         };
         Relationships: [];
       };
+      training_attendance: {
+        Row: {
+          attended_at: string;
+          certificate_no: string | null;
+          code_id: string;
+          passed_at: string | null;
+          pro_id: string;
+          quiz_attempts: number;
+          quiz_score: number | null;
+          training_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          attended_at?: string;
+          certificate_no?: string | null;
+          code_id: string;
+          passed_at?: string | null;
+          pro_id: string;
+          quiz_attempts?: number;
+          quiz_score?: number | null;
+          training_id: string;
+        };
+        Update: {
+          attended_at?: string;
+          certificate_no?: string | null;
+          code_id?: string;
+          passed_at?: string | null;
+          pro_id?: string;
+          quiz_attempts?: number;
+          quiz_score?: number | null;
+          training_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'training_attendance_code_id_fkey';
+            columns: ['code_id'];
+            isOneToOne: true;
+            referencedRelation: 'training_codes';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_attendance_pro_id_fkey';
+            columns: ['pro_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_attendance_training_id_fkey';
+            columns: ['training_id'];
+            isOneToOne: false;
+            referencedRelation: 'trainings';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      training_codes: {
+        Row: {
+          code: string;
+          created_at: string;
+          id: string;
+          training_id: string;
+          used_at: string | null;
+          used_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          created_at?: string;
+          id?: string;
+          training_id: string;
+          used_at?: string | null;
+          used_by?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          id?: string;
+          training_id?: string;
+          used_at?: string | null;
+          used_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'training_codes_training_id_fkey';
+            columns: ['training_id'];
+            isOneToOne: false;
+            referencedRelation: 'trainings';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'training_codes_used_by_fkey';
+            columns: ['used_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      trainings: {
+        Row: {
+          cancelled_at: string | null;
+          city_slug: string;
+          created_at: string;
+          created_by: string;
+          description: string | null;
+          id: string;
+          pass_pct: number;
+          place: string;
+          points: number;
+          quiz: NonNullable<Json>;
+          starts_at: string;
+          title: string;
+          trade_id: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          cancelled_at?: string | null;
+          city_slug: string;
+          created_at?: string;
+          created_by: string;
+          description?: string | null;
+          id?: string;
+          pass_pct?: number;
+          place: string;
+          points?: number;
+          quiz?: NonNullable<Json>;
+          starts_at: string;
+          title: string;
+          trade_id?: number | null;
+        };
+        Update: {
+          cancelled_at?: string | null;
+          city_slug?: string;
+          created_at?: string;
+          created_by?: string;
+          description?: string | null;
+          id?: string;
+          pass_pct?: number;
+          place?: string;
+          points?: number;
+          quiz?: NonNullable<Json>;
+          starts_at?: string;
+          title?: string;
+          trade_id?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'trainings_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'trainings_trade_id_fkey';
+            columns: ['trade_id'];
+            isOneToOne: false;
+            referencedRelation: 'trades';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       trusted_contacts: {
         Row: {
           created_at: string;
@@ -1809,6 +2182,36 @@ export type Database = {
           {
             foreignKeyName: 'user_blocks_blocker_id_fkey';
             columns: ['blocker_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user_devices: {
+        Row: {
+          device_hash: string;
+          first_seen_at: string;
+          last_seen_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          device_hash: string;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          user_id: string;
+        };
+        Update: {
+          device_hash?: string;
+          first_seen_at?: string;
+          last_seen_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_devices_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -2071,6 +2474,62 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      admin_blacklist_person: {
+        Args: { p_days: number; p_profile: string; p_reason: string };
+        Returns: {
+          appeal_note: string | null;
+          appeal_reviewed_at: string | null;
+          appeal_reviewed_by: string | null;
+          appeal_status: string | null;
+          appeal_text: string | null;
+          appealed_at: string | null;
+          created_at: string;
+          created_by: string;
+          device_hashes: string[];
+          dni_number: string | null;
+          id: string;
+          lift_note: string | null;
+          lifted_at: string | null;
+          lifted_by: string | null;
+          profile_id: string | null;
+          reason: string;
+          until: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'blacklist_entries';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      admin_lift_blacklist: {
+        Args: { p_entry: string; p_note: string };
+        Returns: {
+          appeal_note: string | null;
+          appeal_reviewed_at: string | null;
+          appeal_reviewed_by: string | null;
+          appeal_status: string | null;
+          appeal_text: string | null;
+          appealed_at: string | null;
+          created_at: string;
+          created_by: string;
+          device_hashes: string[];
+          dni_number: string | null;
+          id: string;
+          lift_note: string | null;
+          lifted_at: string | null;
+          lifted_by: string | null;
+          profile_id: string | null;
+          reason: string;
+          until: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'blacklist_entries';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       admin_reverse_entry: {
         Args: { p_entry: string; p_note: string };
         Returns: {
@@ -2174,6 +2633,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      appeal_blacklist: { Args: { p_entry: string; p_text: string }; Returns: undefined };
       appeal_no_show: {
         Args: { p_no_show: string; p_text: string };
         Returns: {
@@ -2554,6 +3014,7 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      cancel_training: { Args: { p_training: string }; Returns: undefined };
       claims_queue: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -2635,6 +3096,57 @@ export type Database = {
           to: 'jobs';
           isOneToOne: true;
           isSetofReturn: false;
+        };
+      };
+      create_training: {
+        Args: {
+          p_city: string;
+          p_description: string;
+          p_pass_pct: number;
+          p_place: string;
+          p_points: number;
+          p_quiz: Json;
+          p_starts_at: string;
+          p_title: string;
+          p_trade: number;
+        };
+        Returns: {
+          cancelled_at: string | null;
+          city_slug: string;
+          created_at: string;
+          created_by: string;
+          description: string | null;
+          id: string;
+          pass_pct: number;
+          place: string;
+          points: number;
+          quiz: NonNullable<Json>;
+          starts_at: string;
+          title: string;
+          trade_id: number | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'trainings';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      create_training_codes: {
+        Args: { p_count: number; p_training: string };
+        Returns: {
+          code: string;
+          created_at: string;
+          id: string;
+          training_id: string;
+          used_at: string | null;
+          used_by: string | null;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'training_codes';
+          isOneToOne: false;
+          isSetofReturn: true;
         };
       };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
@@ -2762,6 +3274,7 @@ export type Database = {
           id: string;
           jobs_done: number;
           labor_cents: number;
+          level: string;
           materials_cents: number;
           message: string;
           price_cents: number;
@@ -2796,6 +3309,32 @@ export type Database = {
           paused: boolean;
           strikes_limit: number;
           window_days: number;
+        }[];
+      };
+      my_reputation: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          complaints: number;
+          level: string;
+          next_at: number;
+          next_level: string;
+          points: number;
+          progress: number;
+          rating_avg: number;
+          rating_visible_from: number;
+          ratings_count: number;
+        }[];
+      };
+      my_restriction: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          appeal_note: string;
+          appeal_status: string;
+          appealed_at: string;
+          created_at: string;
+          id: string;
+          reason: string;
+          until: string;
         }[];
       };
       my_verification: {
@@ -2880,6 +3419,7 @@ export type Database = {
           id: string;
           identity_verified: boolean;
           jobs_done: number;
+          level: string;
           rating_avg: number;
           ratings_count: number;
           review_author: string;
@@ -2984,6 +3524,26 @@ export type Database = {
         }[];
       };
       push_secret_matches: { Args: { p_secret: string }; Returns: boolean };
+      redeem_training_code: {
+        Args: { p_code: string };
+        Returns: {
+          attended_at: string;
+          certificate_no: string | null;
+          code_id: string;
+          passed_at: string | null;
+          pro_id: string;
+          quiz_attempts: number;
+          quiz_score: number | null;
+          training_id: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'training_attendance';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      register_device: { Args: { p_device: string }; Returns: undefined };
       register_push_token: { Args: { p_platform: string; p_token: string }; Returns: undefined };
       reply_ticket: {
         Args: { p_close?: boolean; p_reply: string; p_ticket: string };
@@ -3124,6 +3684,34 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      review_blacklist_appeal: {
+        Args: { p_accept: boolean; p_entry: string; p_note: string };
+        Returns: {
+          appeal_note: string | null;
+          appeal_reviewed_at: string | null;
+          appeal_reviewed_by: string | null;
+          appeal_status: string | null;
+          appeal_text: string | null;
+          appealed_at: string | null;
+          created_at: string;
+          created_by: string;
+          device_hashes: string[];
+          dni_number: string | null;
+          id: string;
+          lift_note: string | null;
+          lifted_at: string | null;
+          lifted_by: string | null;
+          profile_id: string | null;
+          reason: string;
+          until: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'blacklist_entries';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       review_bypass: {
         Args: { p_confirm: boolean; p_id: string; p_note: string };
         Returns: {
@@ -3230,6 +3818,37 @@ export type Database = {
         SetofOptions: {
           from: '*';
           to: 'user_reports';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      review_supervision: {
+        Args: {
+          p_arrival: boolean;
+          p_note: string;
+          p_safety: boolean;
+          p_scope: boolean;
+          p_supervision: string;
+          p_treatment: boolean;
+        };
+        Returns: {
+          arrival_ok: boolean | null;
+          created_at: string;
+          id: string;
+          job_id: string;
+          note: string | null;
+          pro_id: string;
+          reason: string;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          safety_ok: boolean | null;
+          scope_ok: boolean | null;
+          status: string;
+          treatment_ok: boolean | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'job_supervisions';
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -3414,6 +4033,16 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      submit_training_quiz: {
+        Args: { p_answers: number[]; p_training: string };
+        Returns: {
+          attempts_left: number;
+          certificate_no: string;
+          passed: boolean;
+          points: number;
+          score: number;
+        }[];
+      };
       trade_requirements: {
         Args: { p_trade: number };
         Returns: {
@@ -3421,6 +4050,21 @@ export type Database = {
           requirement: string;
         }[];
       };
+      training_certificate: {
+        Args: { p_certificate: string };
+        Returns: {
+          certificate_no: string;
+          city_slug: string;
+          passed_at: string;
+          points: number;
+          pro_name: string;
+          score: number;
+          starts_at: string;
+          title: string;
+          trade_name: string;
+        }[];
+      };
+      training_quiz: { Args: { p_training: string }; Returns: Json };
       update_presence: { Args: { p_lat: number; p_lng: number }; Returns: undefined };
       verification_queue: {
         Args: Record<PropertyKey, never>;
