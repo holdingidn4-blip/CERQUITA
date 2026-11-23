@@ -1157,17 +1157,14 @@ try {
   await client.waitForURL('**/ingreso');
   ok('sin sesión, las rutas protegidas vuelven al ingreso');
 
-  const cleanup = execFileSync(
-    'node',
-    ['--env-file=.env.local', 'scripts/storage-cleanup.mjs', '--dry-run'],
-    {
-      cwd: join(dirname(FIXTURES), '..', 'apps', 'admin'),
-      encoding: 'utf8',
-    },
-  );
+  // La limpieza la hace la Edge Function storage-cleanup con pg_cron; aquí se consulta la misma
+  // función que usa para contar huérfanos (solo el servidor puede llamarla).
+  const orphans = Number(sql(`select count(*) from public.storage_orphans()`));
   check(
-    /archivos huérfanos encontrados/.test(cleanup),
-    'la limpieza de Storage corre (modo prueba)',
+    Number.isInteger(orphans) &&
+      orphans >= 0 &&
+      sql(`select count(*) from cron.job where jobname = 'storage-cleanup'`) === '1',
+    'la limpieza de Storage está programada y cuenta huérfanos (modo prueba)',
   );
 
   // ─────────────── Fase 3 · Cerrar sesión ───────────────
