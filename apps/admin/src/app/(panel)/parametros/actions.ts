@@ -32,6 +32,11 @@ const INTEGER_KEYS = new Set([
   'storage_cleanup_enabled',
   'ops_outbox_stale_minutes',
   'schedule_reminder_minutes',
+  'quote_max_transport_cents',
+  'no_show_coupon_cents',
+  'no_show_coupon_monthly_cap_cents',
+  'coupon_valid_days',
+  'no_show_appeal_days',
 ]);
 
 export async function saveParam(

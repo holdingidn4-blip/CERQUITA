@@ -5,7 +5,7 @@
 | Pieza | Dónde | Estado |
 | --- | --- | --- |
 | Base, Auth y Storage | Supabase `cerquita` · ref `dknxuxrylnncbdzjqagh` · São Paulo · plan gratis | Activo |
-| App Android | APK por enlace (ver “APK del piloto”) | Build 4 publicado (19-11) |
+| App Android | APK por enlace (ver “APK del piloto”) | EAS `pilot` 6b8f8911 (23-11); build 4 de CI queda como anterior |
 | Panel | Vercel · proyecto `cerquita` (rama `main`, carpeta `apps/admin`) · https://cerquita-nine.vercel.app | Desplegado (cada push a `main` despliega) |
 | App Android (tiendas) | EAS · `@holdingidn/cerquita` · perfil `production` (AAB, llave de firma guardada en EAS) | Build 2 listo (`a1a6c154`, se descarga desde expo.dev) |
 | Notificaciones | Edge Function `send-push` (secreto en Vault `push_function_secret`) | Activa |
@@ -21,7 +21,8 @@ URL de la API: `https://dknxuxrylnncbdzjqagh.supabase.co` · clave publicable: `
 Con un token personal válido o acceso directo, usar `scripts/deploy-production.sh`.
 
 ### APK del piloto
-- Enlace actual (build 4, versión 0.1.0, commit `c6a5702`): `https://dknxuxrylnncbdzjqagh.supabase.co/storage/v1/object/public/app-releases/5e1760089bccbb16/cerquita-0.1.0-b4.apk`
+- **EAS (llave privada, perfil `pilot`):** build `6b8f8911` (versión 0.1.0, versionCode 3, commit `f7bf0b4`): https://expo.dev/artifacts/eas/SsUjGSY0ZqAG8mVhXqekhHnIJ2SLpNu4JMECA7Kpb74.apk — anterior a F3 (no sube fotos de antes/después): compilar uno nuevo antes de probar cierres. Quien tenga el build 4 debe desinstalarlo una vez (cambió la llave).
+- Último de CI con llave de depuración (build 4, versión 0.1.0, commit `c6a5702`): `https://dknxuxrylnncbdzjqagh.supabase.co/storage/v1/object/public/app-releases/5e1760089bccbb16/cerquita-0.1.0-b4.apk`
 - Anteriores: build 3 `…/app-releases/d42abfae6a1e6a66/cerquita-0.1.0-b3.apk` · build 2 `…/app-releases/4c31a5fe1f42a03a/cerquita-0.1.0-b2.apk`
 - Para un build nuevo:
   1. Elegir una carpeta aleatoria (`openssl rand -hex 8`) y crear por SQL la política temporal de subida:

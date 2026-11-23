@@ -34,6 +34,12 @@ const LABELS: Record<string, string> = {
   storage_cleanup_url: 'URL de la Edge Function storage-cleanup',
   ops_outbox_stale_minutes: 'Aviso de notificaciones atascadas en cola (min)',
   schedule_reminder_minutes: 'Recordatorio de pedidos programados (min antes)',
+  quote_terms_version: 'Versión de los términos de cotización (cambia solo junto con la app)',
+  quote_max_transport_cents: 'Movilidad máxima en una cotización (céntimos)',
+  no_show_coupon_cents: 'Cupón al cliente por llegada incumplida (céntimos; lo asume Cerquita)',
+  no_show_coupon_monthly_cap_cents: 'Tope mensual de cupones por faltas (céntimos)',
+  coupon_valid_days: 'Vigencia del cupón (días)',
+  no_show_appeal_days: 'Plazo del profesional para apelar una falta (días)',
 };
 
 export default async function Parametros() {

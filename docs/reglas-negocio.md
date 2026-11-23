@@ -67,6 +67,12 @@ Un profesional ve y puede cotizar un pedido solo si se cumple **todo** (`pro_is_
 - El cliente compara precio, calificación, trabajos hechos y distancia (`job_offers`) y puede ver el perfil público del pro (`pro_profile`).
 - Al aceptar (`accept_offer`): la oferta pasa a aceptada, las demás a rechazadas y el pedido guarda la mano de obra, la tasa de comisión vigente (`commission_rate_bps`), la hora de asignación y la **llegada acordada** (ahora + minutos de la oferta, o `default_eta_minutes` si no los indicó; en pedidos programados, la hora programada).
 - Desde la aceptación el pro ve la dirección exacta. **El teléfono no se muestra a ninguna de las partes**: la comunicación es solo por el chat interno.
+- **Desglose obligatorio (F3):** toda oferta lleva visita, mano de obra, materiales y movilidad (`offers.*_cents`); `price_cents` es la suma y lo calcula el servidor. El tarifario se valida solo sobre la mano de obra; visita ≤ tarifa de visita del oficio y movilidad ≤ `quote_max_transport_cents`.
+- **Aceptación con un botón “Acepto”:** muestra el desglose y los términos fijos (`QUOTE_TERMS`, versión `quote_terms_version`), incluido que Cerquita es una **plataforma intermediaria**. Cada aceptación queda en `quote_acceptances` (monto, desglose, fecha y hora, versión de términos, número de versión de la cotización). Todo cambio de precio es una cotización nueva (reevaluación) que vale solo si el cliente la acepta; también queda registrada.
+- **Cierre con evidencia:** el pro no puede marcar “Terminado” sin al menos una foto de antes y una de después (`job_work_photos`). El cliente confirma el precio aceptado (versión vigente). Comprobante PDF para compartir por WhatsApp (`job_receipt`; no es comprobante SUNAT).
+- **Portafolio:** las fotos del trabajo solo se muestran en el perfil del pro si el cliente lo permite; puede retirar el permiso cuando quiera (`set_portfolio_permission`).
+- **Cupón por llegada incumplida:** al registrarse la falta, el cliente recibe un cupón de `no_show_coupon_cents` (vence en `coupon_valid_days` días) mientras el total del mes no pase `no_show_coupon_monthly_cap_cents`. Se usa al confirmar otro servicio (solo sobre la mano de obra) y **lo asume Cerquita**: se abona al pro como `promo_credit` (`job:<id>:coupon`).
+- **Apelación:** la falta es una advertencia; el pro puede apelarla dentro de `no_show_appeal_days` días. Soporte decide en el panel (Apelaciones); si la acepta, la falta deja de contar para la pausa. El cupón del cliente se mantiene.
 
 ## 6. Servicio en curso
 - **El profesional no llega:** si pasa la llegada acordada más `no_show_grace_minutes` y el pro no marcó la llegada (sigue en Aceptado o En camino), el cliente puede **cambiar de profesional** (`report_no_show`): la oferta queda `no_show`, se registra la falta en `pro_no_shows`, las ofertas que se rechazaron al aceptar vuelven a `pending` (salvo pros en pausa o bloqueados) y el pedido vuelve a “con ofertas” o “publicado”, sin precio ni comisión congelados y sin costo para el cliente. El pro que faltó deja de ver ese pedido. Con `no_show_strikes` faltas en `no_show_window_days` días, sus ofertas nuevas se pausan; la pausa se levanta sola cuando las faltas salen de la ventana. El pro nuevo no ve el chat ni el GPS del anterior.
@@ -139,11 +145,13 @@ Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `glob
 | `schedule_reminder_minutes` | 60 | Recordatorio de un pedido programado: al cliente y al pro asignado, o al cliente si aún no tiene profesional |
 | `skill_min_photos` · `skill_max_photos` · `verification_video_min_seconds` · `verification_video_max_seconds` · `review_alert_hours` · `background_valid_days` | 3 · 5 · 60 · 180 · 24 · 365 | Registro del profesional (F2) |
 | `ops_outbox_stale_minutes` | 10 | Panel → Sistema avisa si una notificación lleva más de estos minutos en cola |
+| `quote_terms_version` · `quote_max_transport_cents` | "2026-11-23" · 2000 | Cotización con desglose (F3) |
+| `no_show_coupon_cents` · `no_show_coupon_monthly_cap_cents` · `coupon_valid_days` · `no_show_appeal_days` | 1000 · 50000 · 60 · 7 | Cupón por falta (tope mensual que asume Cerquita) y plazo de apelación |
 
 ## 13. Decisiones abiertas (del dueño)
 - “Seguro Cerquita” y “Garantía por 30 días” aparecen en avisos de la app pero **no están definidos**: definirlos con un abogado o retirar el texto antes de abrir al público.
 - Tarifario y precios del catálogo de producción son **estimados**: validarlos con profesionales de Huancayo.
 - Términos y política de privacidad: borrador en `docs/legal/terminos-borrador.md`, falta revisión legal (Ley 29733, uso del GPS para antifraude).
 - Comprobantes de pago por la comisión (SUNAT): por definir con un contador.
-- Cupón para el cliente cuando el profesional no llega: falta decidir quién lo paga (el cliente le paga directo al profesional, así que Cerquita tendría que absorberlo en la comisión).
+- Cupón por falta: lo asume Cerquita (F3). Falta que el dueño confirme el monto (S/ 10) y el tope mensual (S/ 500) en Parámetros.
 - Saldo prepago del profesional para la comisión (opción B): decidido por el dueño, pendiente de confirmación legal (ver `docs/estado.md`). La regla 3 sigue vigente hasta entonces.
