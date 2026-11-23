@@ -102,13 +102,19 @@ Un profesional ve y puede cotizar un pedido solo si se cumple **todo** (`pro_is_
 ## 9. Puntos y ranking
 - **Puntos Cerquita** (`points_entries`, inmutable): el cliente gana 1 punto por cada S/ 1 de mano de obra confirmada (`points_per_sol`). 1 punto = S/ 0,05 (`point_value_cents`); tope 20 % de la mano de obra (`max_points_discount_pct`).
 - El descuento por puntos (`apply_points`) lo asume Cerquita: se abona al pro como `promo_credit`. Los puntos no se compran.
-- **Ranking de profesionales** (`pro_ranking`): trabajos × 10 + calificación × 20 − sospechas de bypass × 50. Niveles: Nuevo (< 80), Bronce (≥ 80), Plata (≥ 250), Oro (≥ 600).
+- **Ranking de profesionales** (`pro_ranking`): trabajos × 10 + calificación × 20 + puntos de capacitación − sospechas de bypass × 50.
+- **Calificación:** en ambos sentidos y solo con el servicio confirmado. El promedio se muestra desde `rating_min_visible` calificaciones (antes dice “Nuevo”); el conteo sí se ve.
+- **Niveles del profesional (F4, `private.pro_level`):** avance = trabajos confirmados + puntos de capacitación ÷ `level_points_per_job`. **Nuevo** (< `level_verified_jobs`), **Verificado** (≥ 3), **De confianza** (≥ `level_trusted_jobs` y cero quejas confirmadas), **Destacado** (≥ `level_featured_jobs`, cero quejas y calificación ≥ 4,5). Queja confirmada = reclamo `resolved` o reporte `actioned`. En las ofertas el nivel más alto aparece primero (prioridad).
+- **Puntos del profesional** (`pro_points_entries`, inmutable, clave de idempotencia): solo los anota el servidor (capacitaciones; correcciones con `reversal`). No se compran ni se cambian por dinero: el canje de premios está marcado “próximamente” sin promesas de dinero, vales ni sorteos.
+- **Capacitaciones:** charlas por ciudad y oficio (`trainings`). Soporte genera códigos de 8 caracteres de un solo uso (también como QR `cerquita:capacitacion:<código>`), válidos desde 1 h antes hasta `training_code_window_hours` después del inicio. Con asistencia, el pro responde el cuestionario (las respuestas nunca salen del servidor; hasta `training_quiz_max_attempts` intentos); si aprueba (`pass_pct`) recibe certificado `CQ-AAAA-NNNNN` y los puntos de la charla una sola vez.
 
 ## 10. Seguridad, privacidad y confianza
 - RLS activa en todas las tablas, con permisos por columna. Nunca se desactiva.
 - **Presencia:** del pro en línea se guarda solo la última posición (sin historial), para el reparto y el antifraude.
 - **Antifraude GPS** (`detect_bypass`, cada 5 min): pedido cancelado y pro ≥ 15 min a ≤ 150 m del domicilio → `bypass_suspicions`. Con 2 en 7 días se suspenden sus oficios. Soporte confirma o descarta (descartar levanta la suspensión).
 - **SOS:** toque largo, cuenta regresiva de 5 s, alerta a soporte con ubicación cada 10 s, aviso a hasta 3 contactos de confianza y accesos a 105, 116 y 106. Solo soporte cierra la alerta, con nota.
+- **Lista negra de personas (F4):** soporte (no la revisora) agrega desde la ficha con motivo y plazo (o indefinida). Se vincula al perfil, al DNI de `pro_identity` y a los dispositivos registrados (`user_devices`, solo el hash del Android ID o equivalente). Con una entrada vigente no se puede pedir, cotizar, enviar oficios ni registrar ese DNI en otra cuenta. La persona ve motivo y plazo en Ajustes → Restricción y puede apelar una vez; decide una persona de soporte con nota (`review_blacklist_appeal`). Todo queda en `admin_actions`.
+- **Primer trabajo supervisado (F4):** al aceptarse el primer trabajo de un pro se crea una supervisión; en oficios de riesgo alto se muestrea el `supervision_sample_pct` % de los demás. Cuando el trabajo termina, soporte llama al cliente y completa el checklist (llegada, trato, alcance, seguridad); si algo falla, la nota es obligatoria. Si el trabajo se cancela o cambia de pro, la supervisión se cierra.
 - **Reportar y bloquear:** requieren un pedido en común. El bloqueo corta chat, ofertas, pedidos visibles y notificaciones entre ambos. Soporte revisa en Panel → Reportes.
 - **Reclamos** (`file_claim`): solo por servicios hechos en la app. Soporte ve los documentos verificados del pro (vista registrada) y resuelve; el DNI no se entrega directo al cliente.
 - **Suspensión manual** (`admin_set_suspension`, solo admin): bloquea el ingreso y queda auditada.
@@ -147,6 +153,10 @@ Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `glob
 | `ops_outbox_stale_minutes` | 10 | Panel → Sistema avisa si una notificación lleva más de estos minutos en cola |
 | `quote_terms_version` · `quote_max_transport_cents` | "2026-11-23" · 2000 | Cotización con desglose (F3) |
 | `no_show_coupon_cents` · `no_show_coupon_monthly_cap_cents` · `coupon_valid_days` · `no_show_appeal_days` | 1000 · 50000 · 60 · 7 | Cupón por falta (tope mensual que asume Cerquita) y plazo de apelación |
+| `rating_min_visible` | 3 | Calificaciones mínimas para mostrar el promedio |
+| `level_verified_jobs` · `level_trusted_jobs` · `level_featured_jobs` · `level_featured_min_rating_x10` · `level_points_per_job` | 3 · 15 · 40 · 45 · 50 | Niveles del profesional (F4) |
+| `supervision_sample_pct` | 20 | Muestreo de supervisión en oficios de riesgo alto |
+| `training_code_window_hours` · `training_quiz_max_attempts` | 12 · 3 | Capacitaciones |
 
 ## 13. Decisiones abiertas (del dueño)
 - “Seguro Cerquita” y “Garantía por 30 días” aparecen en avisos de la app pero **no están definidos**: definirlos con un abogado o retirar el texto antes de abrir al público.

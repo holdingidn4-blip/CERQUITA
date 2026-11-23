@@ -78,6 +78,8 @@ async function uploadPhoto(
 }
 
 try {
+  // El muestreo de supervisión en oficios de riesgo es al azar: en el e2e se apaga (el primer trabajo sí se supervisa).
+  sql(`update public.settings set value = '0' where key = 'supervision_sample_pct'`);
   // ─────────────── Fase 3 · Panel: acceso solo para soporte ───────────────
   const outsider = await (await browser.newContext()).newPage();
   await outsider.goto(`${ADMIN}/`, { waitUntil: 'networkidle' });
@@ -449,6 +451,10 @@ try {
   await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Ver perfil');
   await client.waitForSelector('text=Identidad verificada');
   check(await client.isVisible('text=Luis Quispe'), 'abre el perfil del profesional');
+  check(
+    await client.isVisible('[data-testid=nivel] >> text=/Nivel: (Nuevo|Verificado)/'),
+    'el perfil muestra el nivel del profesional',
+  );
   check(
     await client.isVisible('[data-testid=terminos] >> text=/plataforma intermediaria/'),
     'el perfil también muestra los términos junto a "Acepto"',
@@ -1224,6 +1230,130 @@ try {
   check(
     sql(`select status from public.bypass_suspicions where job_id = '${job2}'`) === 'dismissed',
     'soporte descarta la sospecha con nota',
+  );
+
+  // ─────────────── Fase 10 · Reputación: supervisión del primer trabajo ───────────────
+  await pro.goto(`${MOBILE}/trabajo/${jobId}`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('[data-testid=supervisado] >> text=Tu primer trabajo es supervisado');
+  ok('el pro sabe que su primer trabajo es supervisado');
+  await boss.goto(`${ADMIN}/supervision`, { waitUntil: 'networkidle' });
+  const supervisionRow = boss.locator('[data-testid=supervision-pendiente] tr:has-text("Luis")');
+  await supervisionRow.waitFor();
+  await supervisionRow
+    .locator('[aria-label="Nota de supervisión"]')
+    .fill('El cliente quedó conforme.');
+  await supervisionRow.locator('button:has-text("Guardar checklist")').click();
+  await until(
+    `select status from public.job_supervisions where job_id = '${jobId}' and pro_id = '${luisId}'`,
+    'ok',
+  );
+  ok('soporte completa el checklist (llegada, trato, alcance, seguridad) del primer trabajo');
+
+  // ─────────────── Fase 10 · Capacitaciones: código, cuestionario, certificado y puntos ───────────────
+  await boss.goto(`${ADMIN}/capacitaciones`, { waitUntil: 'networkidle' });
+  const trainingForm = boss.locator('[data-testid=nueva-capacitacion]');
+  await trainingForm.locator('[aria-label="Título"]').fill('Seguridad eléctrica en casa');
+  await trainingForm.locator('[aria-label="Lugar"]').fill('Local comunal de El Tambo');
+  await trainingForm
+    .locator('[aria-label="Fecha y hora (Lima)"]')
+    .fill(new Date(Date.now() - 5 * 3_600_000).toISOString().slice(0, 16));
+  await trainingForm.locator('[aria-label="Puntos"]').fill('100');
+  await trainingForm
+    .locator('[aria-label="Cuestionario"]')
+    .fill('¿Qué haces antes de tocar un cable? | Nada | Corto la luz');
+  await trainingForm.locator('button:has-text("Crear capacitación")').click();
+  await trainingForm.locator('text=/una sola opción|2 a 6 opciones/').waitFor();
+  ok('el panel explica el error del cuestionario');
+  await trainingForm
+    .locator('[aria-label="Cuestionario"]')
+    .fill(
+      '¿Qué haces antes de tocar un cable? | Nada | *Corto la luz | Lo mojo\n¿Cómo se paga el trabajo? | *Directo al profesional | A Cerquita',
+    );
+  await trainingForm.locator('button:has-text("Crear capacitación")').click();
+  await trainingForm.locator('text=Capacitación creada.').waitFor();
+  await boss.reload({ waitUntil: 'networkidle' });
+  await boss.click('[data-testid=capacitaciones] >> text=Seguridad eléctrica en casa');
+  await boss.waitForURL('**/capacitaciones/**');
+  await boss.fill('[aria-label="Cantidad (1 a 200)"]', '3');
+  await boss.click('button:has-text("Generar códigos")');
+  await boss.waitForFunction(
+    () => document.querySelectorAll('[data-testid=codigos] svg').length === 3,
+  );
+  ok('soporte crea la charla y genera 3 códigos con QR');
+  const trainingCode = sql(
+    "select c.code from public.training_codes c join public.trainings t on t.id = c.training_id where t.title = 'Seguridad eléctrica en casa' order by c.code limit 1",
+  );
+  await pro.goto(`${MOBILE}/capacitaciones`, { waitUntil: 'networkidle' });
+  await pro.waitForSelector('[data-testid=mi-nivel] >> text=Tu nivel');
+  check(
+    await pro.isVisible('text=/Canje de premios: próximamente/'),
+    'el canje de premios dice "próximamente"',
+  );
+  await pro.fill(
+    '[aria-label="Código de asistencia"]',
+    `${trainingCode.slice(0, 4).toLowerCase()}-${trainingCode.slice(4)}`,
+  );
+  await pro.getByRole('button', { name: 'Registrar asistencia', exact: true }).click();
+  await pro.waitForSelector('text=Asistencia registrada. Ahora responde el cuestionario.');
+  ok('el pro registra su asistencia con el código');
+  await pro.getByRole('button', { name: 'Responder cuestionario', exact: true }).click();
+  await pro.waitForSelector('[data-testid=pregunta]');
+  await pro.click('[role=radio]:has-text("Corto la luz")');
+  await pro.click('[role=radio]:has-text("Directo al profesional")');
+  await pro.getByRole('button', { name: 'Enviar respuestas', exact: true }).click();
+  await pro.waitForSelector('text=/¡Aprobaste con 100 %! Ganaste 100 puntos/');
+  await pro.waitForSelector('[data-testid=capacitacion] >> text=/Certificado N.° CQ-/');
+  check(
+    sql(
+      `select coalesce(sum(points), 0) from public.pro_points_entries where pro_id = '${luisId}' and kind = 'training'`,
+    ) === '100',
+    'aprueba el cuestionario: certificado y 100 puntos en su libro',
+  );
+  await boss.reload({ waitUntil: 'networkidle' });
+  check(
+    await boss.isVisible('[data-testid=asistencia] >> text=/CQ-/'),
+    'el panel ve la asistencia y el certificado',
+  );
+
+  // ─────────────── Fase 10 · Lista negra con DNI/dispositivo y apelación humana ───────────────
+  const pedroId = '22222222-2222-2222-2222-222222222222';
+  await boss.goto(`${ADMIN}/usuarios/${pedroId}`, { waitUntil: 'networkidle' });
+  const blForm = boss.locator('[data-testid=ficha-lista-negra]');
+  await blForm
+    .locator('[aria-label="Motivo de la lista negra"]')
+    .fill('Cobró por fuera de la app a un cliente');
+  await blForm.locator('[aria-label="Días (vacío = indefinido)"]').fill('30');
+  await blForm.locator('button:has-text("Agregar a la lista negra")').click();
+  await blForm.locator('text=/En la lista negra/').waitFor();
+  check(
+    Number(
+      sql(
+        `select cardinality(device_hashes) from public.blacklist_entries where profile_id = '${pedroId}'`,
+      ),
+    ) >= 1,
+    'soporte lo agrega con motivo y plazo, vinculado a su teléfono',
+  );
+  await pedro.goto(`${MOBILE}/ajustes`, { waitUntil: 'networkidle' });
+  await pedro.click('text=Restricción de tu cuenta');
+  await pedro.waitForSelector(
+    '[data-testid=restriccion] >> text=Cobró por fuera de la app a un cliente',
+  );
+  await pedro.fill(
+    '[aria-label="Tu apelación"]',
+    'El cliente me pidió pagar en efectivo; está en el chat.',
+  );
+  await pedro.getByRole('button', { name: 'Enviar apelación', exact: true }).click();
+  await pedro.waitForSelector('text=/Tu apelación está en revisión/');
+  ok('el pro ve el motivo y apela');
+  await boss.goto(`${ADMIN}/lista-negra`, { waitUntil: 'networkidle' });
+  const blRow = boss.locator('[data-testid=lista-negra-personas] tr:has-text("Pedro")');
+  await blRow.locator('text=/está en el chat/').waitFor();
+  await blRow.locator('[aria-label="Motivo de la decisión"]').fill('El chat lo confirma.');
+  await blRow.locator('button:has-text("Aceptar apelación")').click();
+  await blRow.locator('text=Apelación aceptada').waitFor();
+  check(
+    sql(`select private.is_blacklisted('${pedroId}')::text`) === 'false',
+    'una persona de soporte acepta la apelación y la restricción deja de valer',
   );
 
   // ─────────────── Fase 8 · Contactos, SOS y eliminar cuenta ───────────────
