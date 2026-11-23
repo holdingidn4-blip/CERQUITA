@@ -1,4 +1,4 @@
-import { distanceAndEta, formatRating, formatSoles } from '@cerquita/shared';
+import { distanceAndEta, formatRating, formatSoles, QUOTE_TERMS } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -108,6 +108,18 @@ export default function PerfilProfesional() {
           />
         )}
         {offer && (
+          <View style={styles.terms} testID="terminos">
+            <Text style={styles.secondary}>
+              Al tocar “Acepto” aceptas la cotización y estos términos:
+            </Text>
+            {QUOTE_TERMS.map((t) => (
+              <Text key={t} style={styles.secondary}>
+                • {t}
+              </Text>
+            ))}
+          </View>
+        )}
+        {offer && (
           <View style={styles.footer}>
             <View>
               <Text style={styles.price}>{formatSoles(offer.price_cents)}</Text>
@@ -131,6 +143,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  terms: { gap: 4 },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center', padding: 20 },
   content: { padding: 20, gap: 14 },

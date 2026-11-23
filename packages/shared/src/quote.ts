@@ -4,7 +4,7 @@ import { formatSoles } from './money';
 /** Términos fijos de toda cotización (F3). La versión debe coincidir con `settings.quote_terms_version`. */
 export const QUOTE_TERMS_VERSION = '2026-11-23';
 export const QUOTE_TERMS = [
-  'Cerquita es una plataforma que conecta clientes con profesionales independientes. No presta el servicio ni cobra el trabajo: pagas directo al profesional.',
+  'Cerquita es una plataforma intermediaria: conecta clientes con profesionales independientes. No presta el servicio ni cobra el trabajo: pagas directo al profesional.',
   'El precio es el de esta cotización: visita, mano de obra, materiales y movilidad. Si algo cambia en el domicilio, el profesional te envía una cotización nueva y solo vale si la aceptas.',
   'La calidad y la garantía del trabajo son responsabilidad del profesional. Si hay un problema, repórtalo desde la app.',
 ] as const;

@@ -410,7 +410,7 @@ try {
   await pro.waitForSelector('img[src*="/object/sign/job-photos/"]', { state: 'attached' });
   ok('ve la foto del pedido con URL firmada');
   await pro.click('[role=radio]:has-text("S/ 95")');
-  await pro.waitForSelector('text=Comisión de la app (10 %)');
+  await pro.waitForSelector('text=Comisión de la app (10 % de la mano de obra)');
   check(await pro.isVisible('text=− S/ 9.50'), 'muestra la comisión del 10 % (S/ 9.50)');
   check(await pro.isVisible('text=S/ 85.50'), 'y lo que recibirá (S/ 85.50)');
   await pro.click('[role=radio]:has-text("30 min")');
@@ -438,10 +438,22 @@ try {
     await client.isVisible('[data-testid=oferta]:has-text("Luis Q.") >> text=llega en 30 min'),
     'y en cuánto llega',
   );
+  check(
+    await client.isVisible('[data-testid=oferta]:has-text("Luis Q.") >> text=Mano de obra'),
+    'cada oferta muestra el desglose (mano de obra)',
+  );
+  check(
+    await client.isVisible('text=/plataforma intermediaria/'),
+    'y el aviso de plataforma intermediaria antes de aceptar',
+  );
   await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Ver perfil');
   await client.waitForSelector('text=Identidad verificada');
   check(await client.isVisible('text=Luis Quispe'), 'abre el perfil del profesional');
-  await client.click('text=Aceptar y contratar');
+  check(
+    await client.isVisible('[data-testid=terminos] >> text=/plataforma intermediaria/'),
+    'el perfil también muestra los términos junto a "Acepto"',
+  );
+  await client.getByRole('button', { name: 'Acepto', exact: true }).click();
   await client.waitForURL('**/servicio/**');
   await client.waitForSelector('text=Luis aceptó tu pedido');
   check(
@@ -541,19 +553,37 @@ try {
   ok('un código equivocado no marca la llegada');
   await pro.fill('[aria-labelledby=code-label]', code);
   await pro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
-  await pro.waitForSelector('text=Monto final');
+  await pro.waitForSelector('[data-testid=fotos-trabajo]');
   ok('con el código correcto queda "En el domicilio"');
   await client.waitForSelector('text=Luis llegó a tu domicilio', { timeout: 15000 });
   ok('el cliente ve la llegada');
 
+  await pro.getByRole('button', { name: 'Terminado', exact: true }).click();
+  await pro.waitForSelector('text=/Sube al menos una foto de antes y una de después/');
+  ok('sin fotos de antes y después no se puede marcar Terminado');
+  await uploadPhoto(pro, 'Tomar foto de antes', 'trabajo1.jpg');
+  await pro.waitForSelector('[data-testid=fotos-trabajo] >> text=✓ 1');
+  await uploadPhoto(pro, 'Tomar foto de después', 'trabajo2.jpg');
+  await until(
+    `select count(distinct kind) from public.job_work_photos where job_id = '${jobId}'`,
+    '2',
+  );
+  check(
+    sql(
+      `select string_agg(kind, ',' order by kind) from public.job_work_photos where job_id = '${jobId}'`,
+    ) === 'after,before',
+    'sube la foto de antes y la de después',
+  );
   await pro.getByRole('button', { name: 'Terminado', exact: true }).click();
   await pro.waitForSelector('text=Esperando que el cliente confirme el monto');
   const tracksAtFinish = sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`);
   await client.waitForURL('**/confirmar', { timeout: 15000 });
   await client.waitForSelector('text=Luis marcó el trabajo como terminado');
   check(
-    (await client.locator('text=Coincide con lo acordado >> visible=true').count()) > 0,
-    'el cliente ve el monto final igual al acordado',
+    (await client
+      .locator('text=/Es el precio que aceptaste \\(versión 1\\)/ >> visible=true')
+      .count()) > 0,
+    'el cliente ve el monto final igual al que aceptó (versión 1)',
   );
   await client.click('text=Confirmar S/ 95');
   await client.waitForURL('**/calificar');
@@ -665,7 +695,7 @@ try {
   );
   await pro.goto(`${MOBILE}/solicitudes/${job2}/cotizar`, { waitUntil: 'networkidle' });
   await pro.waitForSelector('text=Tu cotización');
-  await pro.fill('[aria-label="Tu cotización en soles"]', '80');
+  await pro.fill('[aria-label="Mano de obra en soles"]', '80');
   await pro.click('[role=radio]:has-text("15 min")');
   await pro.click('text=Enviar cotización');
   await pro.waitForURL('**/solicitudes');
@@ -674,7 +704,10 @@ try {
   );
   await client.goto(`${MOBILE}/pedido/${job2}/ofertas`, { waitUntil: 'networkidle' });
   await client.waitForSelector('[data-testid=oferta]:has-text("Luis Q.") >> text=llega en 15 min');
-  await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Aceptar');
+  await client
+    .locator('[data-testid=oferta]:has-text("Luis Q.")')
+    .getByRole('button', { name: 'Acepto', exact: true })
+    .click();
   await client.waitForURL(`**/servicio/${job2}`);
   await client.waitForSelector('[data-testid=llegada] >> text=Faltan');
   check(
@@ -703,9 +736,35 @@ try {
   await pro.goto(`${MOBILE}/solicitudes`, { waitUntil: 'networkidle' });
   await pro.waitForSelector('[data-testid=aviso-llegadas] >> text=Llevas 1 de 3');
   ok('el profesional ve su llegada incumplida');
+  check(
+    sql(
+      `select count(*) from public.client_coupons where source_job_id = '${job2}' and used_at is null`,
+    ) === '1',
+    'el cliente recibe un cupón por la falta (lo asume Cerquita)',
+  );
+  await pro.click('text=Ver detalle y apelar');
+  await pro.waitForURL('**/llegadas');
+  await pro.fill('[aria-label="Cuéntanos qué pasó"]', 'Se pinchó la llanta y avisé por el chat.');
+  await pro.getByRole('button', { name: 'Apelar', exact: true }).click();
+  await pro.waitForSelector('text=Apelación en revisión');
+  ok('el profesional apela la falta');
+  await admin.goto(`${ADMIN}/apelaciones`, { waitUntil: 'networkidle' });
+  await admin.waitForSelector('[data-testid=apelaciones] >> text=Se pinchó la llanta');
+  await admin.fill('[aria-label="Motivo de la decisión"]', 'El chat confirma el aviso.');
+  await admin.getByRole('button', { name: 'Aceptar', exact: true }).click();
+  await admin.waitForSelector('[data-testid=apelaciones] >> text=Aceptada');
+  check(
+    sql(
+      `select appeal_status || '|' || private.no_show_count('${luisId}') from public.pro_no_shows where job_id = '${job2}'`,
+    ) === 'accepted|0',
+    'soporte acepta la apelación en el panel y la falta deja de contar',
+  );
 
   // ─────────────── Fase 7 · Reevaluación en el domicilio y cancelación con tarifa de visita ───────────────
-  await client.click('[data-testid=oferta]:has-text("Pedro") >> text=Aceptar');
+  await client
+    .locator('[data-testid=oferta]:has-text("Pedro")')
+    .getByRole('button', { name: 'Acepto', exact: true })
+    .click();
   await client.waitForURL(`**/servicio/${job2}`);
   const pedro = await phonePage();
   // El número de Pedro ya pidió un código al inicio (panel): el servidor exige 60 s entre códigos.
@@ -720,7 +779,7 @@ try {
     sql(`select security_code from public.jobs where id = '${job2}'`),
   );
   await pedro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
-  await pedro.waitForSelector('text=Monto final');
+  await pedro.waitForSelector('[data-testid=fotos-trabajo]');
   await pedro.getByRole('button', { name: 'Reevaluar en sitio', exact: true }).click();
   await pedro.waitForSelector('[data-testid=reevaluar]');
   await pedro.fill('[aria-labelledby=labor-label]', '100');
@@ -792,11 +851,14 @@ try {
     await pro.isVisible('text=/Visita de diagnóstico: desde S\\/ 20\\.00/'),
     'la visita de diagnóstico se cotiza desde la tarifa de visita, no desde el mínimo del oficio',
   );
-  await pro.fill('[aria-label="Tu cotización en soles"]', '20');
+  await pro.fill('[aria-label="Mano de obra en soles"]', '20');
   await pro.click('text=Enviar cotización');
   await pro.waitForURL('**/solicitudes');
   await client.waitForSelector('[data-testid=oferta]:has-text("Luis Q.")', { timeout: 15000 });
-  await client.click('[data-testid=oferta]:has-text("Luis Q.") >> text=Aceptar');
+  await client
+    .locator('[data-testid=oferta]:has-text("Luis Q.")')
+    .getByRole('button', { name: 'Acepto', exact: true })
+    .click();
   await client.waitForURL(`**/servicio/${job3}`);
   check(
     sql(
