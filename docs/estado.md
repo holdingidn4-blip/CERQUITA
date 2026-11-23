@@ -3,9 +3,9 @@
 Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** F1 cerrada → empieza **F2** (registro del profesional paso a paso).
-- **Último paso terminado:** F1 Seguridad con evidencia (`docs/seguridad.md`), migración `20261123000100` aplicada en producción.
-- **Siguiente paso exacto:** F2 · diseñar el asistente de 6 pasos del registro (datos y DNI, oficios, evidencia, antecedentes, zona, revisión) sobre `apps/mobile/src/app/(pro)/registro.tsx`, con autoguardado.
+- **Fase actual:** F2 (registro del profesional) en curso.
+- **Último paso terminado:** F2 backend: migraciones `20261123000200` (enum del video) y `…000300` (riesgo por oficio, subespecialidades, DNI +18, video 1–3 min, requisitos por riesgo, antecedentes solo como resultado, historial y cola). pgTAP 534 en verde. Commit local, **sin aplicar en producción todavía**.
+- **Siguiente paso exacto:** F2 app: asistente de 6 pasos en `apps/mobile/src/app/(pro)/registro.tsx` + `src/pro/use-verification.ts` con los requisitos nuevos (`identity_data`, `specialty`, `work_photo`, `certificate`, `reference`, `verification_video`, `driver_*`); luego panel (cola por riesgo, antecedentes, historial) y e2e.
 - F3–F8 pendientes. Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
 
 ## Implementado

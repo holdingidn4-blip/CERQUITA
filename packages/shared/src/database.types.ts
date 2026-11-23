@@ -810,6 +810,76 @@ export type Database = {
           },
         ];
       };
+      pro_background_checks: {
+        Row: {
+          pro_trade_id: string;
+          result: string;
+          reviewed_at: string;
+          reviewed_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          pro_trade_id: string;
+          result: string;
+          reviewed_at?: string;
+          reviewed_by?: string | null;
+        };
+        Update: {
+          pro_trade_id?: string;
+          result?: string;
+          reviewed_at?: string;
+          reviewed_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pro_background_checks_pro_trade_id_fkey';
+            columns: ['pro_trade_id'];
+            isOneToOne: true;
+            referencedRelation: 'pro_trades';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pro_background_checks_reviewed_by_fkey';
+            columns: ['reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      pro_identity: {
+        Row: {
+          birth_date: string;
+          created_at: string;
+          dni_number: string;
+          pro_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          birth_date: string;
+          created_at?: string;
+          dni_number: string;
+          pro_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          birth_date?: string;
+          created_at?: string;
+          dni_number?: string;
+          pro_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pro_identity_pro_id_fkey';
+            columns: ['pro_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       pro_no_shows: {
         Row: {
           id: string;
@@ -896,6 +966,83 @@ export type Database = {
           },
         ];
       };
+      pro_trade_events: {
+        Row: {
+          actor_id: string | null;
+          created_at: string;
+          from_status: Database['public']['Enums']['pro_trade_status'] | null;
+          id: number;
+          pro_trade_id: string;
+          reason: string | null;
+          to_status: Database['public']['Enums']['pro_trade_status'];
+        };
+        ComputedFields: never;
+        Insert: {
+          actor_id?: string | null;
+          created_at?: string;
+          from_status?: Database['public']['Enums']['pro_trade_status'] | null;
+          id?: never;
+          pro_trade_id: string;
+          reason?: string | null;
+          to_status: Database['public']['Enums']['pro_trade_status'];
+        };
+        Update: {
+          actor_id?: string | null;
+          created_at?: string;
+          from_status?: Database['public']['Enums']['pro_trade_status'] | null;
+          id?: never;
+          pro_trade_id?: string;
+          reason?: string | null;
+          to_status?: Database['public']['Enums']['pro_trade_status'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pro_trade_events_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pro_trade_events_pro_trade_id_fkey';
+            columns: ['pro_trade_id'];
+            isOneToOne: false;
+            referencedRelation: 'pro_trades';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      pro_trade_specialties: {
+        Row: {
+          pro_trade_id: string;
+          specialty_id: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          pro_trade_id: string;
+          specialty_id: number;
+        };
+        Update: {
+          pro_trade_id?: string;
+          specialty_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pro_trade_specialties_pro_trade_id_fkey';
+            columns: ['pro_trade_id'];
+            isOneToOne: false;
+            referencedRelation: 'pro_trades';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pro_trade_specialties_specialty_id_fkey';
+            columns: ['specialty_id'];
+            isOneToOne: false;
+            referencedRelation: 'trade_specialties';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       pro_trades: {
         Row: {
           created_at: string;
@@ -906,6 +1053,7 @@ export type Database = {
           reviewed_at: string | null;
           reviewed_by: string | null;
           status: Database['public']['Enums']['pro_trade_status'];
+          submitted_at: string | null;
           trade_id: number;
           updated_at: string;
         };
@@ -919,6 +1067,7 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           status?: Database['public']['Enums']['pro_trade_status'];
+          submitted_at?: string | null;
           trade_id: number;
           updated_at?: string;
         };
@@ -931,6 +1080,7 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           status?: Database['public']['Enums']['pro_trade_status'];
+          submitted_at?: string | null;
           trade_id?: number;
           updated_at?: string;
         };
@@ -1290,6 +1440,39 @@ export type Database = {
           },
         ];
       };
+      trade_specialties: {
+        Row: {
+          active: boolean;
+          id: number;
+          name: string;
+          slug: string;
+          trade_id: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          active?: boolean;
+          id?: never;
+          name: string;
+          slug: string;
+          trade_id: number;
+        };
+        Update: {
+          active?: boolean;
+          id?: never;
+          name?: string;
+          slug?: string;
+          trade_id?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'trade_specialties_trade_id_fkey';
+            columns: ['trade_id'];
+            isOneToOne: false;
+            referencedRelation: 'trades';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       trades: {
         Row: {
           active: boolean;
@@ -1298,6 +1481,7 @@ export type Database = {
           name: string;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           pro_name: string;
+          risk_level: string;
           slug: string;
         };
         ComputedFields: never;
@@ -1308,6 +1492,7 @@ export type Database = {
           name: string;
           pricing_unit?: Database['public']['Enums']['pricing_unit'];
           pro_name?: string;
+          risk_level?: string;
           slug: string;
         };
         Update: {
@@ -1317,6 +1502,7 @@ export type Database = {
           name?: string;
           pricing_unit?: Database['public']['Enums']['pricing_unit'];
           pro_name?: string;
+          risk_level?: string;
           slug?: string;
         };
         Relationships: [];
@@ -1466,6 +1652,8 @@ export type Database = {
       verification_documents: {
         Row: {
           created_at: string;
+          description: string | null;
+          duration_seconds: number | null;
           id: string;
           kind: Database['public']['Enums']['verification_document_kind'];
           pro_id: string;
@@ -1475,6 +1663,8 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          description?: string | null;
+          duration_seconds?: number | null;
           id?: string;
           kind: Database['public']['Enums']['verification_document_kind'];
           pro_id: string;
@@ -1483,6 +1673,8 @@ export type Database = {
         };
         Update: {
           created_at?: string;
+          description?: string | null;
+          duration_seconds?: number | null;
           id?: string;
           kind?: Database['public']['Enums']['verification_document_kind'];
           pro_id?: string;
@@ -2584,7 +2776,7 @@ export type Database = {
         };
       };
       review_pro_trade: {
-        Args: { p_decision: string; p_pro_trade: string; p_reason?: string };
+        Args: { p_background?: string; p_decision: string; p_pro_trade: string; p_reason?: string };
         Returns: {
           created_at: string;
           good_ratings_count: number;
@@ -2594,6 +2786,7 @@ export type Database = {
           reviewed_at: string | null;
           reviewed_by: string | null;
           status: Database['public']['Enums']['pro_trade_status'];
+          submitted_at: string | null;
           trade_id: number;
           updated_at: string;
         };
@@ -2626,7 +2819,27 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      save_pro_identity: {
+        Args: { p_birth_date: string; p_dni: string };
+        Returns: {
+          birth_date: string;
+          created_at: string;
+          dni_number: string;
+          pro_id: string;
+          updated_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'pro_identity';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       send_job_message: { Args: { p_body: string; p_job: string }; Returns: Json };
+      set_pro_trade_specialties: {
+        Args: { p_pro_trade: string; p_specialties: number[] };
+        Returns: undefined;
+      };
       set_staff_role: { Args: { p_role: string; p_user: string }; Returns: undefined };
       sos_close: {
         Args: { p_alert: string; p_note: string };
@@ -2769,6 +2982,7 @@ export type Database = {
           reviewed_at: string | null;
           reviewed_by: string | null;
           status: Database['public']['Enums']['pro_trade_status'];
+          submitted_at: string | null;
           trade_id: number;
           updated_at: string;
         };
@@ -2787,6 +3001,21 @@ export type Database = {
         }[];
       };
       update_presence: { Args: { p_lat: number; p_lng: number }; Returns: undefined };
+      verification_queue: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          missing: string[];
+          overdue: boolean;
+          pro_id: string;
+          pro_name: string;
+          pro_trade_id: string;
+          risk_level: string;
+          status: Database['public']['Enums']['pro_trade_status'];
+          submitted_at: string;
+          trade_name: string;
+          waiting_hours: number;
+        }[];
+      };
       visit_fee_for_job: { Args: { p_job: string }; Returns: number };
       visit_fee_for_trade: { Args: { p_trade: number }; Returns: number };
       wallet_post_entry: {
@@ -2861,7 +3090,8 @@ export type Database = {
         | 'driver_license'
         | 'driver_record'
         | 'police_record'
-        | 'criminal_record';
+        | 'criminal_record'
+        | 'verification_video';
       wallet_entry_type:
         'commission_debit' | 'payment_credit' | 'promo_credit' | 'adjustment' | 'reversal';
     };
@@ -3019,6 +3249,7 @@ export const Constants = {
         'driver_record',
         'police_record',
         'criminal_record',
+        'verification_video',
       ],
       wallet_entry_type: [
         'commission_debit',

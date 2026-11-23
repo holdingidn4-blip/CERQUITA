@@ -54,22 +54,28 @@ select auth.uid(), k::public.verification_document_kind, auth.uid() || '/' || k 
 from unnest(array['dni_front', 'dni_back', 'selfie', 'background']) k;
 \set ptchofer '(select id from public.pro_trades where pro_id = auth.uid() and trade_id = (select id from public.trades where slug = ''chofer''))'
 \set ptlimp '(select id from public.pro_trades where pro_id = auth.uid() and trade_id = (select id from public.trades where slug = ''limpieza''))'
-select is(public.pro_trade_missing(:ptchofer), array['driver_license', 'driver_record'], 'chofer: pide licencia y récord MTC/SAT');
-select is(public.pro_trade_missing(:ptlimp), array['police_record', 'criminal_record', 'reference'],
-  'servidumbre: pide antecedentes policiales, penales y referencias');
-insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path) values
-  (auth.uid(), :ptchofer, 'driver_license', auth.uid() || '/lic.jpg'),
-  (auth.uid(), :ptchofer, 'driver_record', auth.uid() || '/mtc.pdf');
-select is(public.pro_trade_missing(:ptchofer), '{}'::text[], 'con licencia y récord está completo');
+select public.save_pro_identity('41234567', date '1988-03-03');
+select public.set_pro_trade_specialties(:ptchofer, array[(select id from public.trade_specialties where slug = 'particular')]);
+select public.set_pro_trade_specialties(:ptlimp, array[(select id from public.trade_specialties where slug = 'casa')]);
+select is(public.pro_trade_missing(:ptchofer), array['reference', 'verification_video', 'driver_license', 'driver_record'],
+  'chofer (confianza): referencias, video, licencia y récord MTC/SAT');
+select is(public.pro_trade_missing(:ptlimp), array['reference', 'verification_video'],
+  'limpieza (confianza): 2 referencias y video; los antecedentes penales ya van en la identidad');
+insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path, duration_seconds) values
+  (auth.uid(), :ptchofer, 'driver_license', auth.uid() || '/lic.jpg', null),
+  (auth.uid(), :ptchofer, 'driver_record', auth.uid() || '/mtc.pdf', null),
+  (auth.uid(), :ptchofer, 'reference', auth.uid() || '/r1.jpg', null),
+  (auth.uid(), :ptchofer, 'reference', auth.uid() || '/r2.jpg', null),
+  (auth.uid(), :ptchofer, 'verification_video', auth.uid() || '/v.mp4', 75);
+select is(public.pro_trade_missing(:ptchofer), '{}'::text[], 'con licencia, récord, referencias y video está completo');
 select throws_ok(format('select public.submit_pro_trade(%L)', (select id from public.pro_trades where pro_id = auth.uid() and trade_id = (select id from public.trades where slug = 'limpieza'))),
   'P0001', null, 'servidumbre no se envía sin antecedentes ni referencias');
-insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path) values
-  (auth.uid(), :ptlimp, 'police_record', auth.uid() || '/pol.pdf'),
-  (auth.uid(), :ptlimp, 'criminal_record', auth.uid() || '/pen.pdf'),
-  (auth.uid(), :ptlimp, 'reference', auth.uid() || '/ref1.jpg');
+insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path, duration_seconds) values
+  (auth.uid(), :ptlimp, 'reference', auth.uid() || '/ref1.jpg', null),
+  (auth.uid(), :ptlimp, 'verification_video', auth.uid() || '/vl.mp4', 61);
 select is(public.pro_trade_missing(:ptlimp), array['reference'], 'con una sola referencia aún falta (mínimo 2)');
-select is((select array_agg(requirement order by requirement) from public.trade_requirements(:gas)), array['evidence'],
-  'técnicos: evidencias del oficio');
+select is((select array_agg(requirement order by requirement) from public.trade_requirements(:gas)),
+  array['certificate', 'specialty', 'verification_video', 'work_photo'], 'gasfitería (riesgo alto): fotos, certificado, especialidad y video');
 
 -- ───────── Tarifario (sin regateo) ─────────
 select pg_temp.as_postgres();

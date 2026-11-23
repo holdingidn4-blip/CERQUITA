@@ -44,8 +44,9 @@ select throws_ok('insert into public.pro_trades (trade_id, status) select id, ''
 select lives_ok('delete from public.pro_trades where trade_id = (select id from public.trades where slug = ''pintura'')',
   'puede quitar un borrador');
 \set gas '(select id from public.pro_trades where pro_id = auth.uid() limit 1)'
-select is(public.pro_trade_missing(:gas), array['background', 'dni_back', 'dni_front', 'selfie', 'evidence'],
-  'sin documentos le falta todo');
+select is(public.pro_trade_missing(:gas),
+  array['identity_data', 'dni_back', 'dni_front', 'selfie', 'background', 'specialty', 'work_photo', 'certificate', 'verification_video'],
+  'sin documentos le falta todo (gasfitería es de riesgo alto)');
 select throws_ok(format('select public.submit_pro_trade(%L)', (select id from public.pro_trades where pro_id = auth.uid())),
   'P0001', null, 'no puede enviar sin evidencia');
 
@@ -54,10 +55,15 @@ select auth.uid(), k::public.verification_document_kind, auth.uid() || '/' || k 
 from unnest(array['dni_front', 'dni_back', 'selfie', 'background']) k;
 insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path)
 values (auth.uid(), :gas, 'work_photo', auth.uid() || '/w1.jpg');
-select is(public.pro_trade_missing(:gas), array['evidence'], 'con una sola evidencia todavía falta');
-insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path)
-values (auth.uid(), :gas, 'certificate', auth.uid() || '/c1.pdf');
-select is(public.pro_trade_missing(:gas), '{}'::text[], 'identidad + 2 evidencias completas');
+select is(public.pro_trade_missing(:gas), array['identity_data', 'specialty', 'work_photo', 'certificate', 'verification_video'],
+  'con una sola foto todavía falta');
+select public.save_pro_identity('45678912', date '1990-05-10');
+select public.set_pro_trade_specialties(:gas, array[(select id from public.trade_specialties where slug = 'agua-desague')]);
+insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path, duration_seconds)
+values (auth.uid(), :gas, 'work_photo', auth.uid() || '/w2.jpg', null),
+  (auth.uid(), :gas, 'certificate', auth.uid() || '/c1.pdf', null),
+  (auth.uid(), :gas, 'verification_video', auth.uid() || '/v1.mp4', 95);
+select is(public.pro_trade_missing(:gas), '{}'::text[], 'datos, DNI, especialidad, 2 fotos, certificado y video: completo');
 select is((select status::text from public.submit_pro_trade(:gas)), 'submitted', 'envía su oficio');
 select throws_ok(format('select public.submit_pro_trade(%L)', (select id from public.pro_trades where pro_id = auth.uid())),
   'P0001', null, 'no puede enviarlo dos veces');
@@ -88,7 +94,7 @@ select pg_temp.as_user(:p);
 select is((select reason from public.pro_trades where pro_id = auth.uid()), 'Sube una foto con fecha visible', 'el pro ve el motivo');
 select is((select status::text from public.submit_pro_trade(:gas)), 'submitted', 'reenvía tras completar');
 select pg_temp.as_user(:s, 'reviewer');
-select is((select status::text from public.review_pro_trade(:gasp, 'approve')), 'approved_observation', 'aprobar deja En observación');
+select is((select status::text from public.review_pro_trade(:gasp, 'approve', null, 'apto')), 'approved_observation', 'aprobar (antecedentes apto) deja En observación');
 select is((select reviewed_by from public.pro_trades where id = :gasp), :s, 'queda registrado quién revisó');
 select pg_temp.as_user(:p);
 select is((select identity_verified from public.my_verification()), true, 'identidad verificada tras aprobar');
@@ -120,10 +126,14 @@ select is((select status::text from public.pro_trades where id = :gasp), 'approv
 -- ───────── Rechazo y reintento a los 30 días ─────────
 select pg_temp.as_user(:o);
 insert into public.pro_trades (trade_id) select id from public.trades where slug = 'hogar';
-insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path)
-select auth.uid(), case when k like 'w%' then (select id from public.pro_trades where pro_id = auth.uid()) end,
-  (case when k like 'w%' then 'work_photo' else k end)::public.verification_document_kind, auth.uid() || '/' || k || '.jpg'
-from unnest(array['dni_front', 'dni_back', 'selfie', 'background', 'w1', 'w2']) k;
+select public.save_pro_identity('47896541', date '1985-01-20');
+select public.set_pro_trade_specialties((select id from public.pro_trades where pro_id = auth.uid()),
+  array[(select id from public.trade_specialties where slug = 'cerrajeria')]);
+insert into public.verification_documents (pro_id, pro_trade_id, kind, storage_path, duration_seconds)
+select auth.uid(), case when k ~ '^(w|c|v)' then (select id from public.pro_trades where pro_id = auth.uid()) end,
+  (case when k like 'w%' then 'work_photo' when k = 'c1' then 'certificate' when k = 'v1' then 'verification_video' else k end)::public.verification_document_kind,
+  auth.uid() || '/' || k || '.jpg', case when k = 'v1' then 120 end
+from unnest(array['dni_front', 'dni_back', 'selfie', 'background', 'w1', 'w2', 'c1', 'v1']) k;
 select public.submit_pro_trade((select id from public.pro_trades where pro_id = auth.uid()));
 select pg_temp.as_user(:s, 'reviewer');
 select public.review_pro_trade((select id from public.pro_trades where pro_id = :o), 'reject', 'Documento ilegible');
