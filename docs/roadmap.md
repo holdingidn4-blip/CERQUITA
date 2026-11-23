@@ -30,7 +30,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 
 ## Lanzamiento (F1–F8)
 - [x] F1 Seguridad con evidencia (`docs/seguridad.md`): borrar cuenta, panel sin `service_role`, permisos y advisors, panel desplegado, enlace del APK.
-- [ ] F2 Registro del profesional paso a paso y usabilidad de la app del pro.
+- [x] F2 Registro del profesional paso a paso y usabilidad de la app del pro (asistente de 6 pasos, riesgo, video, antecedentes por oficio, cola del panel, "Qué sigue").
 - [ ] F3 Cotización con desglose, aceptación con versión y cierre con fotos y comprobante.
 - [ ] F4 Reputación, niveles, lista negra con apelación y capacitaciones.
 - [ ] F5 Diseño (tokens únicos, claro/oscuro, landing).
@@ -45,7 +45,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] Vigilar la cola de notificaciones y las tareas programadas (cron): Panel → Sistema, con avisos en el menú.
 - [x] Plazos de respuesta visibles para constancias y tickets de ayuda, con vencidos en el panel.
 - [x] Métricas del piloto en el panel: pedidos por día, tiempo a la primera oferta, % contratado (Panel → Métricas, 7/14/30/90 días).
-- [ ] Registro guiado del profesional con ejemplos de evidencia.
+- [x] Registro guiado del profesional con ejemplos de evidencia (F2).
 - [ ] Validar la duración del video en el servidor.
 - [ ] **(D)** Supabase Pro (copias de seguridad diarias) antes de acumular datos reales.
 - [ ] **(D)** Prueba cerrada de Google Play: 12 personas durante 14 días.
