@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  proNextStep,
   backgroundLocationTarget,
   isTrackingStatus,
   sanitizeSecurityCode,
@@ -48,5 +49,14 @@ describe('posición en segundo plano', () => {
   it('sin modo o con el servicio ya cerrado no se envía', () => {
     expect(backgroundLocationTarget(null, null)).toBeNull();
     expect(backgroundLocationTarget('job', null)).toBeNull();
+  });
+});
+
+describe('proNextStep', () => {
+  it('dice una sola acción por estado', () => {
+    expect(proNextStep('accepted')).toContain('Ir al domicilio');
+    expect(proNextStep('on_the_way')).toContain('código de 4 dígitos');
+    expect(proNextStep('finished')).toContain('Cóbrale');
+    expect(proNextStep('published')).toBeNull();
   });
 });

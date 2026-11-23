@@ -480,9 +480,17 @@ try {
     sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`) === '0',
     'antes de salir no se comparte ubicación',
   );
-  await pro.click('text=Ir al domicilio');
+  check(
+    /Ir al domicilio/.test(await pro.locator('[data-testid=que-sigue]').innerText()),
+    'la pantalla dice qué sigue: ir al domicilio',
+  );
+  await pro.getByRole('button', { name: 'Ir al domicilio', exact: true }).click();
   await pro.waitForSelector('text=En camino · GPS activo, el cliente te ve');
   ok('"Ir al domicilio" inicia el viaje');
+  check(
+    /código de 4 dígitos/.test(await pro.locator('[data-testid=que-sigue]').innerText()),
+    'en camino, dice que pida el código al llegar',
+  );
   for (
     let i = 0;
     i < 50 && sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`) === '0';
@@ -528,17 +536,17 @@ try {
   await client.goBack();
 
   await pro.fill('[aria-labelledby=code-label]', code === '0000' ? '1111' : '0000');
-  await pro.click('text=Llegué al domicilio');
+  await pro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
   await pro.waitForSelector('text=El código no coincide');
   ok('un código equivocado no marca la llegada');
   await pro.fill('[aria-labelledby=code-label]', code);
-  await pro.click('text=Llegué al domicilio');
+  await pro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
   await pro.waitForSelector('text=Monto final');
   ok('con el código correcto queda "En el domicilio"');
   await client.waitForSelector('text=Luis llegó a tu domicilio', { timeout: 15000 });
   ok('el cliente ve la llegada');
 
-  await pro.click('text=Terminado');
+  await pro.getByRole('button', { name: 'Terminado', exact: true }).click();
   await pro.waitForSelector('text=Esperando que el cliente confirme el monto');
   const tracksAtFinish = sql(`select count(*) from public.job_tracks where job_id = '${jobId}'`);
   await client.waitForURL('**/confirmar', { timeout: 15000 });
@@ -705,15 +713,15 @@ try {
   await mobileLogin(pedro, '900000002', 'Ofrezco mis servicios');
   await pedro.waitForURL('**/solicitudes');
   await pedro.goto(`${MOBILE}/trabajo/${job2}`, { waitUntil: 'networkidle' });
-  await pedro.click('text=Ir al domicilio');
+  await pedro.getByRole('button', { name: 'Ir al domicilio', exact: true }).click();
   await pedro.waitForSelector('text=En camino · GPS activo, el cliente te ve');
   await pedro.fill(
     '[aria-labelledby=code-label]',
     sql(`select security_code from public.jobs where id = '${job2}'`),
   );
-  await pedro.click('text=Llegué al domicilio');
+  await pedro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
   await pedro.waitForSelector('text=Monto final');
-  await pedro.click('text=Reevaluar en sitio');
+  await pedro.getByRole('button', { name: 'Reevaluar en sitio', exact: true }).click();
   await pedro.waitForSelector('[data-testid=reevaluar]');
   await pedro.fill('[aria-labelledby=labor-label]', '100');
   await pedro.click('[role=radio]:has-text("Los compra el profesional")');

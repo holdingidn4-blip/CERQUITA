@@ -8,6 +8,7 @@ import {
   sanitizeSecurityCode,
   SERVICE_LABELS,
   serviceStepIndex,
+  proNextStep,
 } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -158,6 +159,12 @@ export default function Trabajo() {
         <Text style={styles.title} accessibilityRole="header">
           {headline[job.status] ?? SERVICE_LABELS[job.status]}
         </Text>
+        {proNextStep(job.status) && (
+          <View style={styles.nextStep} testID="que-sigue">
+            <Text style={styles.nextStepTitle}>Qué sigue</Text>
+            <Text style={styles.body}>{proNextStep(job.status)}</Text>
+          </View>
+        )}
         {(job.status === 'accepted' || job.status === 'on_the_way') && job.promised_arrival_at && (
           <Text style={styles.secondary} testID="llegada-acordada">
             Llegada acordada: {formatArrival(job.promised_arrival_at)}. Si no llegas a tiempo, el
@@ -334,6 +341,8 @@ export default function Trabajo() {
 }
 
 const styles = StyleSheet.create({
+  nextStep: { backgroundColor: '#E7F0EC', borderRadius: 12, padding: 12, gap: 4 },
+  nextStepTitle: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center', padding: 20 },
   content: { padding: 20, gap: 14 },

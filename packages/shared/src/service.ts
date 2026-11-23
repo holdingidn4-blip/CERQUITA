@@ -77,3 +77,26 @@ export function backgroundLocationTarget(
   if (mode === 'presence') return 'presence';
   return null;
 }
+
+/** "Qué sigue" para el profesional en cada estado del servicio (una sola acción por vez). */
+export function proNextStep(status: string): string | null {
+  switch (status) {
+    case 'accepted':
+      return 'Cuando salgas, toca “Ir al domicilio”. El cliente verá en el mapa que vas en camino.';
+    case 'on_the_way':
+      return 'Al llegar, pídele al cliente su código de 4 dígitos y escríbelo abajo.';
+    case 'at_home':
+      return 'Haz el trabajo. Si el precio cambia, usa “Reevaluar en sitio” antes de terminar. Al acabar, toca “Terminado”.';
+    case 'price_renegotiated':
+      return 'El cliente aprobó el nuevo precio. Termina el trabajo y toca “Terminado”.';
+    case 'finished':
+      return 'Cóbrale al cliente en efectivo, Yape o Plin. Cuando confirme el monto, se anota tu comisión.';
+    case 'confirmed':
+      return 'Califica al cliente. La comisión de este trabajo ya está en “Mi comisión”.';
+    case 'rated':
+    case 'cancelled':
+      return 'Vuelve a Solicitudes para ver más pedidos cerca de ti.';
+    default:
+      return null;
+  }
+}

@@ -11,11 +11,14 @@ Equivalencias: “orders” = `jobs` · “commission ledger” = `wallet_entrie
 
 ## 2. Oficios y verificación por oficio
 - 9 oficios en 4 categorías (`trades.category`) con su unidad de cobro (`pricing_unit`): técnicos (gasfitería, electricidad, hogar · por trabajo), construcción (albañilería, carpintería, pintura · por trabajo), servicio del hogar (limpieza · por hora; cuidado · por día) y choferes (chofer · por hora).
-- La verificación es **por oficio** (`pro_trades`), no por persona. Requisitos (`trade_requirements()`), exigidos al enviar y al aprobar:
-  - Todos: identidad = DNI frente, DNI reverso, selfie y antecedentes.
-  - Técnicos y construcción: ≥ 2 evidencias del oficio (`min_trade_evidence`): foto de trabajo, certificado, referencia o cuestionario.
-  - Choferes: licencia de conducir + récord de conductor (MTC/SAT).
-  - Servicio del hogar: antecedentes policiales + penales + 2 referencias (`domestic_min_references`).
+- La verificación es **por oficio** (`pro_trades`), no por persona. Registro en un asistente de 6 pasos (datos y DNI, oficios, pruebas, antecedentes, zona, revisión) que se guarda solo y retoma en el primer paso incompleto.
+- Cada oficio tiene **nivel de riesgo** (`trades.risk_level`) y **subespecialidades** de un catálogo cerrado (`trade_specialties`). Requisitos (`trade_requirements()`), exigidos al enviar y al aprobar:
+  - Todos: DNI (número + fecha de nacimiento, **mayor de 18**, un DNI por cuenta), fotos del DNI y selfie, **certificado de antecedentes penales** (adulto), al menos una subespecialidad y un **video de verificación de 1 a 3 min** grabado en la app (480p, privado).
+  - Riesgo alto (gasfitería, electricidad, técnico del hogar): ≥ 2 fotos de trabajos (`min_trade_evidence`) + certificado técnico.
+  - Confianza (limpieza, cuidado, choferes): 2 referencias (`domestic_min_references`). Choferes además: licencia y récord MTC/SAT.
+  - Habilidad (carpintería, albañilería, pintura): 3 a 5 fotos con descripción (`skill_min_photos`, `skill_max_photos`).
+- **Antecedentes:** se guarda solo el resultado por oficio (`pro_background_checks`: apto / con restricción / no apto), nunca el detalle. Aprobar exige apto o con restricción; al decidir, el certificado se borra. Un resultado favorable sirve 365 días (`background_valid_days`) para otros oficios.
+- Cola del panel (`verification_queue`): primero riesgo alto, luego lo más antiguo; alerta a las 24 h (`review_alert_hours`). Cada cambio de estado queda en `pro_trade_events` con responsable y motivo.
 - Estados: `draft` → `submitted` (`submit_pro_trade`) → `in_review` → `approved_observation` | `needs_info` (motivo obligatorio; puede reenviar) | `rejected` (motivo obligatorio; reintento a los 30 días, `reject_retry_days`). Con 3 calificaciones de ≥ 4★ (`full_approval_ratings`, `full_approval_min_stars`) pasa a `approved_full`. `suspended`: por soporte, por antifraude o al eliminar la cuenta.
 - Solo `approved_observation` y `approved_full` reciben pedidos de ese oficio.
 - Documentos: bucket privado `verification/<usuario>/…`. Soporte los abre con URL firmada de 60 s que firma **con su propia sesión**: Storage solo le deja leer el archivo si registró esa vista hace menos de 2 minutos (`log_document_access` → `document_access_log`, inmutable). El panel no usa la llave `service_role`.
@@ -134,6 +137,7 @@ Se leen con `setting_int` / `setting_text`: primero `city:<ciudad>`, luego `glob
 | `proof_review_hours` | 2 | Plazo de respuesta que la app promete al revisar una constancia; el panel marca las vencidas |
 | `no_show_grace_minutes` · `no_show_strikes` · `no_show_window_days` · `default_eta_minutes` | 15 · 3 · 30 · 60 | Profesional que no llega: tolerancia, faltas para la pausa, ventana y llegada por defecto |
 | `schedule_reminder_minutes` | 60 | Recordatorio de un pedido programado: al cliente y al pro asignado, o al cliente si aún no tiene profesional |
+| `skill_min_photos` · `skill_max_photos` · `verification_video_min_seconds` · `verification_video_max_seconds` · `review_alert_hours` · `background_valid_days` | 3 · 5 · 60 · 180 · 24 · 365 | Registro del profesional (F2) |
 | `ops_outbox_stale_minutes` | 10 | Panel → Sistema avisa si una notificación lleva más de estos minutos en cola |
 
 ## 13. Decisiones abiertas (del dueño)

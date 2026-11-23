@@ -326,7 +326,7 @@ export default function Solicitudes() {
             <Text style={styles.secondary}>
               {status.online
                 ? jobs.length === 0
-                  ? 'No hay pedidos nuevos en tu zona por ahora.'
+                  ? 'No hay pedidos nuevos en tu zona por ahora. Mantente en línea: te avisamos cuando llegue uno.'
                   : `${jobs.length} ${jobs.length === 1 ? 'pedido' : 'pedidos'} de ${status.tradeNames.join(' y ').toLowerCase()} en tu zona`
                 : 'Estás desconectado.'}
             </Text>
