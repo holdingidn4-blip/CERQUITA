@@ -3,6 +3,7 @@ import {
   formatDistance,
   formatRating,
   formatSoles,
+  levelLabel,
   OFFER_KIND_LABEL,
   offerKind,
   tradePlural,
@@ -36,6 +37,7 @@ type Offer = {
   labor_cents: number | null;
   materials_cents: number | null;
   transport_cents: number | null;
+  level: string;
 };
 type Job = {
   id: string;
@@ -158,7 +160,7 @@ export default function Ofertas() {
                 <View style={styles.flex}>
                   <Text style={styles.name}>{offer.pro_name}</Text>
                   <Text style={styles.secondary}>
-                    {formatRating(offer.rating_avg)} · {offer.jobs_done}{' '}
+                    {levelLabel(offer.level)} · {formatRating(offer.rating_avg)} · {offer.jobs_done}{' '}
                     {offer.jobs_done === 1 ? 'trabajo' : 'trabajos'}
                   </Text>
                 </View>

@@ -5,7 +5,7 @@ import {
   formatSoles,
   debtMessage,
   formatSchedule,
-  proLevel,
+  levelLabel,
   debtState,
   formatSolesShort,
   jobTitle,
@@ -60,11 +60,13 @@ export default function Solicitudes() {
   );
   const [switching, setSwitching] = useState(false);
   const [rank, setRank] = useState<{ position: number; score: number } | null>(null);
+  const [level, setLevel] = useState<string | null>(null);
   useEffect(() => {
     supabase.rpc('pro_ranking', { p_limit: 5 }).then(({ data }) => {
       const me = (data ?? []).find((r) => r.is_me);
       setRank(me ? { position: me.rank_position, score: me.score } : null);
     });
+    supabase.rpc('my_reputation').then(({ data }) => setLevel(data?.[0]?.level ?? null));
   }, []);
   const { debt } = useDebt();
   const paused = debt?.paused ?? false;
@@ -205,7 +207,7 @@ export default function Solicitudes() {
             <Text style={styles.kicker}>Modo profesional</Text>
             {rank && (
               <Text style={styles.rank} testID="mi-ranking">
-                🏆 #{rank.position} en Huancayo · {proLevel(rank.score).name} · {rank.score} pts
+                🏆 #{rank.position} en Huancayo · {levelLabel(level)} · {rank.score} pts
               </Text>
             )}
           </View>
@@ -215,6 +217,9 @@ export default function Solicitudes() {
             </Link>
             <Link href="/comision" style={styles.link}>
               Comisión
+            </Link>
+            <Link href="/capacitaciones" style={styles.link}>
+              Capacitaciones
             </Link>
             <Link href="/ajustes" style={styles.link}>
               Cuenta
@@ -427,7 +432,13 @@ const styles = StyleSheet.create({
   content: { padding: 20, gap: 12 },
   flex: { flex: 1 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  links: { flexDirection: 'row', gap: 16 },
+  links: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-end',
+    gap: 12,
+    flexShrink: 1,
+  },
   rank: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   kicker: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.textSecondary },
   link: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },

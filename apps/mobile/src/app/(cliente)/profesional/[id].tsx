@@ -1,4 +1,12 @@
-import { distanceAndEta, formatRating, formatSoles, QUOTE_TERMS } from '@cerquita/shared';
+import {
+  distanceAndEta,
+  formatRating,
+  formatSoles,
+  levelLabel,
+  PRO_LEVELS,
+  QUOTE_TERMS,
+  type ProLevelSlug,
+} from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -19,6 +27,7 @@ type Profile = {
   review_stars: number | null;
   review_comment: string | null;
   review_author: string | null;
+  level: string;
 };
 type OfferInfo = { id: string; price_cents: number; distance_m: number | null; pro_name: string };
 
@@ -80,6 +89,10 @@ export default function PerfilProfesional() {
           <Text style={styles.name}>{profile.full_name}</Text>
           <Text style={styles.secondary}>{profile.trades.join(' · ')}</Text>
           <Text style={styles.verified}>Identidad verificada</Text>
+          <Text style={styles.verified} testID="nivel">
+            Nivel: {levelLabel(profile.level)}
+          </Text>
+          <Text style={styles.secondary}>{PRO_LEVELS[profile.level as ProLevelSlug]?.hint}</Text>
         </View>
         <View style={styles.stats}>
           <Stat value={formatRating(profile.rating_avg)} label="Calificación" />

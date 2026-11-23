@@ -25,12 +25,15 @@ export default function Ajustes() {
   const [error, setError] = useState<string | null>(null);
   const [contacts, setContacts] = useState(0);
   const [deleting, setDeleting] = useState(false);
+  const [restricted, setRestricted] = useState(false);
 
   const loadContacts = useCallback(async () => {
     const { count } = await supabase
       .from('trusted_contacts')
       .select('id', { count: 'exact', head: true });
     setContacts(count ?? 0);
+    const { data: restriction } = await supabase.rpc('my_restriction');
+    setRestricted((restriction ?? []).length > 0);
   }, []);
   usePolling(loadContacts, 60000);
 
@@ -136,6 +139,15 @@ export default function Ajustes() {
             onPress={() => WebBrowser.openBrowserAsync(legalUrls.terms)}
           />
           <View style={styles.divider} />
+          {restricted && (
+            <>
+              <Row
+                label="Restricción de tu cuenta"
+                onPress={() => router.push('/ajustes/restriccion')}
+              />
+              <View style={styles.divider} />
+            </>
+          )}
           <Row label="Ayuda y soporte" onPress={() => router.push('/ajustes/ayuda')} />
           <View style={styles.divider} />
           <Row label="Términos (resumen)" onPress={() => router.push('/ajustes/terminos')} />

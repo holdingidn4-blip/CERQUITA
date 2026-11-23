@@ -66,12 +66,3 @@ export function pointsDiscount(
 export function pointsEarned(laborCents: Cents, pointsPerSol: number): number {
   return Math.floor(laborCents / 100) * pointsPerSol;
 }
-
-export type ProLevel = { name: 'Nuevo' | 'Bronce' | 'Plata' | 'Oro'; next: number | null };
-/** Nivel del profesional según su puntaje de ranking. */
-export function proLevel(score: number): ProLevel {
-  if (score >= 600) return { name: 'Oro', next: null };
-  if (score >= 250) return { name: 'Plata', next: 600 };
-  if (score >= 80) return { name: 'Bronce', next: 250 };
-  return { name: 'Nuevo', next: 80 };
-}

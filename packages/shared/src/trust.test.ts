@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chatViolation, hoursLeft, pointsDiscount, pointsEarned, proLevel } from './trust';
+import { chatViolation, hoursLeft, pointsDiscount, pointsEarned } from './trust';
 
 describe('chatViolation (igual que private.chat_violation)', () => {
   it.each([
@@ -26,12 +26,7 @@ describe('Puntos Cerquita', () => {
   });
 });
 
-describe('ranking y video temporal', () => {
-  it('niveles', () => {
-    expect(proLevel(0).name).toBe('Nuevo');
-    expect(proLevel(100)).toEqual({ name: 'Bronce', next: 250 });
-    expect(proLevel(700).name).toBe('Oro');
-  });
+describe('video temporal', () => {
   it('horas que faltan', () => {
     const now = new Date('2026-11-11T12:00:00Z');
     expect(hoursLeft('2026-11-13T11:30:00Z', now)).toBe(48);

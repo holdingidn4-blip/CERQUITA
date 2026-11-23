@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { registerDevice } from '@/lib/device';
 import { supabase } from '@/lib/supabase';
 
 export type Account = {
@@ -77,6 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sub.subscription.unsubscribe();
     };
   }, [refreshAccount]);
+
+  // Lista negra por dispositivo: se registra el teléfono (solo su hash) al tener sesión.
+  const userId = session?.user.id;
+  useEffect(() => {
+    if (userId) registerDevice(userId);
+  }, [userId]);
 
   const setActiveRole = useCallback(
     async (role: Role) => {

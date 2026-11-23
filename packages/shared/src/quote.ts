@@ -57,7 +57,7 @@ export type Receipt = {
   acceptance: { version: number; accepted_at: string; terms_version: string } | null;
 };
 
-const escapeHtml = (text: string) =>
+export const escapeHtml = (text: string) =>
   text.replace(
     /[&<>"']/g,
     (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,

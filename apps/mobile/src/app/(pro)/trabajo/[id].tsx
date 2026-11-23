@@ -37,6 +37,7 @@ import { ContactActions, StepBar } from '@/service/contact-actions';
 import { hasLocationPermission, startTracking, stopTracking } from '@/service/tracking';
 import { useService } from '@/service/use-service';
 import { ReceiptButton } from '@/service/after-service';
+import { SupervisedNotice } from '@/service/supervised-notice';
 import { WorkPhotos } from '@/service/work-photos';
 import { colors, fonts, radii } from '@/theme';
 
@@ -246,6 +247,7 @@ export default function Trabajo() {
               onPress={() => setReevaluating(true)}
             />
           ))}
+        <SupervisedNotice jobId={job.id} />
         {atHome && <WorkPhotos jobId={job.id} />}
         {(job.status === 'confirmed' || job.status === 'rated') && <ReceiptButton jobId={job.id} />}
         {job.status === 'cancelled' && job.cancel_reason && (
