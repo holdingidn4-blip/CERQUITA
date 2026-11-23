@@ -28,6 +28,15 @@
       "ios": {
         "resourceClass": "m-medium"
       }
+    },
+    "pilot": {
+      "distribution": "internal",
+      "environment": "production",
+      "channel": "production",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
