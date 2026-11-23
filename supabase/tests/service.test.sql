@@ -1,7 +1,7 @@
 -- Pruebas de la fase 6: servicio en curso, código, ubicación, chat, confirmación y cancelación.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(32);
+select plan(33);
 -- Las semillas traen un tarifario de ejemplo; cada prueba define el suyo (se revierte al final).
 delete from public.trade_rate_cards;
 
@@ -85,14 +85,19 @@ select is((select count(*)::int from public.job_live_location(:job)), 1, 'en el 
 -- ───────── Terminado y confirmación ─────────
 select pg_temp.as_user(:c);
 select throws_ok(format('select public.finish_job(%L)', :job), '42501', null, 'el cliente no marca Terminado');
+select pg_temp.as_postgres();
+insert into public.job_work_photos (job_id, kind, storage_path, uploaded_by)
+select :job, k, :job::text || '/' || k || '.jpg', private.job_assigned_pro_id(:job) from unnest(array['before', 'after']) k;
 select pg_temp.as_user(:p);
-select is((select final_proposed_cents from public.finish_job(:job, 9500)), 9500, 'el pro marca Terminado con S/ 95');
+select throws_ok(format('select public.finish_job(%L, 9500)', :job), 'P0001', null,
+  'cambiar el monto al terminar exige una cotización nueva');
+select is((select final_proposed_cents from public.finish_job(:job)), 9000, 'el pro marca Terminado con el monto acordado');
 select throws_ok(format('insert into public.job_tracks (job_id, point) values (%L, %L)', :job, 'SRID=4326;POINT(-77.03 -12.12)'),
   '42501', null, 'tras Terminado se corta la ubicación');
 select throws_ok(format('select public.confirm_job(%L)', :job), '42501', null, 'el pro no confirma');
 select pg_temp.as_user(:c);
 select is((select count(*)::int from public.job_live_location(:job)), 0, 'el cliente deja de ver la posición');
-select is((select status::text from public.confirm_job(:job, false)), 'at_home', 'el cliente rechaza un monto distinto');
+select is((select status::text from public.confirm_job(:job, false)), 'at_home', 'el cliente puede rechazar el monto y vuelve al domicilio');
 select pg_temp.as_user(:p);
 select public.finish_job(:job);
 select pg_temp.as_user(:c);

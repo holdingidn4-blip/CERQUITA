@@ -262,6 +262,65 @@ export type Database = {
           },
         ];
       };
+      client_coupons: {
+        Row: {
+          amount_cents: number;
+          client_id: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          reason: string;
+          source_job_id: string | null;
+          used_at: string | null;
+          used_job_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          client_id: string;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          reason: string;
+          source_job_id?: string | null;
+          used_at?: string | null;
+          used_job_id?: string | null;
+        };
+        Update: {
+          amount_cents?: number;
+          client_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          reason?: string;
+          source_job_id?: string | null;
+          used_at?: string | null;
+          used_job_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'client_coupons_client_id_fkey';
+            columns: ['client_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_coupons_source_job_id_fkey';
+            columns: ['source_job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'client_coupons_used_job_id_fkey';
+            columns: ['used_job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       document_access_log: {
         Row: {
           document_id: string;
@@ -362,6 +421,55 @@ export type Database = {
           },
         ];
       };
+      job_work_photos: {
+        Row: {
+          created_at: string;
+          id: string;
+          job_id: string;
+          kind: string;
+          portfolio_allowed: boolean;
+          portfolio_changed_at: string | null;
+          storage_path: string;
+          uploaded_by: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          job_id: string;
+          kind: string;
+          portfolio_allowed?: boolean;
+          portfolio_changed_at?: string | null;
+          storage_path: string;
+          uploaded_by?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          job_id?: string;
+          kind?: string;
+          portfolio_allowed?: boolean;
+          portfolio_changed_at?: string | null;
+          storage_path?: string;
+          uploaded_by?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'job_work_photos_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'job_work_photos_uploaded_by_fkey';
+            columns: ['uploaded_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       jobs: {
         Row: {
           accepted_offer_id: string | null;
@@ -375,6 +483,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -395,6 +505,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -410,11 +521,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         ComputedFields: never;
@@ -430,6 +543,8 @@ export type Database = {
           client_id?: string;
           commission_rate_bps?: number | null;
           confirmed_at?: string | null;
+          coupon_discount_cents?: number;
+          coupon_id?: string | null;
           created_at?: string;
           currency_code?: string;
           description: string;
@@ -450,6 +565,7 @@ export type Database = {
           points_redeemed?: number;
           pricing_unit?: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at?: string | null;
+          quote_version?: number;
           reeval_answered_at?: string | null;
           reeval_items?: Json | null;
           reeval_labor_cents?: number | null;
@@ -465,11 +581,13 @@ export type Database = {
           status?: Database['public']['Enums']['job_status'];
           total_cents?: never;
           trade_id: number;
+          transport_cents?: number;
           units?: number;
           updated_at?: string;
           video_path?: string | null;
           video_seconds?: number | null;
           video_uploaded_at?: string | null;
+          visit_cents?: number;
           visit_fee_cents?: number | null;
         };
         Update: {
@@ -484,6 +602,8 @@ export type Database = {
           client_id?: string;
           commission_rate_bps?: number | null;
           confirmed_at?: string | null;
+          coupon_discount_cents?: number;
+          coupon_id?: string | null;
           created_at?: string;
           currency_code?: string;
           description?: string;
@@ -504,6 +624,7 @@ export type Database = {
           points_redeemed?: number;
           pricing_unit?: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at?: string | null;
+          quote_version?: number;
           reeval_answered_at?: string | null;
           reeval_items?: Json | null;
           reeval_labor_cents?: number | null;
@@ -519,11 +640,13 @@ export type Database = {
           status?: Database['public']['Enums']['job_status'];
           total_cents?: never;
           trade_id?: number;
+          transport_cents?: number;
           units?: number;
           updated_at?: string;
           video_path?: string | null;
           video_seconds?: number | null;
           video_uploaded_at?: string | null;
+          visit_cents?: number;
           visit_fee_cents?: number | null;
         };
         Relationships: [
@@ -546,6 +669,13 @@ export type Database = {
             columns: ['client_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'jobs_coupon_id_fkey';
+            columns: ['coupon_id'];
+            isOneToOne: false;
+            referencedRelation: 'client_coupons';
             referencedColumns: ['id'];
           },
           {
@@ -660,10 +790,14 @@ export type Database = {
           eta_minutes: number | null;
           id: string;
           job_id: string;
+          labor_cents: number | null;
+          materials_cents: number | null;
           message: string | null;
           price_cents: number;
           pro_id: string;
           status: Database['public']['Enums']['offer_status'];
+          transport_cents: number | null;
+          visit_cents: number | null;
         };
         ComputedFields: never;
         Insert: {
@@ -671,20 +805,28 @@ export type Database = {
           eta_minutes?: number | null;
           id?: string;
           job_id: string;
+          labor_cents?: number | null;
+          materials_cents?: number | null;
           message?: string | null;
           price_cents: number;
           pro_id?: string;
           status?: Database['public']['Enums']['offer_status'];
+          transport_cents?: number | null;
+          visit_cents?: number | null;
         };
         Update: {
           created_at?: string;
           eta_minutes?: number | null;
           id?: string;
           job_id?: string;
+          labor_cents?: number | null;
+          materials_cents?: number | null;
           message?: string | null;
           price_cents?: number;
           pro_id?: string;
           status?: Database['public']['Enums']['offer_status'];
+          transport_cents?: number | null;
+          visit_cents?: number | null;
         };
         Relationships: [
           {
@@ -882,6 +1024,12 @@ export type Database = {
       };
       pro_no_shows: {
         Row: {
+          appeal_note: string | null;
+          appeal_reviewed_at: string | null;
+          appeal_reviewed_by: string | null;
+          appeal_status: string | null;
+          appeal_text: string | null;
+          appealed_at: string | null;
           id: string;
           job_id: string;
           offer_id: string;
@@ -891,6 +1039,12 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          appeal_note?: string | null;
+          appeal_reviewed_at?: string | null;
+          appeal_reviewed_by?: string | null;
+          appeal_status?: string | null;
+          appeal_text?: string | null;
+          appealed_at?: string | null;
           id?: string;
           job_id: string;
           offer_id: string;
@@ -899,6 +1053,12 @@ export type Database = {
           reported_at?: string;
         };
         Update: {
+          appeal_note?: string | null;
+          appeal_reviewed_at?: string | null;
+          appeal_reviewed_by?: string | null;
+          appeal_status?: string | null;
+          appeal_text?: string | null;
+          appealed_at?: string | null;
           id?: string;
           job_id?: string;
           offer_id?: string;
@@ -907,6 +1067,13 @@ export type Database = {
           reported_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'pro_no_shows_appeal_reviewed_by_fkey';
+            columns: ['appeal_reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'pro_no_shows_job_id_fkey';
             columns: ['job_id'];
@@ -1177,6 +1344,77 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      quote_acceptances: {
+        Row: {
+          accepted_at: string;
+          accepted_by: string;
+          id: string;
+          job_id: string;
+          labor_cents: number;
+          materials_cents: number;
+          offer_id: string | null;
+          source: string;
+          terms_version: string;
+          total_cents: number;
+          transport_cents: number;
+          version: number;
+          visit_cents: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          accepted_at?: string;
+          accepted_by: string;
+          id?: string;
+          job_id: string;
+          labor_cents: number;
+          materials_cents: number;
+          offer_id?: string | null;
+          source: string;
+          terms_version: string;
+          total_cents: number;
+          transport_cents: number;
+          version: number;
+          visit_cents: number;
+        };
+        Update: {
+          accepted_at?: string;
+          accepted_by?: string;
+          id?: string;
+          job_id?: string;
+          labor_cents?: number;
+          materials_cents?: number;
+          offer_id?: string | null;
+          source?: string;
+          terms_version?: string;
+          total_cents?: number;
+          transport_cents?: number;
+          version?: number;
+          visit_cents?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'quote_acceptances_accepted_by_fkey';
+            columns: ['accepted_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'quote_acceptances_job_id_fkey';
+            columns: ['job_id'];
+            isOneToOne: false;
+            referencedRelation: 'jobs';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'quote_acceptances_offer_id_fkey';
+            columns: ['offer_id'];
+            isOneToOne: false;
+            referencedRelation: 'offers';
             referencedColumns: ['id'];
           },
         ];
@@ -1779,6 +2017,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -1799,6 +2039,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1814,11 +2055,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -1877,6 +2120,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -1897,6 +2142,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1912,11 +2158,104 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
+          visit_fee_cents: number | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'jobs';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      appeal_no_show: {
+        Args: { p_no_show: string; p_text: string };
+        Returns: {
+          appeal_note: string | null;
+          appeal_reviewed_at: string | null;
+          appeal_reviewed_by: string | null;
+          appeal_status: string | null;
+          appeal_text: string | null;
+          appealed_at: string | null;
+          id: string;
+          job_id: string;
+          offer_id: string;
+          pro_id: string;
+          promised_arrival_at: string;
+          reported_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'pro_no_shows';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      apply_coupon: {
+        Args: { p_coupon: string; p_job: string };
+        Returns: {
+          accepted_offer_id: string | null;
+          approx_point: unknown;
+          arrived_at: string | null;
+          assigned_at: string | null;
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          cancelled_by: string | null;
+          city_slug: string;
+          client_id: string;
+          commission_rate_bps: number | null;
+          confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
+          created_at: string;
+          currency_code: string;
+          description: string;
+          diagnostic_visit: boolean;
+          exact_address: string;
+          final_price_cents: number | null;
+          final_proposed_cents: number | null;
+          finished_at: string | null;
+          id: string;
+          labor_cents: number | null;
+          materials_cents: number;
+          materials_items: NonNullable<Json>;
+          materials_provided_by: Database['public']['Enums']['materials_provider'];
+          materials_receipt_path: string | null;
+          offered_price_cents: number;
+          photos: string[];
+          points_discount_cents: number;
+          points_redeemed: number;
+          pricing_unit: Database['public']['Enums']['pricing_unit'];
+          promised_arrival_at: string | null;
+          quote_version: number;
+          reeval_answered_at: string | null;
+          reeval_items: Json | null;
+          reeval_labor_cents: number | null;
+          reeval_materials_by: Database['public']['Enums']['materials_provider'] | null;
+          reeval_materials_cents: number | null;
+          reeval_proposed_at: string | null;
+          reeval_receipt_path: string | null;
+          schedule_kind: string;
+          schedule_reminded_at: string | null;
+          scheduled_for: string | null;
+          security_code: string | null;
+          started_at: string | null;
+          status: Database['public']['Enums']['job_status'];
+          total_cents: number | null;
+          trade_id: number;
+          transport_cents: number;
+          units: number;
+          updated_at: string;
+          video_path: string | null;
+          video_seconds: number | null;
+          video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -1940,6 +2279,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -1960,6 +2301,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -1975,11 +2317,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2003,6 +2347,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2023,6 +2369,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2038,11 +2385,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2066,6 +2415,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2086,6 +2437,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2101,11 +2453,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2146,6 +2500,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2166,6 +2522,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2181,11 +2538,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2224,6 +2583,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2244,6 +2605,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2259,11 +2621,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2310,6 +2674,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2330,6 +2696,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2345,11 +2712,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2392,14 +2761,19 @@ export type Database = {
           eta_minutes: number;
           id: string;
           jobs_done: number;
+          labor_cents: number;
+          materials_cents: number;
           message: string;
           price_cents: number;
           pro_id: string;
           pro_name: string;
           rating_avg: number;
           status: Database['public']['Enums']['offer_status'];
+          transport_cents: number;
+          visit_cents: number;
         }[];
       };
+      job_receipt: { Args: { p_job: string }; Returns: Json };
       job_security_code: { Args: { p_job: string }; Returns: string };
       log_document_access: { Args: { p_document: string }; Returns: string };
       my_account: {
@@ -2490,6 +2864,14 @@ export type Database = {
           pending_cents: number;
         }[];
       };
+      pro_portfolio: {
+        Args: { p_pro: string };
+        Returns: {
+          created_at: string;
+          kind: string;
+          storage_path: string;
+        }[];
+      };
       pro_profile: {
         Args: { p_pro: string };
         Returns: {
@@ -2539,6 +2921,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2559,6 +2943,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2574,11 +2959,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2634,6 +3021,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2654,6 +3043,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2669,11 +3059,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {
@@ -2749,6 +3141,29 @@ export type Database = {
         SetofOptions: {
           from: '*';
           to: 'bypass_suspicions';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      review_no_show_appeal: {
+        Args: { p_accept: boolean; p_no_show: string; p_note: string };
+        Returns: {
+          appeal_note: string | null;
+          appeal_reviewed_at: string | null;
+          appeal_reviewed_by: string | null;
+          appeal_status: string | null;
+          appeal_text: string | null;
+          appealed_at: string | null;
+          id: string;
+          job_id: string;
+          offer_id: string;
+          pro_id: string;
+          promised_arrival_at: string;
+          reported_at: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'pro_no_shows';
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -2836,6 +3251,7 @@ export type Database = {
         };
       };
       send_job_message: { Args: { p_body: string; p_job: string }; Returns: Json };
+      set_portfolio_permission: { Args: { p_allowed: boolean; p_job: string }; Returns: number };
       set_pro_trade_specialties: {
         Args: { p_pro_trade: string; p_specialties: number[] };
         Returns: undefined;
@@ -2915,6 +3331,8 @@ export type Database = {
           client_id: string;
           commission_rate_bps: number | null;
           confirmed_at: string | null;
+          coupon_discount_cents: number;
+          coupon_id: string | null;
           created_at: string;
           currency_code: string;
           description: string;
@@ -2935,6 +3353,7 @@ export type Database = {
           points_redeemed: number;
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           promised_arrival_at: string | null;
+          quote_version: number;
           reeval_answered_at: string | null;
           reeval_items: Json | null;
           reeval_labor_cents: number | null;
@@ -2950,11 +3369,13 @@ export type Database = {
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
           trade_id: number;
+          transport_cents: number;
           units: number;
           updated_at: string;
           video_path: string | null;
           video_seconds: number | null;
           video_uploaded_at: string | null;
+          visit_cents: number;
           visit_fee_cents: number | null;
         };
         SetofOptions: {

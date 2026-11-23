@@ -136,6 +136,10 @@ select is((select labor_cents || '|' || materials_cents || '|' || total_cents ||
 select pg_temp.as_user(:p);
 select lives_ok(format('insert into public.job_tracks (job_id, point) values (%L, %L)', :'job', 'SRID=4326;POINT(-75.2049 -12.0651)'),
   'con precio reevaluado sigue en el domicilio (ubicación activa)');
+select pg_temp.as_postgres();
+insert into public.job_work_photos (job_id, kind, storage_path, uploaded_by)
+select :'job'::uuid, k, :'job'::uuid::text || '/' || k || '.jpg', private.job_assigned_pro_id(:'job'::uuid) from unnest(array['before', 'after']) k;
+select pg_temp.as_user(:p);
 select is((select status::text from public.finish_job(:'job')), 'finished', 'el pro marca Terminado');
 select pg_temp.as_user(:c);
 select public.confirm_job(:'job');

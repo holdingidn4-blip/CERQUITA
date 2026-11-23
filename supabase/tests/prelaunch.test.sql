@@ -107,6 +107,9 @@ select pg_temp.as_user(:c);
 select public.answer_reevaluation(:'job', true);
 select pg_temp.as_postgres();
 select is(pg_temp.outbox(:p, 'job_renegotiated'), 1, 'aprobarla notifica al pro');
+select pg_temp.as_postgres();
+insert into public.job_work_photos (job_id, kind, storage_path, uploaded_by)
+select :'job'::uuid, k, :'job'::uuid::text || '/' || k || '.jpg', private.job_assigned_pro_id(:'job'::uuid) from unnest(array['before', 'after']) k;
 select pg_temp.as_user(:p);
 select public.finish_job(:'job');
 select pg_temp.as_postgres();
