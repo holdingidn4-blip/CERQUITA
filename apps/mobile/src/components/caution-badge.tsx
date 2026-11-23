@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   badge: {
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
-    color: '#7A5A12',
+    color: colors.warningText,
     backgroundColor: colors.amberSoft,
     borderRadius: 8,
     paddingHorizontal: 8,

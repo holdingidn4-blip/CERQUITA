@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radii.md,
   },
-  optionOn: { borderColor: colors.primary, backgroundColor: '#DCEFE8' },
+  optionOn: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   optionTextOn: { fontFamily: fonts.bodySemibold, color: colors.primary },
   message: { fontFamily: fonts.bodyMedium, fontSize: 14, borderRadius: radii.md, padding: 12 },
   error: { color: colors.danger, backgroundColor: colors.dangerSoft },

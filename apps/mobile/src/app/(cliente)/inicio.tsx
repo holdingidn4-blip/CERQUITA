@@ -242,7 +242,7 @@ export default function Inicio() {
   );
 }
 
-const TINT = '#E3EFEA';
+const TINT = colors.primarySoft;
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   points: {
     fontFamily: fonts.bodySemibold,
     fontSize: 13,
-    color: '#7A5A12',
+    color: colors.warningText,
     backgroundColor: colors.amberSoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     gap: 6,
   },
-  tilePressed: { borderColor: colors.primary, backgroundColor: '#F1F7F4' },
+  tilePressed: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   tileIcon: {
     width: 48,
     height: 48,
@@ -316,7 +316,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   tileCount: { fontFamily: fonts.bodySemibold, fontSize: 12, color: colors.primary },
-  nearbyCard: { backgroundColor: '#ECE8DD', borderRadius: radii.lg, padding: 16, gap: 12 },
+  nearbyCard: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radii.lg,
+    padding: 16,
+    gap: 12,
+  },
   nearbyLine: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
   body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.text },
   secondary: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: colors.textSecondary },

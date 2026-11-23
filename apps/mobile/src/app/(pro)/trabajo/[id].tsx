@@ -324,7 +324,7 @@ export default function Trabajo() {
 }
 
 const styles = StyleSheet.create({
-  nextStep: { backgroundColor: '#E7F0EC', borderRadius: 12, padding: 12, gap: 4 },
+  nextStep: { backgroundColor: colors.primarySoft, borderRadius: 12, padding: 12, gap: 4 },
   nextStepTitle: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center', padding: 20 },
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   pending: {
     fontFamily: fonts.bodySemibold,
     fontSize: 14,
-    color: '#7A5A12',
+    color: colors.warningText,
     backgroundColor: colors.amberSoft,
     borderRadius: radii.md,
     padding: 12,

@@ -13,5 +13,5 @@ export function InitialsAvatar({ name, size = 44 }: { name: string | null; size?
 
 const styles = StyleSheet.create({
   circle: { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  text: { fontFamily: fonts.display, color: colors.surface },
+  text: { fontFamily: fonts.display, color: colors.onPrimary },
 });

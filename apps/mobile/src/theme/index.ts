@@ -1,6 +1,14 @@
-import { colors, radii, spacing } from '@cerquita/shared';
+import { motion, palettes, radii, spacing, touch, typography } from '@cerquita/shared';
+import { Appearance } from 'react-native';
 
-export { colors, radii, spacing };
+/**
+ * Modo claro u oscuro según el sistema al abrir la app. Los estilos se crean una vez con esta paleta;
+ * si la persona cambia el modo con la app abierta, `_layout` recarga la app para aplicarlo.
+ */
+export const scheme: 'light' | 'dark' = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';
+export const colors = palettes[scheme];
+
+export { motion, radii, spacing, touch, typography };
 
 /** Nombres de fuentes tal como se registran con useFonts en app/_layout.tsx. */
 export const fonts = {

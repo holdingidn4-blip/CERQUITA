@@ -249,7 +249,7 @@ export function ReevaluatePanel({ job, onDone }: { job: ServiceJob; onDone: () =
 }
 
 const styles = StyleSheet.create({
-  wrap: { gap: 10, backgroundColor: '#F1EEE6', borderRadius: radii.lg, padding: 14 },
+  wrap: { gap: 10, backgroundColor: colors.surfaceMuted, borderRadius: radii.lg, padding: 14 },
   h2: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
   label: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.text },
   secondary: { fontFamily: fonts.body, fontSize: 12, lineHeight: 17, color: colors.textSecondary },
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: '#D5D0C3',
+    borderColor: colors.borderStrong,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.text },
-  chipTextOn: { color: colors.surface },
+  chipTextOn: { color: colors.onPrimary },
   result: {
     backgroundColor: colors.surface,
     borderRadius: radii.md,

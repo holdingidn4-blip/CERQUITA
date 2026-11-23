@@ -23,11 +23,11 @@ import { isEditable, useVerification } from '@/pro/use-verification';
 import { colors, fonts, radii } from '@/theme';
 
 const TONES: Record<Tone, { bg: string; fg: string }> = {
-  success: { bg: '#DCEFE8', fg: colors.primary },
-  info: { bg: '#E3ECF5', fg: '#1F4E79' },
-  warning: { bg: colors.amberSoft, fg: '#7A5A12' },
+  success: { bg: colors.primarySoft, fg: colors.primary },
+  info: { bg: colors.infoSoft, fg: colors.infoText },
+  warning: { bg: colors.amberSoft, fg: colors.warningText },
   danger: { bg: colors.dangerSoft, fg: colors.danger },
-  neutral: { bg: '#ECE8DD', fg: '#2F3B36' },
+  neutral: { bg: colors.surfaceMuted, fg: colors.text },
 };
 
 /** Estado de la verificación: qué se aprobó por oficio, qué está en revisión y qué falta. */
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   dot: { width: 12, height: 12, borderRadius: 6 },
   cardTitle: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
   secondary: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: colors.textSecondary },
-  body: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: '#2F3B36' },
+  body: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.text },
   trade: { gap: 8 },
   tradeHeader: {
     flexDirection: 'row',
@@ -242,12 +242,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: '#D5D0C3',
+    borderColor: colors.borderStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   addText: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
-  note: { backgroundColor: '#E7F0EC', borderRadius: radii.md, padding: 12 },
+  note: { backgroundColor: colors.primarySoft, borderRadius: radii.md, padding: 12 },
   noteText: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.text },
   error: {
     fontFamily: fonts.bodyMedium,

@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemibold,
     fontSize: 12,
     color: colors.primary,
-    backgroundColor: '#DCEFE8',
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,

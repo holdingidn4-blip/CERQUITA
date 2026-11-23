@@ -231,8 +231,8 @@ export default function Ofertas() {
 }
 
 const styles = StyleSheet.create({
-  breakdown: { gap: 2, borderTopWidth: 1, borderTopColor: '#F0EDE4', paddingTop: 8 },
-  terms: { gap: 4, backgroundColor: '#F0EDE4', borderRadius: 12, padding: 12 },
+  breakdown: { gap: 2, borderTopWidth: 1, borderTopColor: colors.surfaceMuted, paddingTop: 8 },
+  terms: { gap: 4, backgroundColor: colors.surfaceMuted, borderRadius: 12, padding: 12 },
   termsTitle: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.text },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center' },
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
-    backgroundColor: '#ECE8DD',
+    backgroundColor: colors.surfaceMuted,
     borderRadius: radii.lg,
     padding: 16,
   },
@@ -263,18 +263,18 @@ const styles = StyleSheet.create({
   priceCol: { alignItems: 'flex-end' },
   price: { fontFamily: fonts.display, fontSize: 20, color: colors.text },
   kind: { fontFamily: fonts.bodySemibold, fontSize: 12, color: colors.primary },
-  kindCounter: { color: '#7A5A12' },
+  kindCounter: { color: colors.warningText },
   verified: {
     fontFamily: fonts.bodySemibold,
     fontSize: 12,
     color: colors.primary,
-    backgroundColor: '#DCEFE8',
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
     overflow: 'hidden',
   },
-  message: { fontFamily: fonts.body, fontSize: 14, color: '#2F3B36', fontStyle: 'italic' },
+  message: { fontFamily: fonts.body, fontSize: 14, color: colors.text, fontStyle: 'italic' },
   actions: { flexDirection: 'row', gap: 8 },
   error: {
     fontFamily: fonts.bodyMedium,

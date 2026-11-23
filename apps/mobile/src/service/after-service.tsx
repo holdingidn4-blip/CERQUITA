@@ -101,7 +101,7 @@ export function PortfolioToggle({ jobId }: { jobId: string }) {
           await load();
           setBusy(false);
         }}
-        trackColor={{ true: colors.primary, false: '#D5D0C3' }}
+        trackColor={{ true: colors.primary, false: colors.borderStrong }}
       />
     </View>
   );

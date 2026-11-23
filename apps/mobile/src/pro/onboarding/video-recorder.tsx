@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   title: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
   subtitle: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.textSecondary },
   prompts: {
-    backgroundColor: '#E7F0EC',
+    backgroundColor: colors.primarySoft,
     borderRadius: radii.md,
     padding: 12,
     gap: 4,

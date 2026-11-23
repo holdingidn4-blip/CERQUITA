@@ -48,5 +48,5 @@ export function MapPreview(props: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderRadius: 20, overflow: 'hidden', backgroundColor: '#ECE8DD' },
+  wrap: { borderRadius: 20, overflow: 'hidden', backgroundColor: colors.surfaceMuted },
 });

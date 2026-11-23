@@ -32,6 +32,6 @@ export function SupervisedNotice({ jobId }: { jobId: string }) {
 
 const styles = StyleSheet.create({
   box: { backgroundColor: colors.amberSoft, borderRadius: radii.md, padding: 12, gap: 4 },
-  title: { fontFamily: fonts.bodySemibold, fontSize: 15, color: '#5E4410' },
-  body: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: '#5E4410' },
+  title: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.warningText },
+  body: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.warningText },
 });

@@ -85,6 +85,6 @@ const styles = StyleSheet.create({
   value: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
   strong: { fontFamily: fonts.display, fontSize: 17 },
   item: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary, paddingLeft: 8 },
-  divider: { height: 1, backgroundColor: '#F0EDE4' },
+  divider: { height: 1, backgroundColor: colors.surfaceMuted },
   note: { fontFamily: fonts.body, fontSize: 12, color: colors.textSecondary },
 });

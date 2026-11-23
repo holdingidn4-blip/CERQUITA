@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: colors.text, flex: 1 },
   item: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary },
-  note: { backgroundColor: '#E7F0EC', borderRadius: radii.md, padding: 14 },
+  note: { backgroundColor: colors.primarySoft, borderRadius: radii.md, padding: 14 },
   noteText: { fontFamily: fonts.body, fontSize: 14, lineHeight: 20, color: colors.text },
   footer: { gap: 8 },
   secondary: {

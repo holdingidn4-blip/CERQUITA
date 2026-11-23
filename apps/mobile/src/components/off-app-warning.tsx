@@ -20,5 +20,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.amber,
   },
-  text: { fontFamily: fonts.bodySemibold, fontSize: 13, lineHeight: 19, color: '#5C4410' },
+  text: { fontFamily: fonts.bodySemibold, fontSize: 13, lineHeight: 19, color: colors.warningText },
 });

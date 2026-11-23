@@ -23,7 +23,7 @@ export function MapPreview({ radiusM, height = 220, label = 'Tu ubicación' }: P
 const styles = StyleSheet.create({
   wrap: {
     borderRadius: 20,
-    backgroundColor: '#ECE8DD',
+    backgroundColor: colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,

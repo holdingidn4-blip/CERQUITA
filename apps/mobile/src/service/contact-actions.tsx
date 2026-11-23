@@ -78,6 +78,6 @@ const styles = StyleSheet.create({
   dangerLabel: { color: colors.danger },
   disabled: { opacity: 0.5 },
   steps: { flexDirection: 'row', gap: 6 },
-  step: { flex: 1, height: 5, borderRadius: 3, backgroundColor: '#ECE8DD' },
+  step: { flex: 1, height: 5, borderRadius: 3, backgroundColor: colors.surfaceMuted },
   stepOn: { backgroundColor: colors.primary },
 });

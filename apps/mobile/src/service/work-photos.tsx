@@ -138,8 +138,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: 'hidden',
   },
-  done: { backgroundColor: '#DCEFE8', color: colors.primary },
-  pending: { backgroundColor: colors.amberSoft, color: '#7A5A12' },
+  done: { backgroundColor: colors.primarySoft, color: colors.primary },
+  pending: { backgroundColor: colors.amberSoft, color: colors.warningText },
   action: {
     minHeight: 44,
     paddingHorizontal: 12,

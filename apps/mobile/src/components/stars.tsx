@@ -22,6 +22,6 @@ export function Stars({ value, onChange }: { value: number; onChange: (n: number
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, justifyContent: 'center' },
-  star: { fontSize: 40, color: '#D5D0C3' },
+  star: { fontSize: 40, color: colors.borderStrong },
   on: { color: colors.amber },
 });

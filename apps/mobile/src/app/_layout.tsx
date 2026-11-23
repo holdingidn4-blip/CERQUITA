@@ -4,14 +4,17 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
+import * as Updates from 'expo-updates';
 import { useEffect } from 'react';
+import { Appearance, Platform } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/auth/auth-provider';
 import { withMonitoring } from '@/lib/monitoring';
 import { listenToNotificationTaps, registerForPush } from '@/lib/notifications';
 // Registra la tarea de ubicación en segundo plano al arrancar (expo-task-manager lo exige).
 import '@/service/tracking';
-import { colors } from '@/theme';
+import { colors, scheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,6 +27,17 @@ function Navigator() {
     if (userId) registerForPush().catch(() => undefined);
   }, [userId]);
   useEffect(() => listenToNotificationTaps(), []);
+
+  // Tema claro u oscuro: fondo del sistema acorde y recarga si la persona cambia el modo.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.background).catch(() => undefined);
+    const sub = Appearance.addChangeListener(({ colorScheme }) => {
+      if ((colorScheme === 'dark' ? 'dark' : 'light') === scheme) return;
+      if (Platform.OS === 'web') window.location.reload();
+      else Updates.reloadAsync().catch(() => undefined);
+    });
+    return () => sub.remove();
+  }, []);
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -40,7 +54,7 @@ function Navigator() {
   if (!ready) return null;
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
       />

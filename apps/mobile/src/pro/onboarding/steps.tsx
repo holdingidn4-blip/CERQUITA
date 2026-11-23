@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   },
   radiusOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   radiusKm: { fontFamily: fonts.bodySemibold, fontSize: 18, color: colors.text },
-  radiusTextOn: { color: colors.surface },
+  radiusTextOn: { color: colors.onPrimary },
   reviewRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -520,7 +520,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     overflow: 'hidden',
   },
-  ok: { backgroundColor: '#DCEFE8', color: colors.primary },
-  missing: { backgroundColor: colors.amberSoft, color: '#7A5A12' },
+  ok: { backgroundColor: colors.primarySoft, color: colors.primary },
+  missing: { backgroundColor: colors.amberSoft, color: colors.warningText },
   edit: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
 });

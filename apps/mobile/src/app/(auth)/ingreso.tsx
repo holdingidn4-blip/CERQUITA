@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   header: { gap: 10 },
-  tagline: { fontFamily: fonts.bodyMedium, fontSize: 18, lineHeight: 25, color: '#2F3B36' },
+  tagline: { fontFamily: fonts.bodyMedium, fontSize: 18, lineHeight: 25, color: colors.text },
   warning: {
     fontFamily: fonts.body,
     fontSize: 13,

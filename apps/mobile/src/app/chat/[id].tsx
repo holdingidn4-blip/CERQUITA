@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   body: { fontFamily: fonts.body, fontSize: 15, color: colors.text },
-  mineText: { color: colors.surface },
+  mineText: { color: colors.onPrimary },
   error: {
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
@@ -223,5 +223,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     justifyContent: 'center',
   },
-  sendText: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.surface },
+  sendText: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.onPrimary },
 });

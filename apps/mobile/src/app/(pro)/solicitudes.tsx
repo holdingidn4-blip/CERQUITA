@@ -324,7 +324,7 @@ export default function Solicitudes() {
                 value={status.online}
                 disabled={switching}
                 onValueChange={toggleOnline}
-                trackColor={{ true: colors.primary, false: '#D5D0C3' }}
+                trackColor={{ true: colors.primary, false: colors.borderStrong }}
               />
             </View>
 
@@ -431,17 +431,11 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, gap: 12 },
   flex: { flex: 1 },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  links: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-    gap: 12,
-    flexShrink: 1,
-  },
-  rank: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.primary },
-  kicker: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.textSecondary },
-  link: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
+  topRow: { gap: 10 },
+  links: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 18, rowGap: 6 },
+  link: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary, paddingVertical: 4 },
+  rank: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.primary },
+  kicker: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.textSecondary },
   refresh: { textAlign: 'center', paddingVertical: 8 },
   title: { fontFamily: fonts.display, fontSize: 22, color: colors.text, marginTop: 4 },
   h2: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
@@ -469,7 +463,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#E7F0EC',
+    backgroundColor: colors.primarySoft,
     borderRadius: radii.md,
     paddingLeft: 12,
   },

@@ -52,7 +52,12 @@ function Player({ url }: { url: string }) {
 const styles = StyleSheet.create({
   wrap: { gap: 6 },
   video: { width: '100%', height: 220, borderRadius: radii.md, backgroundColor: '#000' },
-  placeholder: { width: '100%', height: 220, borderRadius: radii.md, backgroundColor: '#ECE8DD' },
-  notice: { fontFamily: fonts.bodySemibold, fontSize: 13, color: '#7A5A12' },
+  placeholder: {
+    width: '100%',
+    height: 220,
+    borderRadius: radii.md,
+    backgroundColor: colors.surfaceMuted,
+  },
+  notice: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.warningText },
   secondary: { fontFamily: fonts.body, fontSize: 12, color: colors.textSecondary },
 });

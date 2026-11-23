@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pressed: { backgroundColor: '#F6CFCA' },
+  pressed: { backgroundColor: colors.dangerSoft },
   label: { fontFamily: fonts.display, fontSize: 15, color: colors.danger },
   hint: { fontFamily: fonts.body, fontSize: 11, color: colors.danger },
 });

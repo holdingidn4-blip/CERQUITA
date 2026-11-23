@@ -157,7 +157,7 @@ export default function Ayuda() {
 }
 
 const styles = StyleSheet.create({
-  overdue: { color: '#7A5A12', fontFamily: fonts.bodySemibold },
+  overdue: { color: colors.warningText, fontFamily: fonts.bodySemibold },
   safe: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 12 },
   flex: { flex: 1 },
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: '#D5D0C3',
+    borderColor: colors.borderStrong,
     justifyContent: 'center',
   },
   chipOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { fontFamily: fonts.bodySemibold, fontSize: 13, color: colors.text },
-  chipTextOn: { color: colors.surface },
+  chipTextOn: { color: colors.onPrimary },
   input: {
     minHeight: 48,
     paddingHorizontal: 12,
@@ -203,13 +203,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemibold,
     fontSize: 12,
     color: colors.primary,
-    backgroundColor: '#DCEFE8',
+    backgroundColor: colors.primarySoft,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 999,
     overflow: 'hidden',
   },
-  reply: { backgroundColor: '#E7F0EC', borderRadius: radii.md, padding: 10, gap: 4 },
+  reply: { backgroundColor: colors.primarySoft, borderRadius: radii.md, padding: 10, gap: 4 },
   error: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.danger },
   ok: { fontFamily: fonts.bodyMedium, fontSize: 13, color: colors.primary },
 });

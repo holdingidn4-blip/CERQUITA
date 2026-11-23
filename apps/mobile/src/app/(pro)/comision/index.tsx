@@ -174,5 +174,5 @@ const styles = StyleSheet.create({
   amount: { fontFamily: fonts.display, fontSize: 16, color: colors.danger },
   credit: { color: colors.primary },
   proof: { gap: 4 },
-  overdue: { color: '#7A5A12', fontFamily: fonts.bodySemibold },
+  overdue: { color: colors.warningText, fontFamily: fonts.bodySemibold },
 });
