@@ -1,4 +1,4 @@
-import { formatSoles, formatSolesShort, jobTitle } from '@cerquita/shared';
+import { formatSoles, formatSolesShort, jobTitle, QUOTE_LINES } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -20,8 +20,17 @@ export default function Confirmar() {
   const [error, setError] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
   const [applying, setApplying] = useState(false);
+  const [coupon, setCoupon] = useState<{ id: string; amount_cents: number } | null>(null);
   useEffect(() => {
     supabase.rpc('my_points').then(({ data }) => setPoints(data ?? 0));
+    supabase
+      .from('client_coupons')
+      .select('id, amount_cents, expires_at')
+      .is('used_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .order('expires_at')
+      .limit(1)
+      .then(({ data }) => setCoupon(data?.[0] ?? null));
   }, []);
 
   if (!job) {
@@ -33,8 +42,13 @@ export default function Confirmar() {
   }
 
   const agreed = job.final_price_cents ?? 0;
-  const proposed = job.final_proposed_cents ?? agreed;
-  const same = agreed === proposed;
+  const toPay = Math.max(0, agreed - job.points_discount_cents - job.coupon_discount_cents);
+  const quote = {
+    visit: job.visit_cents,
+    labor: job.labor_cents ?? agreed,
+    materials: job.materials_cents,
+    transport: job.transport_cents,
+  };
   const first = other?.name.split(' ')[0] ?? 'El profesional';
 
   async function answer(approve: boolean) {
@@ -83,18 +97,25 @@ export default function Confirmar() {
               </Text>
             </View>
           </View>
-          <Line label="Precio acordado" value={formatSoles(agreed)} />
-          <Line label={`Monto que indica ${first}`} value={formatSoles(proposed)} strong />
-          <Text style={[styles.badge, !same && styles.badgeWarn]}>
-            {same
-              ? 'Coincide con lo acordado'
-              : `Cambió ${proposed > agreed ? '+' : '−'}${formatSoles(Math.abs(proposed - agreed))}`}
-          </Text>
+          {QUOTE_LINES.map(({ key, label }) =>
+            quote[key] > 0 ? (
+              <Line key={key} label={label} value={formatSoles(quote[key])} />
+            ) : null,
+          )}
+          <Line label="Total aceptado" value={formatSoles(agreed)} strong />
+          {job.points_discount_cents > 0 && (
+            <Line label="Puntos Cerquita" value={`− ${formatSoles(job.points_discount_cents)}`} />
+          )}
+          {job.coupon_discount_cents > 0 && (
+            <Line label="Cupón Cerquita" value={`− ${formatSoles(job.coupon_discount_cents)}`} />
+          )}
+          <Line label={`A pagar a ${first}`} value={formatSoles(toPay)} strong />
+          <Text style={styles.badge}>Es el precio que aceptaste (versión {job.quote_version})</Text>
         </View>
         {job.materials_cents > 0 && (
           <BreakdownCard
             title="Desglose"
-            laborCents={proposed - job.materials_cents}
+            laborCents={job.labor_cents ?? agreed - job.materials_cents}
             materialsCents={job.materials_cents}
             provider={job.materials_provided_by}
             items={job.materials_items}
@@ -105,6 +126,39 @@ export default function Confirmar() {
           <Text style={styles.secondary}>
             La visita de diagnóstico ya está incluida: se descuenta de la mano de obra.
           </Text>
+        )}
+        {(coupon || job.coupon_discount_cents > 0) && (
+          <View style={styles.card} testID="cupon">
+            {job.coupon_discount_cents > 0 ? (
+              <Text style={styles.body}>
+                Cupón aplicado: −{formatSoles(job.coupon_discount_cents)}. Cerquita se lo paga al
+                profesional.
+              </Text>
+            ) : (
+              coupon && (
+                <>
+                  <Text style={styles.name}>
+                    Tienes un cupón de {formatSoles(coupon.amount_cents)}
+                  </Text>
+                  <Button
+                    variant="outline"
+                    label="Usar mi cupón"
+                    loading={applying}
+                    onPress={async () => {
+                      setApplying(true);
+                      const { error: e } = await supabase.rpc('apply_coupon', {
+                        p_job: id,
+                        p_coupon: coupon.id,
+                      });
+                      setApplying(false);
+                      if (e) setError(e.message);
+                      reload();
+                    }}
+                  />
+                </>
+              )
+            )}
+          </View>
         )}
         <View style={styles.card} testID="puntos">
           <Text style={styles.name}>Puntos Cerquita: {points}</Text>
@@ -151,13 +205,13 @@ export default function Confirmar() {
           </Text>
         )}
         <Button
-          label={`Confirmar ${formatSolesShort(proposed - job.points_discount_cents)}`}
+          label={`Confirmar ${formatSolesShort(toPay)}`}
           loading={busy === 'yes'}
           onPress={() => answer(true)}
         />
         <Button
           variant="ghost"
-          label={same ? 'El trabajo no está terminado' : 'No estoy de acuerdo con el monto'}
+          label="El trabajo no está terminado"
           loading={busy === 'no'}
           onPress={() => answer(false)}
         />
@@ -206,7 +260,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     overflow: 'hidden',
   },
-  badgeWarn: { color: '#7A5A12', backgroundColor: colors.amberSoft },
   note: { backgroundColor: '#E7F0EC', borderRadius: radii.md, padding: 12 },
   noteText: { fontFamily: fonts.body, fontSize: 13, lineHeight: 19, color: colors.text },
   error: {

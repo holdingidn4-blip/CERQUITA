@@ -33,6 +33,7 @@ import { supabase } from '@/lib/supabase';
 import { SosButton } from '@/components/sos-button';
 import { ContactActions, StepBar } from '@/service/contact-actions';
 import { useService } from '@/service/use-service';
+import { PortfolioToggle, ReceiptButton } from '@/service/after-service';
 import { colors, fonts, radii } from '@/theme';
 
 const STEPS = ['Aceptado', 'En camino', 'En el domicilio', 'Terminado', 'Confirmado'];
@@ -275,6 +276,8 @@ export default function Seguimiento() {
               onPress={() => setClaiming(true)}
             />
           ))}
+        {['confirmed', 'rated'].includes(job.status) && <ReceiptButton jobId={job.id} />}
+        {['confirmed', 'rated'].includes(job.status) && <PortfolioToggle jobId={job.id} />}
         {job.status === 'confirmed' && (
           <Button
             label="Calificar el servicio"

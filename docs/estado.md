@@ -3,9 +3,9 @@
 Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** F2 cerrada → empieza **F3** (cotización con desglose, aceptación y cierre).
-- **Último paso terminado:** F2 completa y en producción: asistente de 6 pasos, requisitos por riesgo, DNI +18, video de verificación, antecedentes solo como resultado, cola del panel por riesgo y antigüedad con historial, y "Qué sigue" en el servicio del pro. APK de EAS (perfil `pilot`, firmado con la llave privada) en compilación: build `6b8f8911`.
-- **Siguiente paso exacto:** F3 · cotización con desglose (visita, mano de obra, materiales, movilidad) en `apps/mobile/src/app/(pro)/solicitudes/[id]/cotizar.tsx` y en `offers` (migración aditiva), con aceptación de un botón que guarde monto, fecha, hora y versión.
+- **Fase actual:** F3 (cotización con desglose, aceptación y cierre) en curso.
+- **Último paso terminado:** F3 backend (migración `20261123000400`, pgTAP `quotes` 37, suite 572 en verde, **sin aplicar en producción**) y app: cotizar con 4 rubros y términos, "Acepto" de un botón, fotos antes/después, confirmación con cupón, comprobante PDF y permiso de portafolio (commit local).
+- **Siguiente paso exacto:** F3 · pantalla del pro `/llegadas` (apelar faltas) y página del panel para resolver apelaciones; luego actualizar el e2e (botón "Acepto", "Mano de obra en soles", fotos antes/después antes de "Terminado"), correr todo, aplicar `20261123000400` en producción y subir.
 - F3–F8 pendientes. Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
 
 ## Implementado

@@ -17,3 +17,4 @@ export * from './noshow';
 export * from './metrics';
 export * from './ops';
 export * from './onboarding';
+export * from './quote';

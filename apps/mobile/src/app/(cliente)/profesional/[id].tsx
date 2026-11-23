@@ -7,7 +7,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { InitialsAvatar } from '@/components/initials-avatar';
 import { ReportBlock } from '@/components/report-block';
-import { confirm } from '@/lib/confirm';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, radii } from '@/theme';
 
@@ -48,12 +47,6 @@ export default function PerfilProfesional() {
 
   async function hire() {
     if (!offer || !jobId) return;
-    const ok = await confirm(
-      `¿Contratar a ${offer.pro_name}?`,
-      `Acuerdas ${formatSoles(offer.price_cents)}.`,
-      'Aceptar',
-    );
-    if (!ok) return;
     setBusy(true);
     const { error: acceptError } = await supabase.rpc('accept_offer', { p_offer: offer.id });
     setBusy(false);
@@ -120,7 +113,7 @@ export default function PerfilProfesional() {
               <Text style={styles.price}>{formatSoles(offer.price_cents)}</Text>
               <Text style={styles.secondary}>{distanceAndEta(offer.distance_m)}</Text>
             </View>
-            <Button label="Aceptar y contratar" loading={busy} style={styles.flex} onPress={hire} />
+            <Button label="Acepto" loading={busy} style={styles.flex} onPress={hire} />
           </View>
         )}
       </ScrollView>

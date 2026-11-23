@@ -563,3 +563,26 @@ begin
   end if;
   return v_total::int;
 end $$;
+
+-- El tarifario controla la mano de obra (no el total): visita, materiales y movilidad van aparte con sus topes.
+create or replace function private.check_offer_rate() returns trigger
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_job public.jobs;
+  v_card public.trade_rate_cards;
+  v_min int;
+  v_amount int := coalesce(new.labor_cents, new.price_cents);
+begin
+  select * into v_job from public.jobs where id = new.job_id;
+  v_card := private.rate_card(v_job.trade_id, v_job.pricing_unit);
+  if v_card.id is null then
+    return new;
+  end if;
+  v_min := case when v_job.diagnostic_visit then private.setting_int('diagnostic_visit_fee_cents', 2000)
+                else v_card.min_cents * v_job.units end;
+  if v_amount < v_min or v_amount > v_card.max_cents * v_job.units then
+    raise exception 'La mano de obra debe estar entre % y % céntimos (tarifario)', v_min, v_card.max_cents * v_job.units
+      using errcode = 'P0001';
+  end if;
+  return new;
+end $$;

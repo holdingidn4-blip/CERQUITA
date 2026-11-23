@@ -86,7 +86,7 @@ export function proNextStep(status: string): string | null {
     case 'on_the_way':
       return 'Al llegar, pídele al cliente su código de 4 dígitos y escríbelo abajo.';
     case 'at_home':
-      return 'Haz el trabajo. Si el precio cambia, usa “Reevaluar en sitio” antes de terminar. Al acabar, toca “Terminado”.';
+      return 'Toma una foto de antes, haz el trabajo y toma una de después. Si el precio cambia, usa “Reevaluar en sitio”. Al acabar, toca “Terminado”.';
     case 'price_renegotiated':
       return 'El cliente aprobó el nuevo precio. Termina el trabajo y toca “Terminado”.';
     case 'finished':

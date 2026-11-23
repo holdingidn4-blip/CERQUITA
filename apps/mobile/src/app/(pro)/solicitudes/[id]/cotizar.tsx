@@ -8,13 +8,16 @@ import {
   jobTitle,
   MAX_JOB_PRICE_CENTS,
   MIN_JOB_PRICE_CENTS,
-  netCents,
   parseSolesToCents,
   isWithinRateCard,
   quoteSuggestions,
   rateCardSuggestions,
   unitPriceLabel,
   type RateCard,
+  proReceives,
+  QUOTE_LINES,
+  QUOTE_TERMS,
+  quoteTotal,
 } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -44,6 +47,9 @@ export default function Cotizar() {
   const [job, setJob] = useState<NearbyJob | null | undefined>(undefined);
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [amount, setAmount] = useState('');
+  const [extra, setExtra] = useState({ visit: '', materials: '', transport: '' });
+  const defaultVisitFee = useSettingInt('default_visit_fee_cents');
+  const maxTransport = useSettingInt('quote_max_transport_cents');
   const [message, setMessage] = useState('');
   const [eta, setEta] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -134,7 +140,36 @@ export default function Cotizar() {
         .sort((a, b) => a - b)
     : quoteSuggestions(job.offered_price_cents);
 
+  // Otros rubros de la cotización (opcionales): visita, materiales y movilidad, con sus topes.
+  const cents = (text: string) => (text.trim() === '' ? 0 : parseSolesToCents(text));
+  const visitCap = rateCard?.visit_fee_cents ?? defaultVisitFee ?? 3000;
+  const transportCap = maxTransport ?? 2000;
+  const breakdown = {
+    visit: cents(extra.visit),
+    labor: priceCents ?? 0,
+    materials: cents(extra.materials),
+    transport: cents(extra.transport),
+  };
+  const extrasError =
+    breakdown.visit === null || breakdown.materials === null || breakdown.transport === null
+      ? 'Revisa los montos: escribe solo números.'
+      : (breakdown.visit ?? 0) > visitCap
+        ? `La visita no puede pasar de ${formatSoles(visitCap)}.`
+        : (breakdown.transport ?? 0) > transportCap
+          ? `La movilidad no puede pasar de ${formatSoles(transportCap)}.`
+          : null;
+  const quote = {
+    visit: breakdown.visit ?? 0,
+    labor: breakdown.labor,
+    materials: breakdown.materials ?? 0,
+    transport: breakdown.transport ?? 0,
+  };
+
   async function send() {
+    if (extrasError) {
+      setError(extrasError);
+      return;
+    }
     if (!job || !valid || priceCents === null) {
       setError(
         `Escribe un monto entre ${formatSoles(MIN_JOB_PRICE_CENTS)} y ${formatSoles(MAX_JOB_PRICE_CENTS)}.`,
@@ -145,7 +180,11 @@ export default function Cotizar() {
     setError(null);
     const { error: offerError } = await supabase.from('offers').insert({
       job_id: job.id,
-      price_cents: priceCents,
+      price_cents: quoteTotal(quote),
+      visit_cents: quote.visit,
+      labor_cents: quote.labor,
+      materials_cents: quote.materials,
+      transport_cents: quote.transport,
       message: message.trim() || null,
       eta_minutes: needsEta ? eta : null,
     });
@@ -221,6 +260,7 @@ export default function Cotizar() {
         </View>
 
         <Text style={styles.h2}>Tu cotización</Text>
+        <Text style={styles.label}>Mano de obra</Text>
         <View style={styles.chips}>
           {suggestions.map((cents) => {
             const on = priceCents === cents;
@@ -242,7 +282,7 @@ export default function Cotizar() {
         <View style={styles.amountRow}>
           <Text style={styles.currency}>S/</Text>
           <TextInput
-            accessibilityLabel="Tu cotización en soles"
+            accessibilityLabel="Mano de obra en soles"
             style={styles.amountInput}
             value={amount}
             onChangeText={setAmount}
@@ -251,27 +291,61 @@ export default function Cotizar() {
           />
         </View>
 
-        <View style={styles.card}>
-          <Line
-            label="Tu cotización"
-            value={validPrice && priceCents !== null ? formatSoles(priceCents) : '—'}
-          />
-          <Line
-            label={`Comisión de la app (${formatRate(rateBps)})`}
-            value={
-              validPrice && priceCents !== null
-                ? `− ${formatSoles(commissionCents(priceCents, rateBps))}`
-                : '—'
-            }
-          />
+        <Text style={styles.label}>Otros cobros (opcional)</Text>
+        {(
+          [
+            ['visit', 'Visita', `Hasta ${formatSoles(visitCap)}`],
+            ['materials', 'Materiales que tú llevas', 'Precio de tienda'],
+            ['transport', 'Movilidad', `Hasta ${formatSoles(transportCap)}`],
+          ] as const
+        ).map(([key, label, hint]) => (
+          <View key={key} style={styles.extraRow}>
+            <View style={styles.flex}>
+              <Text style={styles.body}>{label}</Text>
+              <Text style={styles.secondary}>{hint}</Text>
+            </View>
+            <Text style={styles.currencySmall}>S/</Text>
+            <TextInput
+              accessibilityLabel={`${label} en soles`}
+              style={styles.extraInput}
+              value={extra[key]}
+              onChangeText={(t) => setExtra((e) => ({ ...e, [key]: t }))}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor={colors.textSecondary}
+              maxLength={7}
+            />
+          </View>
+        ))}
+
+        <View style={styles.card} testID="desglose">
+          {QUOTE_LINES.map(({ key, label }) =>
+            quote[key] > 0 ? (
+              <Line key={key} label={label} value={formatSoles(quote[key])} />
+            ) : null,
+          )}
           <View style={styles.divider} />
           <Line
-            label="Recibirás"
-            value={
-              validPrice && priceCents !== null ? formatSoles(netCents(priceCents, rateBps)) : '—'
-            }
+            label="Total para el cliente"
+            value={validPrice && !extrasError ? formatSoles(quoteTotal(quote)) : '—'}
             strong
           />
+          <Line
+            label={`Comisión de la app (${formatRate(rateBps)} de la mano de obra)`}
+            value={validPrice ? `− ${formatSoles(commissionCents(quote.labor, rateBps))}` : '—'}
+          />
+          <Line
+            label="Recibirás"
+            value={validPrice && !extrasError ? formatSoles(proReceives(quote, rateBps)) : '—'}
+            strong
+          />
+        </View>
+        <View style={styles.terms}>
+          {QUOTE_TERMS.map((t) => (
+            <Text key={t} style={styles.secondary}>
+              • {t}
+            </Text>
+          ))}
         </View>
 
         {needsEta ? (
@@ -343,6 +417,22 @@ function Line({ label, value, strong }: { label: string; value: string; strong?:
 }
 
 const styles = StyleSheet.create({
+  extraRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 56 },
+  currencySmall: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
+  extraInput: {
+    width: 96,
+    height: 48,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    fontFamily: fonts.bodySemibold,
+    fontSize: 17,
+    color: colors.text,
+    backgroundColor: colors.surface,
+    textAlign: 'right',
+  },
+  terms: { gap: 4, backgroundColor: '#F0EDE4', borderRadius: 12, padding: 12 },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center', padding: 20, gap: 12 },
   content: { padding: 20, gap: 14 },

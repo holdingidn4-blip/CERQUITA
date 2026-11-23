@@ -7,6 +7,8 @@ import {
   offerKind,
   tradePlural,
   type JobStatus,
+  QUOTE_LINES,
+  QUOTE_TERMS,
 } from '@cerquita/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -30,6 +32,10 @@ type Offer = {
   jobs_done: number;
   distance_m: number | null;
   eta_minutes: number | null;
+  visit_cents: number | null;
+  labor_cents: number | null;
+  materials_cents: number | null;
+  transport_cents: number | null;
 };
 type Job = {
   id: string;
@@ -67,12 +73,7 @@ export default function Ofertas() {
   usePolling(load, 5000);
 
   async function accept(offer: Offer) {
-    const ok = await confirm(
-      `¿Contratar a ${offer.pro_name}?`,
-      `Acuerdas ${formatSoles(offer.price_cents)}. Le pagas directo al terminar; verá tu dirección y podrán comunicarse.`,
-      'Aceptar',
-    );
-    if (!ok) return;
+    // Un solo botón "Acepto": el desglose y los términos ya están a la vista en la tarjeta.
     setBusy(offer.id);
     setError(null);
     const { error: acceptError } = await supabase.rpc('accept_offer', { p_offer: offer.id });
@@ -136,6 +137,18 @@ export default function Ofertas() {
           </View>
         )}
 
+        {offers.length > 0 && (
+          <View style={styles.terms}>
+            <Text style={styles.termsTitle}>
+              Al tocar “Acepto” aceptas la cotización y estos términos:
+            </Text>
+            {QUOTE_TERMS.map((t) => (
+              <Text key={t} style={styles.secondary}>
+                • {t}
+              </Text>
+            ))}
+          </View>
+        )}
         {offers.map((offer) => {
           const kind = offerKind(offer.price_cents, job.offered_price_cents);
           return (
@@ -167,6 +180,19 @@ export default function Ofertas() {
                 <Text style={styles.verified}>Verificado</Text>
               </View>
               {offer.message ? <Text style={styles.message}>“{offer.message}”</Text> : null}
+              <View style={styles.breakdown} testID="desglose-oferta">
+                {QUOTE_LINES.map(({ key, label }) => {
+                  const value =
+                    (offer[`${key}_cents` as const] ?? (key === 'labor' ? offer.price_cents : 0)) ||
+                    0;
+                  return value > 0 ? (
+                    <View key={key} style={styles.row}>
+                      <Text style={[styles.secondary, styles.flex]}>{label}</Text>
+                      <Text style={styles.secondary}>{formatSoles(value)}</Text>
+                    </View>
+                  ) : null;
+                })}
+              </View>
               <View style={styles.actions}>
                 <Button
                   variant="outline"
@@ -180,7 +206,8 @@ export default function Ofertas() {
                   }
                 />
                 <Button
-                  label="Aceptar"
+                  label="Acepto"
+                  accessibilityHint="Aceptas esta cotización y sus términos. Quedan guardados el monto, la fecha y la hora."
                   style={styles.flex}
                   loading={busy === offer.id}
                   onPress={() => accept(offer)}
@@ -202,6 +229,9 @@ export default function Ofertas() {
 }
 
 const styles = StyleSheet.create({
+  breakdown: { gap: 2, borderTopWidth: 1, borderTopColor: '#F0EDE4', paddingTop: 8 },
+  terms: { gap: 4, backgroundColor: '#F0EDE4', borderRadius: 12, padding: 12 },
+  termsTitle: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.text },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, gap: 12 },

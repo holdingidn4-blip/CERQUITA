@@ -4,7 +4,6 @@ import {
   formatSoles,
   isTrackingStatus,
   jobTitle,
-  parseSolesToCents,
   sanitizeSecurityCode,
   SERVICE_LABELS,
   serviceStepIndex,
@@ -37,6 +36,8 @@ import { SosButton } from '@/components/sos-button';
 import { ContactActions, StepBar } from '@/service/contact-actions';
 import { hasLocationPermission, startTracking, stopTracking } from '@/service/tracking';
 import { useService } from '@/service/use-service';
+import { ReceiptButton } from '@/service/after-service';
+import { WorkPhotos } from '@/service/work-photos';
 import { colors, fonts, radii } from '@/theme';
 
 const STEPS = ['Aceptado', 'En camino', 'En el domicilio', 'Terminado', 'Confirmado'];
@@ -46,7 +47,6 @@ export default function Trabajo() {
   const { id, permiso } = useLocalSearchParams<{ id: string; permiso?: string }>();
   const { job, other, address, reload } = useService(id);
   const [code, setCode] = useState('');
-  const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [cancelling, setCancelling] = useState(false);
   const [reevaluating, setReevaluating] = useState(false);
@@ -97,20 +97,15 @@ export default function Trabajo() {
   }
 
   async function finish() {
-    const cents = amount.trim() === '' ? null : parseSolesToCents(amount);
-    if (amount.trim() !== '' && cents === null) return setError('Escribe un monto válido.');
+    // El precio es el de la última cotización aceptada: si cambia, va por "Reevaluar en sitio".
     const agreed = job?.final_price_cents ?? 0;
-    const final = cents ?? agreed;
     const ok = await confirm(
       'Marcar como terminado',
-      final === agreed
-        ? `El cliente confirmará ${formatSoles(final)}.`
-        : `El monto cambió de ${formatSoles(agreed)} a ${formatSoles(final)}. El cliente debe aprobarlo.`,
+      `El cliente confirmará ${formatSoles(agreed)}, el precio que aceptó.`,
       'Terminar',
     );
     if (!ok) return;
-    if (await run(() => supabase.rpc('finish_job', { p_job: id, p_final_cents: final })))
-      await stopTracking();
+    if (await run(() => supabase.rpc('finish_job', { p_job: id }))) await stopTracking();
   }
 
   async function cancel() {
@@ -251,22 +246,8 @@ export default function Trabajo() {
               onPress={() => setReevaluating(true)}
             />
           ))}
-        {atHome && (
-          <View style={styles.field}>
-            <Text style={styles.label} nativeID="final-label">
-              Monto final (déjalo vacío si es el acordado)
-            </Text>
-            <TextInput
-              accessibilityLabelledBy="final-label"
-              style={styles.input}
-              value={amount}
-              onChangeText={setAmount}
-              keyboardType="decimal-pad"
-              placeholder={String((job.final_price_cents ?? 0) / 100)}
-              placeholderTextColor={colors.textSecondary}
-            />
-          </View>
-        )}
+        {atHome && <WorkPhotos jobId={job.id} />}
+        {(job.status === 'confirmed' || job.status === 'rated') && <ReceiptButton jobId={job.id} />}
         {job.status === 'cancelled' && job.cancel_reason && (
           <Text style={styles.secondary}>Motivo: {job.cancel_reason}</Text>
         )}
