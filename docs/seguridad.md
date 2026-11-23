@@ -11,7 +11,7 @@ Evidencia real de cada punto. Las pruebas en producción corrieron dentro de tra
 | 5 | Enlace público del APK | El APK no trae secretos (URL + clave publicable, que son públicas) y sin código SMS no se entra. **Riesgo real encontrado:** el APK del CI va firmado con la llave de depuración de la plantilla, que es pública: alguien podría firmar una app falsa que se instale encima como "actualización" | **Aceptable para el piloto solo hasta F8**: el APK de pruebas nuevo se compila con EAS y la llave privada que ya está en EAS (la misma del AAB). Al cambiar de llave hay que desinstalar el APK anterior una vez |
 
 ## Avisos que quedan y por qué
-- **59 "Signed-In Users Can Execute SECURITY DEFINER Function":** intencionales. Son la API de la app (la lógica vive en la base). Cada una valida `auth.uid()` o el rol de soporte; ver prueba del punto 3.
+- **83 "Signed-In Users Can Execute SECURITY DEFINER Function"** (59 en F1 + 24 de F3 y F4): intencionales. Son la API de la app (la lógica vive en la base). Cada una valida `auth.uid()` o el rol de soporte (`private.is_support()` en lista negra, supervisión y capacitaciones; pgTAP `reputation` y `trainings` prueban 42501 con usuario común y con la revisora); ver prueba del punto 3.
 - **`notification_outbox` con RLS y sin políticas (INFO):** intencional. Nadie la lee desde la app; solo funciones del servidor.
 - **Protección de contraseñas filtradas:** no aplica, el ingreso es solo por SMS.
 - **10 índices sin uso (INFO):** normal sin tráfico real; se revisan con datos del piloto.

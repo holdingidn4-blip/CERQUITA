@@ -32,7 +32,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] F1 Seguridad con evidencia (`docs/seguridad.md`): borrar cuenta, panel sin `service_role`, permisos y advisors, panel desplegado, enlace del APK.
 - [x] F2 Registro del profesional paso a paso y usabilidad de la app del pro (asistente de 6 pasos, riesgo, video, antecedentes por oficio, cola del panel, "Qué sigue").
 - [x] F3 Cotización con desglose, aceptación con versión y cierre con fotos y comprobante (cupón por falta que asume Cerquita, apelación en el panel, portafolio con permiso).
-- [ ] F4 Reputación, niveles, lista negra con apelación y capacitaciones.
+- [x] F4 Reputación, niveles, lista negra con apelación y capacitaciones (supervisión del primer trabajo, códigos/QR de un solo uso, certificado y puntos; canje “próximamente”).
 - [ ] F5 Diseño (tokens únicos, claro/oscuro, landing).
 - [ ] F6 Push listo, SMS, Maps y Yape/Plin manual.
 - [ ] F7 Ciclo de pruebas y corrección.
