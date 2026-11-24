@@ -3,10 +3,10 @@
 Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** F6 (push listo con Firebase/Expo, comparación de SMS, costo de Maps, Yape/Plin manual).
-- **Último paso terminado:** F5 cerrada: tokens únicos claro/oscuro en `packages/shared/src/theme.ts` (contraste AA probado), app según el modo del sistema con botones de 48–56 px y animación al tocar, panel con las mismas variables y landing pública `/inicio`; e2e 187 pasos. Capturas en `docs/capturas/f5-*.png`. APK `pilot` con F4 en compilación (EAS `16d9dac6`, versionCode 5).
-- **Siguiente paso exacto:** F6 · revisar `apps/mobile/src/lib/notifications.ts` y `supabase/functions/send-push`, dejar listo el código de FCM (google-services en `app.json` por variable de entorno) y escribir `docs/servicios-externos.md` con los pasos del dueño (Firebase, SMS, Maps, Yape/Plin) y precios confirmados en la web oficial. Sin contratar nada.
-- F6–F8 pendientes. Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
+- **Fase actual:** F7 (ciclo de pruebas y corrección: emulador Android con capturas, lista de errores corregidos y pendientes).
+- **Último paso terminado:** F6: push listo para activarse con `GOOGLE_SERVICES_JSON` (FCM gratis), comparación de SMS con precios oficiales (recomendado Twilio; punto de parada antes de pagar), Maps sin costo de uso en Android y aprobación de constancias Yape/Plin solo tras verificar el abono. Todo en `docs/servicios-externos.md`. e2e 188 pasos.
+- **Siguiente paso exacto:** F7 · revisar si este entorno puede correr un emulador Android (KVM); si no, usar el arranque en emulador del CI (`.github/workflows/android-apk.yml`) y el export web en tamaños de teléfono para capturas, recorrer los flujos de cliente y pro, y anotar errores en `docs/pruebas-f7.md`.
+- F7–F8 pendientes. Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
 
 ## Implementado
 - Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (32 migraciones).
@@ -28,7 +28,7 @@ Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin h
 ## Desplegado (producción del piloto)
 - **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 32 migraciones aplicadas y verificadas (mismas huellas que en local), seed de Huancayo, 45 tablas, todas con RLS, 6 tareas cron.
 - **Auth:** Phone con Twilio trial (solo números verificados) + números de prueba con OTP fijo.
-- **Notificaciones:** Edge Function `send-push` (secreto en Vault) y cron cada minuto; falta FCM para que lleguen a Android.
+- **Notificaciones:** Edge Function `send-push` (secreto en Vault) y cron cada minuto; el código de FCM está listo y se activa con `google-services.json` + la llave FCM V1 en EAS (pasos en `docs/servicios-externos.md`).
 - **APK:** EAS perfil `pilot`, build `2cb6a8ae` (versionCode 4, con F3, commit `a754876`, llave privada de EAS; enlace en `docs/produccion.md`). Falta el de F4. Quien tenga el build 4 de CI (llave de depuración) debe desinstalarlo antes.
 - **Panel:** https://cerquita-nine.vercel.app (Vercel, rama `main`). Sin sesión → `/login`. Landing pública en `/inicio` (sin sesión).
 - **AAB:** EAS `@holdingidn/cerquita`, perfil `production`, build `a1a6c154` (versionCode 2), llave en EAS.
@@ -81,7 +81,7 @@ Cálculo: verificado 18/70 = **25,7 %** · implementado sin verificar 49/70 = **
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad (dueño):** borrar en Vercel las 13 variables que no se usan (lista en `docs/seguridad.md`); primer admin con un número sin código fijo; decidir si se activa el borrado de archivos huérfanos.
 - **Cuentas (dueño):** Google Play Console (USD 25): desbloquea subir el AAB y la prueba cerrada (12 personas × 14 días si es cuenta personal). Apple Developer (USD 99/año), solo si hay iOS.
-- **Servicios externos (dueño):** SMS con cobertura en Perú; Firebase FCM (push); clave de Google Maps; datos de Yape/Plin y titular en Parámetros.
+- **Servicios externos (dueño, pasos y precios en `docs/servicios-externos.md`):** Firebase (gratis) y llave FCM V1 en EAS; Twilio pagado (≈ USD 0.25 por SMS a Perú, ~USD 56/mes estimado en el piloto; **punto de parada**); Google Maps (uso gratis en Android, pide cuenta de facturación); datos de Yape/Plin y titular en Parámetros.
 - **Legal (dueño + abogado):** términos y privacidad publicados (F8 los redacta); registro ANPDP (Ley 29733); Libro de Reclamaciones; Seguro y Garantía 30 días.
 - **Cupón por falta (dueño):** confirmar monto (S/ 10) y tope mensual (S/ 500) en Panel → Parámetros; lo paga Cerquita como crédito al profesional.
 - **Tarifario (dueño + profesionales):** validar tarifas, visita, catálogo y precios de referencia de Huancayo.
