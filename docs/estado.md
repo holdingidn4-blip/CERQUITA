@@ -3,9 +3,12 @@
 Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** correcciones de la prueba en teléfono real (`cerquita-prompt-correcciones`): sección 0 cerrada; sigue la sección 1 (cámara y micrófono congelan la app).
-- **Último paso terminado:** sección 0: `20261124012613_arrival_code_lock` aplicada con `apply_migration` (huella de `arrive` igual a local), tabla temporal `_deploy_staging` borrada con la aprobación del dueño. Producción: 33 migraciones, 45 tablas con RLS. Desde ahora no se usan tablas temporales (ver `docs/produccion.md`).
-- **Siguiente paso exacto:** sección 1 · conectar la laptop del dueño (Remote Control) con el teléfono por USB, reproducir "Permitir cámara y micrófono" con `adb logcat` y mostrar la línea del error; revisar `apps/mobile/src/pro/onboarding/video-recorder.tsx` (permisos uno tras otro, negado/no preguntar, botón a Ajustes, respaldo de subir video).
+- **Fase actual:** correcciones de la prueba en teléfono real. Sección 0 cerrada; sección 1 corregida en código, **sin probar en el teléfono**; sigue la sección 2 (pantalla de inicio).
+- **Último paso terminado:** sección 1:
+  - Hallazgo comprobado en el manifiesto Android generado: `RECORD_AUDIO` estaba en `blockedPermissions` (`tools:node="remove"`), así que la app no declaraba el micrófono. Además no se manejaba el permiso negado. Falta la línea de `adb logcat` que lo confirme como causa.
+  - Corregido: micrófono declarado, permisos uno tras otro, estado "negado" con botón a Ajustes, grabación detenida al salir de la app, error de cámara y respaldo "Subir un video de tu galería" (marcado en el panel para revisión manual). Se activó el escáner QR (`barcodeScannerEnabled`).
+  - APK `pilot` EAS `834dded0` (versionCode 6) en compilación.
+- **Siguiente paso exacto:** cuando el dueño conecte su laptop por Remote Control con el teléfono por USB: `adb install` del APK `834dded0`, reproducir "Permitir cámara y micrófono" y los casos de grabación (detener antes de 1 min, pasar de 3 min, girar y salir a mitad) con `adb logcat`, y tomar capturas con `adb exec-out screencap`. Mientras tanto, sección 2 (nuevo ingreso: degradado, animación, interruptor Cliente/Profesional, mensajes rotativos, celular con formato, OTP de 6 casillas).
 - F8 pendiente (F7 por cerrar). Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
 
 ## Implementado
