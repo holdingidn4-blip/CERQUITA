@@ -33,7 +33,7 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] F2 Registro del profesional paso a paso y usabilidad de la app del pro (asistente de 6 pasos, riesgo, video, antecedentes por oficio, cola del panel, "Qué sigue").
 - [x] F3 Cotización con desglose, aceptación con versión y cierre con fotos y comprobante (cupón por falta que asume Cerquita, apelación en el panel, portafolio con permiso).
 - [x] F4 Reputación, niveles, lista negra con apelación y capacitaciones (supervisión del primer trabajo, códigos/QR de un solo uso, certificado y puntos; canje “próximamente”).
-- [ ] F5 Diseño (tokens únicos, claro/oscuro, landing).
+- [x] F5 Diseño (tokens únicos claro/oscuro con contraste AA, app/panel/landing, landing pública `/inicio`).
 - [ ] F6 Push listo, SMS, Maps y Yape/Plin manual.
 - [ ] F7 Ciclo de pruebas y corrección.
 - [ ] F8 Google Play: AAB, APK de EAS, ficha, privacidad y términos, prueba cerrada.

@@ -3,10 +3,10 @@
 Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** F5 (diseño: tokens únicos, claro/oscuro, WCAG AA, landing).
-- **Último paso terminado:** F4 cerrada y en producción: migraciones `20261124000100` (reputación y confianza) y `…000200` (capacitaciones) aplicadas con huella md5 y 20 funciones iguales a local; app, panel (Supervisión, Capacitaciones con QR, Lista negra de personas) y e2e 186 pasos.
-- **Siguiente paso exacto:** F5 · compilar el APK `pilot` con F4 (trae `expo-application`, módulo nativo) y luego leer `packages/shared/src/theme.ts` y `apps/mobile/src/theme`, definir tokens únicos claro/oscuro en `packages/shared`, validar contraste AA con un script y aplicarlos en app, panel y landing.
-- F5–F8 pendientes. Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
+- **Fase actual:** F6 (push listo con Firebase/Expo, comparación de SMS, costo de Maps, Yape/Plin manual).
+- **Último paso terminado:** F5 cerrada: tokens únicos claro/oscuro en `packages/shared/src/theme.ts` (contraste AA probado), app según el modo del sistema con botones de 48–56 px y animación al tocar, panel con las mismas variables y landing pública `/inicio`; e2e 187 pasos. Capturas en `docs/capturas/f5-*.png`. APK `pilot` con F4 en compilación (EAS `16d9dac6`, versionCode 5).
+- **Siguiente paso exacto:** F6 · revisar `apps/mobile/src/lib/notifications.ts` y `supabase/functions/send-push`, dejar listo el código de FCM (google-services en `app.json` por variable de entorno) y escribir `docs/servicios-externos.md` con los pasos del dueño (Firebase, SMS, Maps, Yape/Plin) y precios confirmados en la web oficial. Sin contratar nada.
+- F6–F8 pendientes. Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
 
 ## Implementado
 - Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (32 migraciones).
@@ -22,6 +22,7 @@ Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin h
 - **Registro del profesional (F2):** asistente de 6 pasos con autoguardado y ayuda en cada paso, ejemplos de foto buena y mala, DNI con mayor de 18, especialidades, requisitos por riesgo, video de 1–3 min grabado en la app, antecedentes solo como resultado por oficio, pantalla final con estado por oficio; panel con cola por riesgo y antigüedad, alerta a las 24 h, resultado de antecedentes e historial con responsable.
 - **Cotización y cierre (F3):** oferta con visita, mano de obra, materiales y movilidad (el servidor suma y valida el tarifario solo en mano de obra); términos fijos con "plataforma intermediaria"; un botón "Acepto" que guarda monto, desglose, fecha, hora y versión (`quote_acceptances`); cada cambio de precio = cotización nueva aceptada; fotos de antes y después obligatorias para "Terminado"; confirmación del cliente con la versión aceptada; comprobante PDF para WhatsApp; portafolio solo con permiso del cliente (revocable); cupón por falta que asume Cerquita con tope mensual; el pro apela la falta y soporte decide en el panel.
 - **Reputación y capacitaciones (F4):** calificación visible desde 3; niveles Nuevo, Verificado, De confianza y Destacado (trabajos + puntos, cero quejas confirmadas) con prioridad en las ofertas; lista negra de personas con motivo, plazo, DNI y dispositivo (solo hash) y apelación decidida por una persona; primer trabajo supervisado y muestreo en oficios de riesgo con checklist; capacitaciones con código o QR de un solo uso, cuestionario sin respuestas visibles, certificado PDF y puntos inmutables; canje de premios "próximamente".
+- **Diseño (F5):** paleta neutra con acentos vivos (verde en claro, menta neón en oscuro), modo claro y oscuro según el sistema en app, panel y landing; textos ≥ 14 px, botones ≥ 48 px, microanimación corta que respeta "reducir movimiento"; landing pública `/inicio` (mobile first) con llamadas para cliente y profesional, confianza y capacitaciones.
 - **Seguridad (F1):** panel sin `service_role`; `anon` no ejecuta funciones; 59 RPC con validación interna; teléfono entre partes retirado; políticas por acción e índices en todas las claves foráneas.
 
 ## Desplegado (producción del piloto)
@@ -29,11 +30,11 @@ Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin h
 - **Auth:** Phone con Twilio trial (solo números verificados) + números de prueba con OTP fijo.
 - **Notificaciones:** Edge Function `send-push` (secreto en Vault) y cron cada minuto; falta FCM para que lleguen a Android.
 - **APK:** EAS perfil `pilot`, build `2cb6a8ae` (versionCode 4, con F3, commit `a754876`, llave privada de EAS; enlace en `docs/produccion.md`). Falta el de F4. Quien tenga el build 4 de CI (llave de depuración) debe desinstalarlo antes.
-- **Panel:** https://cerquita-nine.vercel.app (Vercel, rama `main`). Sin sesión → `/login`.
+- **Panel:** https://cerquita-nine.vercel.app (Vercel, rama `main`). Sin sesión → `/login`. Landing pública en `/inicio` (sin sesión).
 - **AAB:** EAS `@holdingidn/cerquita`, perfil `production`, build `a1a6c154` (versionCode 2), llave en EAS.
 
 ## Pruebas (última corrida)
-- Local (2026-11-23, base reseteada): pgTAP 643 (19 suites; nuevas `reputation` 43 y `trainings` 28), e2e 186 pasos (nivel, supervisión con checklist, charla con códigos QR, asistencia, cuestionario, certificado y puntos, lista negra con apelación), unitarias 224, formato + lint + tipos. Todo en verde.
+- Local (2026-11-23, base reseteada): pgTAP 643 (19 suites; nuevas `reputation` 43 y `trainings` 28), e2e 187 pasos (F4 completo y la landing pública), unitarias 230 (incluye contraste AA de ambas paletas), formato + lint + tipos. Todo en verde.
 - Producción (F4): `20261124000100` y `…000200` aplicadas por tabla temporal con huella md5 (`a2008215…`, `1c287a4b…`) y registradas; 20 funciones con huella igual a local; `anon` ejecuta 0 funciones; 0 tablas sin RLS; tabla temporal borrada. F3 (`…400`) igual, 18 funciones verificadas.
 - CI en `main` (`1595fa4`, 2026-11-21): base, chequeo y e2e en verde.
 - Producción (F1, transacciones revertidas): borrar cuenta de pro con DNI visto → documentos 0, vista conservada, perfil anonimizado; 15 RPC de soporte con usuario común → 42501 o vacío; panel desplegado sin sesión → `/login`.
