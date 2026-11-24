@@ -3,9 +3,9 @@
 Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** F7 (casi cerrada; ver `docs/pruebas-f7.md`).
-- **Último paso terminado:** ciclo de pruebas: pgTAP 652, unitarias 232, e2e 192, revisión de 72 pantallas sin observaciones; 5 errores corregidos (código de llegada adivinable, mensajes sin internet, código SMS, monto partido, pedido sin oficio). Emulador nativo no verificado (sin KVM; EAS Simulator no habilitado).
-- **Siguiente paso exacto:** aplicar en producción `20261124000300_arrival_code_lock` (md5 `49b4e3ce…`). **Ojo:** la tabla temporal `_deploy_staging` quedó creada en producción con el archivo cargado (la herramienta SQL pidió una confirmación que nadie respondió). Ejecutar el `do $$ … execute …$$`, registrar la versión, borrar la tabla y comparar la huella de `public.arrive`. Luego volver a capturar Cotizar, cerrar F7 y pasar a F8.
+- **Fase actual:** correcciones de la prueba en teléfono real (`cerquita-prompt-correcciones`): sección 0 cerrada; sigue la sección 1 (cámara y micrófono congelan la app).
+- **Último paso terminado:** sección 0: `20261124012613_arrival_code_lock` aplicada con `apply_migration` (huella de `arrive` igual a local), tabla temporal `_deploy_staging` borrada con la aprobación del dueño. Producción: 33 migraciones, 45 tablas con RLS. Desde ahora no se usan tablas temporales (ver `docs/produccion.md`).
+- **Siguiente paso exacto:** sección 1 · conectar la laptop del dueño (Remote Control) con el teléfono por USB, reproducir "Permitir cámara y micrófono" con `adb logcat` y mostrar la línea del error; revisar `apps/mobile/src/pro/onboarding/video-recorder.tsx` (permisos uno tras otro, negado/no preguntar, botón a Ajustes, respaldo de subir video).
 - F8 pendiente (F7 por cerrar). Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
 
 ## Implementado

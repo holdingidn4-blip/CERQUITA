@@ -37,7 +37,7 @@ Casos que axe no pudo decidir solo (`incomplete`): estrellas ★ y ✓ (íconos)
 
 ## Errores encontrados y corregidos
 
-1. **El código de llegada se podía adivinar.** No tenía límite de intentos: un profesional podía probar las 10 000 combinaciones y marcar "Llegué" sin estar en la puerta. Ahora se bloquea 10 minutos tras 3 intentos fallidos (parámetros `arrival_code_max_attempts` y `arrival_code_lock_minutes`) y se avisa al cliente. El intento se guarda: un código equivocado ya no lanza error, porque el rollback borraría el contador. Migración `20261124000300`, pgTAP `arrival_lock`, e2e.
+1. **El código de llegada se podía adivinar.** No tenía límite de intentos: un profesional podía probar las 10 000 combinaciones y marcar "Llegué" sin estar en la puerta. Ahora se bloquea 10 minutos tras 3 intentos fallidos (parámetros `arrival_code_max_attempts` y `arrival_code_lock_minutes`) y se avisa al cliente. El intento se guarda: un código equivocado ya no lanza error, porque el rollback borraría el contador. Migración `20261124012613` (aplicada en producción el 24/11 con huella igual a local), pgTAP `arrival_lock`, e2e.
 2. **Sin internet, la app mostraba errores técnicos en inglés** ("TypeError: Failed to fetch"). Ahora todas las llamadas a Supabase dicen "Sin conexión: revisa tu internet e intenta de nuevo." y no se pierde lo escrito.
 3. **El código SMS se podía probar sin un límite visible.** Tras 3 códigos equivocados la app pide uno nuevo; Supabase además limita por IP.
 4. **El monto de la comisión se partía en dos líneas** ("– S/" y "9.00") en Cotizar. Las filas del desglose (Cotizar, Confirmar y la tarjeta de desglose) mantienen el monto en una línea. Pendiente: capturarlo de nuevo, porque el límite local de SMS por hora lo impidió.

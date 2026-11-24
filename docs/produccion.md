@@ -14,10 +14,11 @@
 URL de la API: `https://dknxuxrylnncbdzjqagh.supabase.co` · clave publicable: `sb_publishable_qRc_QYms7-tiIrZ6pBy8wQ_dItg6UcJ` (pública; va dentro de la app).
 
 ### Aplicar SQL en producción desde una sesión de Claude (sin puerto 5432 ni token personal)
-1. Con el conector de Supabase (`execute_sql`): crear la tabla temporal `public._deploy_staging (name, body)` con RLS y una política de `insert` para `anon` que exija la cabecera `x-deploy-key` con una clave aleatoria.
-2. Subir cada archivo `.sql` por la API REST con la clave publicable y esa cabecera; calcular su `md5` local.
-3. Con `execute_sql`: un bloque `do` que, por cada archivo, compruebe `md5(body)`, lo ejecute con `execute` e inserte la fila en `supabase_migrations.schema_migrations` (versión y nombre del archivo).
-4. Borrar la tabla temporal. `pilot_enums` (valores nuevos de enum) debe ir en una transacción anterior a quien los use.
+**Desde el 24/11/2026, sin tablas temporales** (decisión del dueño):
+1. Probar la migración en local con pgTAP (`pnpm db:reset && pnpm db:test`).
+2. Aplicarla con el conector de Supabase **`apply_migration`** (nombre en snake_case y el contenido exacto del archivo). El conector registra su propia versión con la hora; **renombrar el archivo local a esa versión** para que repo y producción coincidan.
+3. Verificar con `execute_sql` (solo lectura): versión registrada, objetos creados, `md5(pg_get_functiondef(...))` de las funciones tocadas igual a la local, `anon` sin ejecutar funciones y ninguna tabla sin RLS.
+4. Los valores nuevos de un enum van en una migración anterior a la que los usa.
 Con un token personal válido o acceso directo, usar `scripts/deploy-production.sh`.
 
 ### APK del piloto
