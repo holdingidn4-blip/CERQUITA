@@ -19,7 +19,7 @@
 .filter[aria-current='page'] {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
 }
 .tiles {
   display: grid;
@@ -68,9 +68,9 @@
 }
 /* Serie del gráfico: verde de la marca, un paso más claro para pasar croma y contraste (validado). */
 .chartWrap {
-  --chart-1: #168a70;
-  --chart-1-hover: #2a9a7e;
-  --chart-grid: #ece8dd;
+  --chart-1: var(--primary);
+  --chart-1-hover: var(--gradient-end);
+  --chart-grid: var(--border);
   position: relative;
 }
 .chart {

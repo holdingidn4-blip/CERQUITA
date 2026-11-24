@@ -81,7 +81,7 @@ a.navItem:hover {
   font-size: 14px;
 }
 .notice {
-  background: #e7f0ec;
+  background: var(--primary-soft);
   border-radius: 10px;
   padding: 10px 12px;
   font-size: 14px;
@@ -121,19 +121,19 @@ a.navItem:hover {
   font-weight: 600;
   border-radius: 999px;
   padding: 4px 10px;
-  background: #ece8dd;
+  background: var(--surface-muted);
 }
 .badge[data-tone='info'] {
-  background: #e3ecf5;
-  color: #1f4e79;
+  background: var(--info-soft);
+  color: var(--info-text);
 }
 .badge[data-tone='success'] {
-  background: #dcefe8;
+  background: var(--success-soft);
   color: var(--primary);
 }
 .badge[data-tone='warning'] {
   background: var(--amber-soft);
-  color: #7a5a12;
+  color: var(--warning-text);
 }
 .badge[data-tone='danger'] {
   background: var(--danger-soft);
@@ -224,13 +224,13 @@ a.navItem:hover {
 }
 .primary {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: 0;
 }
 .secondary {
   background: var(--surface);
   color: var(--text);
-  border: 1.5px solid #d5d0c3;
+  border: 1.5px solid var(--border-strong);
 }
 .danger {
   background: var(--surface);

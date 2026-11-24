@@ -1,3 +1,4 @@
+import { themeCss } from '@cerquita/shared';
 import type { Metadata } from 'next';
 import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
@@ -14,6 +15,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html lang="es-PE" className={`${inter.variable} ${spaceGrotesk.variable}`}>
+      <head>
+        {/* Tokens únicos de diseño (packages/shared): claro por defecto, oscuro según el sistema. */}
+        <style dangerouslySetInnerHTML={{ __html: themeCss() }} />
+      </head>
       <body>{children}</body>
     </html>
   );

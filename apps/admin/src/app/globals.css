@@ -1,16 +1,4 @@
-:root {
-  --primary: #0e5a4b;
-  --primary-dark: #08382f;
-  --background: #f6f3ec;
-  --surface: #ffffff;
-  --text: #17231f;
-  --text-secondary: #56625c;
-  --border: #e1dccf;
-  --amber: #f2b33d;
-  --amber-soft: #fbebc8;
-  --danger: #b3261e;
-  --danger-soft: #fbe4e1;
-}
+/* Colores: variables generadas desde packages/shared (themeCss) en app/layout.tsx, claro y oscuro. */
 
 * {
   box-sizing: border-box;

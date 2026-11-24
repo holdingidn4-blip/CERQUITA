@@ -84,6 +84,16 @@ try {
   const outsider = await (await browser.newContext()).newPage();
   await outsider.goto(`${ADMIN}/`, { waitUntil: 'networkidle' });
   check(outsider.url().endsWith('/login'), 'panel sin sesión → /login');
+  await outsider.goto(`${ADMIN}/inicio`, { waitUntil: 'networkidle' });
+  check(
+    outsider.url().endsWith('/inicio') &&
+      (await outsider.isVisible('h1:has-text("Servicios del hogar, cerquita de ti.")')) &&
+      (await outsider.isVisible('[data-testid=cta-cliente]')) &&
+      (await outsider.isVisible('[data-testid=cta-profesional]')) &&
+      (await outsider.isVisible('#confianza')) &&
+      (await outsider.isVisible('#capacitaciones')),
+    'la landing es pública: llamadas para cliente y profesional, confianza y capacitaciones',
+  );
   await adminLogin(outsider, '900 000 002');
   const pedroCodeAt = Date.now();
   await outsider.waitForURL('**/no-autorizado');

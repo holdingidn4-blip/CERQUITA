@@ -5,9 +5,15 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { authCookieName, supabaseAnonKey, supabaseUrl } from '@/lib/env';
 
 const PUBLIC_PATHS = ['/login', '/no-autorizado'];
+/** Sitio público (landing y textos legales): lo ve cualquiera, con o sin sesión. */
+const SITE_PATHS = ['/inicio', '/privacidad', '/terminos'];
 
 /** Refresca la sesión en cada pedido y deja pasar solo a soporte. */
 export async function proxy(request: NextRequest) {
+  const sitePath = request.nextUrl.pathname;
+  if (SITE_PATHS.some((p) => sitePath === p || sitePath.startsWith(`${p}/`))) {
+    return NextResponse.next({ request });
+  }
   let response = NextResponse.next({ request });
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookieOptions: { name: authCookieName },

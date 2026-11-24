@@ -1,6 +1,6 @@
 # Diseño de pantallas
 
-Cada archivo es una pantalla de 390×844 (el panel admin es web, 1440 de ancho). Los estilos están en línea; ábrelos en el navegador para verlos (sin el editor, los marcadores de la plantilla pueden verse como texto). Colores principales: verde `#0E5A4B`, fondo `#F6F3EC`, texto `#17231F`, secundario `#56625C`, borde `#E1DCCF`, ámbar `#F2B33D`/`#FBEBC8`, rojo `#B3261E`/`#FBE4E1`. Tipografías: Space Grotesk (títulos y montos) e Inter (texto).
+Cada archivo es una pantalla de 390×844 (el panel admin es web, 1440 de ancho). Los estilos están en línea; ábrelos en el navegador para verlos (sin el editor, los marcadores de la plantilla pueden verse como texto). Estos diseños usan la paleta original. **Desde F5 la fuente única de colores, tipografía, espaciado, radios, área táctil y animaciones es `packages/shared/src/theme.ts`** (modo claro y oscuro, contraste AA verificado por `theme.test.ts`); la app la usa vía `@/theme` y el panel y la landing vía variables CSS (`themeCss()`). Tipografías: Space Grotesk (títulos y montos) e Inter (texto).
 
 | # | Archivo | Pantalla | Rol |
 |---|---|---|---|
