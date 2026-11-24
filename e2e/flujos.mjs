@@ -118,9 +118,19 @@ try {
   await client.goto(`${MOBILE}/`, { waitUntil: 'networkidle' });
   await client.waitForSelector('text=Recibir código por SMS');
   check(client.url().endsWith('/ingreso'), 'app sin sesión → /ingreso');
-  await client.click('text=Recibir código por SMS');
-  check(await client.isVisible('text=Escribe un celular de 9 dígitos'), 'valida el celular');
+  await client.fill('input[placeholder="9XX XXX XXX"]', '8123');
+  check(
+    (await client.isVisible('text=Los celulares en Perú empiezan con 9.')) &&
+      (await client
+        .getByRole('button', { name: 'Recibir código por SMS', exact: true })
+        .isDisabled()),
+    'valida el celular en vivo: el botón se activa solo con un número válido',
+  );
   await client.fill('input[placeholder="9XX XXX XXX"]', '900000001');
+  check(
+    (await client.inputValue('input[placeholder="9XX XXX XXX"]')) === '900 000 001',
+    'el celular se formatea solo (9XX XXX XXX)',
+  );
   await client.click('text=Ofrezco mis servicios');
   await client.click('text=Recibir código por SMS');
   await client.waitForSelector('text=Código que te enviamos');

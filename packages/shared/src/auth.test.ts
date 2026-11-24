@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  formatPeruMobileInput,
   homeRouteFor,
   initials,
   isValidOtp,
@@ -72,4 +73,23 @@ describe('initials', () => {
     ['  ', ''],
     [null, ''],
   ])('%s → %s', (input, expected) => expect(initials(input)).toBe(expected));
+});
+
+describe('campo de celular con formato', () => {
+  it('agrupa 9XX XXX XXX y valida en vivo', () => {
+    expect(formatPeruMobileInput('987654321')).toEqual({
+      digits: '987654321',
+      display: '987 654 321',
+      valid: true,
+      hint: null,
+    });
+    expect(formatPeruMobileInput('9876').hint).toBe('Faltan 5 dígitos.');
+    expect(formatPeruMobileInput('98765432').hint).toBe('Falta 1 dígito.');
+    expect(formatPeruMobileInput('8').hint).toBe('Los celulares en Perú empiezan con 9.');
+  });
+  it('acepta lo pegado con +51 o espacios y no pasa de 9 dígitos', () => {
+    expect(formatPeruMobileInput('+51 987 654 321').display).toBe('987 654 321');
+    expect(formatPeruMobileInput('9876543210').digits).toBe('987654321');
+    expect(formatPeruMobileInput('').hint).toBeNull();
+  });
 });

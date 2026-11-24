@@ -18,6 +18,8 @@ export type ThemePalette = {
   primarySoft: string;
   /** Solo decorativo (degradados, brillos): nunca como color de texto. */
   accent: string;
+  /** Segundo acento decorativo (violeta) para brillos del ingreso y la landing. */
+  accentAlt: string;
   amber: string;
   amberSoft: string;
   warningText: string;
@@ -45,6 +47,7 @@ export const palettes: Record<'light' | 'dark', ThemePalette> = {
     onPrimary: '#FFFFFF',
     primarySoft: '#D7F2EA',
     accent: '#00D1A8',
+    accentAlt: '#7C5CFF',
     amber: '#F2B33D',
     amberSoft: '#FFF0CF',
     warningText: '#6B4700',
@@ -70,6 +73,7 @@ export const palettes: Record<'light' | 'dark', ThemePalette> = {
     onPrimary: '#032019',
     primarySoft: '#0F3B31',
     accent: '#7DF9FF',
+    accentAlt: '#B79CFF',
     amber: '#F7C35A',
     amberSoft: '#3B2C0C',
     warningText: '#FFD88A',

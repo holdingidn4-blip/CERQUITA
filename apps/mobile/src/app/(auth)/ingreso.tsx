@@ -1,4 +1,5 @@
 import {
+  formatPeruMobileInput,
   homeRouteFor,
   isValidOtp,
   maskPhone,
@@ -23,19 +24,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/auth-provider';
 import { Button } from '@/components/button';
+import {
+  GradientBackground,
+  OtpBoxes,
+  ProsRadar,
+  RoleSwitch,
+  RotatingMessage,
+  SuccessCheck,
+} from '@/auth/ingreso-ui';
 import { Logo } from '@/components/logo';
-import { Segmented } from '@/components/segmented';
 import { isSupabaseConfigured, legalUrls } from '@/lib/env';
 import { authErrorMessage, supabase } from '@/lib/supabase';
 import { colors, fonts, radii, spacing } from '@/theme';
 
 /** Tras estos códigos equivocados seguidos se exige pedir uno nuevo (Supabase además limita por IP). */
 const MAX_WRONG_CODES = 3;
-
-const ROLE_OPTIONS = [
-  { value: 'client', label: 'Necesito un servicio' },
-  { value: 'pro', label: 'Ofrezco mis servicios' },
-] as const satisfies readonly { value: Role; label: string }[];
 
 export default function Ingreso() {
   const { session, account, refreshAccount, setActiveRole } = useAuth();
@@ -53,9 +56,12 @@ export default function Ingreso() {
   const [resendIn, setResendIn] = useState(0);
   // Códigos equivocados seguidos: al tercero se pide un código nuevo.
   const [wrongCodes, setWrongCodes] = useState(0);
+  // Animación de éxito antes de entrar.
+  const [done, setDone] = useState(false);
   const codeInput = useRef<ComponentRef<typeof TextInput>>(null);
 
-  const phone = normalizePeruMobile(rawPhone);
+  const phoneInput = formatPeruMobileInput(rawPhone);
+  const phone = normalizePeruMobile(phoneInput.digits);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -108,8 +114,10 @@ export default function Ingreso() {
       return;
     }
     try {
+      setDone(true);
       const current = await refreshAccount();
       const account = current?.activeRole === role ? current : await setActiveRole(role);
+      await new Promise((r) => setTimeout(r, 350));
       router.replace(homeRouteFor(role, account?.hasProTrades ?? false));
     } catch {
       setError('Ingresaste, pero no pudimos guardar tu modo. Cámbialo en Cuenta y privacidad.');
@@ -123,6 +131,7 @@ export default function Ingreso() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <GradientBackground />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -130,11 +139,12 @@ export default function Ingreso() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
             <Logo />
-            <Text style={styles.tagline}>
-              Tú pones el precio. Gasfiteros, electricistas, carpinteros y más responden desde tu
-              zona.
+            <Text style={styles.tagline} accessibilityRole="header">
+              Servicios del hogar, cerquita de ti.
             </Text>
+            <RotatingMessage />
           </View>
+          {step === 'phone' && <ProsRadar />}
 
           {!isSupabaseConfigured && (
             <Text style={styles.warning}>
@@ -144,6 +154,7 @@ export default function Ingreso() {
 
           {step === 'phone' ? (
             <View style={styles.form}>
+              <RoleSwitch value={role} onChange={setRole} />
               <View style={styles.field}>
                 <Text style={styles.label} nativeID="phone-label">
                   Número de celular
@@ -154,10 +165,10 @@ export default function Ingreso() {
                   </View>
                   <TextInput
                     accessibilityLabelledBy="phone-label"
-                    style={styles.input}
-                    value={rawPhone}
+                    style={[styles.input, phoneInput.valid && styles.inputOk]}
+                    value={phoneInput.display}
                     onChangeText={(text) => {
-                      setRawPhone(text);
+                      setRawPhone(formatPeruMobileInput(text).digits);
                       setError(null);
                     }}
                     placeholder="9XX XXX XXX"
@@ -165,18 +176,20 @@ export default function Ingreso() {
                     keyboardType="phone-pad"
                     textContentType="telephoneNumber"
                     autoComplete="tel"
-                    maxLength={15}
+                    maxLength={11}
                     returnKeyType="done"
                     onSubmitEditing={sendCode}
                   />
                 </View>
+                <Text
+                  style={[styles.hint, phoneInput.valid && styles.hintOk]}
+                  accessibilityLiveRegion="polite"
+                >
+                  {phoneInput.valid
+                    ? '✓ Número válido. Te enviaremos un código por SMS.'
+                    : (phoneInput.hint ?? 'Te enviaremos un código por SMS para entrar.')}
+                </Text>
               </View>
-              <Segmented
-                label="¿Cómo quieres usar Cerquita?"
-                options={ROLE_OPTIONS}
-                value={role}
-                onChange={setRole}
-              />
             </View>
           ) : (
             <View style={styles.form}>
@@ -184,23 +197,20 @@ export default function Ingreso() {
                 <Text style={styles.label} nativeID="code-label">
                   Código que te enviamos al {maskPhone(phone)}
                 </Text>
-                <TextInput
-                  ref={codeInput}
-                  accessibilityLabelledBy="code-label"
-                  style={[styles.input, styles.codeInput]}
-                  value={code}
-                  onChangeText={(text) => {
-                    setCode(text.replace(/\D/g, '').slice(0, OTP_LENGTH));
-                    setError(null);
-                  }}
-                  placeholder="••••••"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="number-pad"
-                  textContentType="oneTimeCode"
-                  autoComplete="sms-otp"
-                  maxLength={OTP_LENGTH}
-                  onSubmitEditing={verify}
-                />
+                {done ? (
+                  <SuccessCheck />
+                ) : (
+                  <OtpBoxes
+                    value={code}
+                    onChange={(v) => {
+                      setCode(v);
+                      setError(null);
+                    }}
+                    onSubmit={verify}
+                    labelledBy="code-label"
+                    inputRef={codeInput}
+                  />
+                )}
               </View>
               <View style={styles.inlineActions}>
                 <Button
@@ -230,7 +240,12 @@ export default function Ingreso() {
 
           <View style={styles.footer}>
             {step === 'phone' ? (
-              <Button label="Recibir código por SMS" loading={busy} onPress={sendCode} />
+              <Button
+                label="Recibir código por SMS"
+                loading={busy}
+                disabled={!phoneInput.valid}
+                onPress={sendCode}
+              />
             ) : (
               <Button
                 label="Ingresar"
@@ -265,6 +280,9 @@ export default function Ingreso() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  hint: { fontFamily: fonts.body, fontSize: 14, color: colors.textSecondary },
+  hintOk: { fontFamily: fonts.bodySemibold, color: colors.primary },
+  inputOk: { borderColor: colors.primary, borderWidth: 1.5 },
   flex: { flex: 1 },
   content: {
     flexGrow: 1,
@@ -274,7 +292,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   header: { gap: 10 },
-  tagline: { fontFamily: fonts.bodyMedium, fontSize: 18, lineHeight: 25, color: colors.text },
+  tagline: { fontFamily: fonts.display, fontSize: 26, lineHeight: 32, color: colors.text },
   warning: {
     fontFamily: fonts.body,
     fontSize: 13,

@@ -18,6 +18,32 @@ export function normalizePeruMobile(input: string): string | null {
   return match ? `+51${match[1]}` : null;
 }
 
+/**
+ * Lo que escribe la persona en el campo de celular: solo dígitos (sin +51), máximo 9, agrupados
+ * "9XX XXX XXX". `hint` explica en palabras simples qué falta; null cuando el número es válido.
+ */
+export function formatPeruMobileInput(raw: string): {
+  digits: string;
+  display: string;
+  valid: boolean;
+  hint: string | null;
+} {
+  let digits = raw.replace(/\D/g, '');
+  if (digits.length > 9 && digits.startsWith('51')) digits = digits.slice(2);
+  digits = digits.slice(0, 9);
+  const display = [digits.slice(0, 3), digits.slice(3, 6), digits.slice(6, 9)]
+    .filter(Boolean)
+    .join(' ');
+  const valid = /^9\d{8}$/.test(digits);
+  let hint: string | null = null;
+  if (digits.length > 0 && !digits.startsWith('9')) hint = 'Los celulares en Perú empiezan con 9.';
+  else if (digits.length > 0 && !valid) {
+    const left = 9 - digits.length;
+    hint = left === 1 ? 'Falta 1 dígito.' : `Faltan ${left} dígitos.`;
+  }
+  return { digits, display, valid, hint };
+}
+
 /** "+51987654452" o "51987654452" → "+51 9** *** 452" */
 export function maskPhone(phone: string | null | undefined): string {
   const match = /^\+?51(9)\d{5}(\d{3})$/.exec(phone ?? '');
