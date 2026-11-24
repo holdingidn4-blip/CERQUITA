@@ -10,7 +10,7 @@ import {
   type ProLevelSlug,
 } from '@cerquita/shared';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router, useFocusEffect } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   Modal,
@@ -173,11 +173,8 @@ export default function Capacitaciones() {
   const allAnswered = answers.length > 0 && answers.every((a) => a >= 0);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Pressable accessibilityRole="link" onPress={() => router.replace('/solicitudes')}>
-          <Text style={styles.back}>‹ Solicitudes</Text>
-        </Pressable>
         <Text style={styles.title} accessibilityRole="header">
           Capacitaciones
         </Text>
@@ -272,7 +269,7 @@ export default function Capacitaciones() {
       </ScrollView>
 
       <Modal visible={quiz !== null} animationType="slide" onRequestClose={() => setQuiz(null)}>
-        <SafeAreaView style={styles.safe}>
+        <SafeAreaView style={styles.safe} edges={['top']}>
           <ScrollView contentContainerStyle={styles.content}>
             <Text style={styles.title} accessibilityRole="header">
               {quiz?.training.title}

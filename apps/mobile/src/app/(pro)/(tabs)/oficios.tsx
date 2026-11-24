@@ -60,9 +60,52 @@ export default function Oficios() {
   const identityPending = pending.flatMap((t) =>
     t.missing.filter((m) => stepOfRequirement(m) === 'datos' || m === 'background'),
   );
+  const needs = (item: string) => pending.some((t) => t.missing.includes(item));
+  const needsBackground = data.proTrades.some((t) =>
+    (data.requirements[t.tradeId] ?? []).some((r) => r.requirement === 'background'),
+  );
+  const hasVideo = data.documents.some((d) => d.kind === 'verification_video');
+  // Progreso por pasos: identidad, antecedentes, oficios y video.
+  const steps = [
+    {
+      key: 'identidad',
+      title: 'Identidad',
+      done:
+        data.identityVerified ||
+        (data.identity !== null &&
+          !pending.some((t) => t.missing.some((m) => stepOfRequirement(m) === 'datos'))),
+      detail: data.identityVerified
+        ? 'DNI y selfie verificados'
+        : 'DNI, fecha de nacimiento y selfie',
+    },
+    {
+      key: 'antecedentes',
+      title: 'Antecedentes',
+      done: !needsBackground || (data.hasBackground && !needs('background')),
+      detail: needsBackground ? 'Certificado para oficios de riesgo' : 'No lo pide tu oficio',
+    },
+    {
+      key: 'oficios',
+      title: 'Oficios',
+      done: approved.length > 0 || inReview.length > 0,
+      detail:
+        approved.length > 0
+          ? `Aprobado: ${approved.map((t) => tradeName(t.tradeId)).join(', ')}`
+          : inReview.length > 0
+            ? 'En revisión por el equipo'
+            : 'Elige tus oficios y especialidades',
+    },
+    {
+      key: 'video',
+      title: 'Video',
+      done: hasVideo && !needs('verification_video'),
+      detail: 'De 1 a 3 minutos contando tu experiencia',
+    },
+  ];
+  const nextStep = steps.findIndex((st) => !st.done);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={
@@ -83,6 +126,36 @@ export default function Oficios() {
           <Link href="/ajustes" style={styles.link}>
             Cuenta
           </Link>
+        </View>
+
+        <View style={styles.steps} testID="pasos-verificacion">
+          {steps.map((st, i) => {
+            const isNext = i === nextStep;
+            return (
+              <View
+                key={st.key}
+                style={[styles.stepRow, isNext && styles.stepNext]}
+                accessible
+                accessibilityLabel={`${st.title}: ${st.done ? 'completo' : isNext ? 'siguiente paso' : 'pendiente'}. ${st.detail}`}
+              >
+                <View style={[styles.stepCircle, st.done && styles.stepDone]}>
+                  <Text style={[styles.stepMark, st.done && styles.stepMarkDone]}>
+                    {st.done ? '✓' : i + 1}
+                  </Text>
+                </View>
+                <View style={styles.flex}>
+                  <Text style={styles.cardTitle}>
+                    {st.title}
+                    {isNext ? ' · siguiente paso' : ''}
+                  </Text>
+                  <Text style={styles.secondary}>{st.detail}</Text>
+                </View>
+              </View>
+            );
+          })}
+          {nextStep !== -1 && pending.length > 0 && (
+            <Button label="Continuar mi registro" onPress={() => router.push('/registro')} />
+          )}
         </View>
 
         {inReview.length > 0 && (
@@ -195,6 +268,34 @@ export default function Oficios() {
 }
 
 const styles = StyleSheet.create({
+  steps: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.xl,
+    padding: 12,
+    gap: 6,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 8,
+    borderRadius: radii.md,
+  },
+  stepNext: { backgroundColor: colors.primarySoft },
+  stepCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepDone: { backgroundColor: colors.primary, borderColor: colors.primary },
+  stepMark: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.text },
+  stepMarkDone: { color: colors.onPrimary },
   safe: { flex: 1, backgroundColor: colors.background },
   center: { alignItems: 'center', justifyContent: 'center', padding: 20 },
   content: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32, gap: 12 },

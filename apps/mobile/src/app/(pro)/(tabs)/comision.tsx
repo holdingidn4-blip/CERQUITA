@@ -12,7 +12,7 @@ import {
 } from '@cerquita/shared';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -64,11 +64,8 @@ export default function Comision() {
 
   const state = debt ? debtState(debt) : 'ok';
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable accessibilityRole="link" onPress={() => router.replace('/solicitudes')}>
-          <Text style={styles.back}>‹ Solicitudes</Text>
-        </Pressable>
         <Text style={styles.title} accessibilityRole="header">
           Mi comisión
         </Text>

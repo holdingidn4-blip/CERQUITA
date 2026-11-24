@@ -60,13 +60,21 @@ export default function Solicitudes() {
   );
   const [switching, setSwitching] = useState(false);
   const [rank, setRank] = useState<{ position: number; score: number } | null>(null);
-  const [level, setLevel] = useState<string | null>(null);
+  const [rep, setRep] = useState<{
+    level: string;
+    progress: number;
+    next_level: string | null;
+    next_at: number | null;
+    points: number;
+    ratings_count: number;
+    rating_avg: number | null;
+  } | null>(null);
   useEffect(() => {
     supabase.rpc('pro_ranking', { p_limit: 5 }).then(({ data }) => {
       const me = (data ?? []).find((r) => r.is_me);
       setRank(me ? { position: me.rank_position, score: me.score } : null);
     });
-    supabase.rpc('my_reputation').then(({ data }) => setLevel(data?.[0]?.level ?? null));
+    supabase.rpc('my_reputation').then(({ data }) => setRep(data?.[0] ?? null));
   }, []);
   const { debt } = useDebt();
   const paused = debt?.paused ?? false;
@@ -200,30 +208,64 @@ export default function Solicitudes() {
   const tradesLabel = status.approvedTrades.join(' · ');
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topRow}>
-          <View>
-            <Text style={styles.kicker}>Modo profesional</Text>
+          <Text style={styles.kicker}>Modo profesional</Text>
+          <Link href="/ajustes" style={styles.link} accessibilityLabel="Cuenta y privacidad">
+            Cuenta
+          </Link>
+        </View>
+
+        <View style={styles.hero} testID="mi-nivel-inicio">
+          <View style={styles.heroRow}>
+            <View style={styles.flex}>
+              <Text style={styles.heroKicker}>Tu nivel</Text>
+              <Text style={styles.heroLevel}>{levelLabel(rep?.level)}</Text>
+            </View>
             {rank && (
-              <Text style={styles.rank} testID="mi-ranking">
-                🏆 #{rank.position} en Huancayo · {levelLabel(level)} · {rank.score} pts
+              <Text style={styles.rankBadge} testID="mi-ranking">
+                #{rank.position} en Huancayo
               </Text>
             )}
           </View>
-          <View style={styles.links}>
-            <Link href="/oficios" style={styles.link}>
-              Oficios
-            </Link>
-            <Link href="/comision" style={styles.link}>
-              Comisión
-            </Link>
-            <Link href="/capacitaciones" style={styles.link}>
-              Capacitaciones
-            </Link>
-            <Link href="/ajustes" style={styles.link}>
-              Cuenta
-            </Link>
+          {rep?.next_level && rep.next_at ? (
+            <View style={styles.progressBox}>
+              <View
+                style={styles.progressTrack}
+                accessibilityRole="progressbar"
+                accessibilityValue={{
+                  min: 0,
+                  max: rep.next_at,
+                  now: Math.min(rep.progress, rep.next_at),
+                }}
+                accessibilityLabel={`Avance a ${levelLabel(rep.next_level)}`}
+              >
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${Math.min(100, Math.round((rep.progress / rep.next_at) * 100))}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.heroSmall}>
+                {rep.progress} de {rep.next_at} para “{levelLabel(rep.next_level)}”
+              </Text>
+            </View>
+          ) : null}
+          <View style={styles.stats}>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{rep?.points ?? 0}</Text>
+              <Text style={styles.statLabel}>Puntos</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{formatRating(rep?.rating_avg ?? null)}</Text>
+              <Text style={styles.statLabel}>Calificación</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{rep?.ratings_count ?? 0}</Text>
+              <Text style={styles.statLabel}>Reseñas</Text>
+            </View>
           </View>
         </View>
 
@@ -431,9 +473,53 @@ const styles = StyleSheet.create({
   center: { alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, gap: 12 },
   flex: { flex: 1 },
-  topRow: { gap: 10 },
-  links: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 18, rowGap: 6 },
-  link: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary, paddingVertical: 4 },
+  topRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  links: { flexDirection: 'row', gap: 12 },
+  link: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary, paddingVertical: 8 },
+  hero: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.xl,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    padding: 16,
+    gap: 12,
+    shadowColor: colors.accent,
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  heroRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heroKicker: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.textSecondary },
+  heroLevel: { fontFamily: fonts.display, fontSize: 28, color: colors.primary },
+  heroSmall: { fontFamily: fonts.body, fontSize: 14, color: colors.textSecondary },
+  rankBadge: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.primary,
+    backgroundColor: colors.primarySoft,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radii.pill,
+    overflow: 'hidden',
+  },
+  progressBox: { gap: 6 },
+  progressTrack: {
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.surfaceMuted,
+    overflow: 'hidden',
+  },
+  progressFill: { height: 10, borderRadius: 5, backgroundColor: colors.primary },
+  stats: { flexDirection: 'row', gap: 8 },
+  stat: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: radii.md,
+    backgroundColor: colors.surfaceMuted,
+  },
+  statValue: { fontFamily: fonts.display, fontSize: 20, color: colors.text },
+  statLabel: { fontFamily: fonts.body, fontSize: 13, color: colors.textSecondary },
   rank: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.primary },
   kicker: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.textSecondary },
   refresh: { textAlign: 'center', paddingVertical: 8 },
