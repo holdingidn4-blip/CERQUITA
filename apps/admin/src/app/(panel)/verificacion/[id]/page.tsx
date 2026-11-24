@@ -125,8 +125,22 @@ export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) 
               <li key={doc.id} className={styles.doc}>
                 <span>
                   {DOCUMENT_LABELS[doc.kind]} {i + 1}
-                  {doc.description && ` · “${doc.description}”`}
+                  {doc.description &&
+                    !doc.description.startsWith('Subido desde la galería') &&
+                    ` · “${doc.description}”`}
                   {doc.durationSeconds !== null && ` · ${formatClock(doc.durationSeconds)} min`}
+                  {doc.description?.startsWith('Subido desde la galería') && (
+                    <>
+                      {' '}
+                      <span
+                        className={styles.badge}
+                        data-tone="warning"
+                        data-testid="video-galeria"
+                      >
+                        No se grabó en la app: revisar que sea reciente y de la persona
+                      </span>
+                    </>
+                  )}
                 </span>
                 <a
                   href={`/documentos/${doc.id}`}

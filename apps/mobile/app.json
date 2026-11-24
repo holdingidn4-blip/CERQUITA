@@ -33,8 +33,7 @@
         "POST_NOTIFICATIONS",
         "CAMERA",
         "RECORD_AUDIO"
-      ],
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
+      ]
     },
     "web": {
       "output": "static",
@@ -81,7 +80,7 @@
           "cameraPermission": "Cerquita usa la cámara para grabar tu video de verificación del oficio.",
           "microphonePermission": "Cerquita usa el micrófono para que te presentes en tu video de verificación.",
           "recordAudioAndroid": true,
-          "barcodeScannerEnabled": false
+          "barcodeScannerEnabled": true
         }
       ],
       "expo-updates"

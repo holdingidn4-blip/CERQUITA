@@ -10,6 +10,7 @@ import { useCallback, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
+import { GALLERY_VIDEO_NOTE } from '@/pro/onboarding/video-recorder';
 
 export type Trade = Pick<Tables<'trades'>, 'id' | 'slug' | 'name' | 'pro_name' | 'risk_level'>;
 export type Specialty = { id: number; tradeId: number; name: string };
@@ -349,12 +350,20 @@ export function useVerification() {
   const uploadVideo = useCallback(
     async (
       proTradeId: string,
-      video: { uri: string; mimeType: string; extension: string; durationSeconds: number },
+      video: {
+        uri: string;
+        mimeType: string;
+        extension: string;
+        durationSeconds: number;
+        source?: 'app' | 'gallery';
+      },
     ) => {
       setUploading(`${proTradeId}:verification_video`);
       setError(null);
       const failure = await store(video, 'verification_video', proTradeId, {
         durationSeconds: Math.round(video.durationSeconds),
+        // El video de la galería no se grabó en la app: el revisor lo ve marcado.
+        description: video.source === 'gallery' ? GALLERY_VIDEO_NOTE : undefined,
       });
       if (failure) setError(failure);
       await load();

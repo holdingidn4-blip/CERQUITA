@@ -7,7 +7,16 @@ import {
 } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useRef, useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  AppState,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -18,7 +27,12 @@ export type RecordedVideo = {
   mimeType: string;
   extension: string;
   durationSeconds: number;
+  /** 'gallery': subido desde la galería del teléfono (respaldo); se marca para revisión manual. */
+  source?: 'app' | 'gallery';
 };
+
+/** Texto que guarda el documento cuando el video no se grabó dentro de la app. */
+export const GALLERY_VIDEO_NOTE = 'Subido desde la galería del teléfono: revisar con cuidado';
 
 type Props = {
   visible: boolean;
@@ -45,8 +59,10 @@ function webDuration(uri: string): Promise<number> {
  */
 export function VideoRecorder({ visible, minSeconds, maxSeconds, onClose, onDone }: Props) {
   const camera = useRef<CameraView>(null);
-  const [cameraPermission, requestCamera] = useCameraPermissions();
-  const [micPermission, requestMic] = useMicrophonePermissions();
+  const [cameraPermission, requestCamera, getCamera] = useCameraPermissions();
+  const [micPermission, requestMic, getMic] = useMicrophonePermissions();
+  const [asking, setAsking] = useState(false);
+  const [cameraFailed, setCameraFailed] = useState(false);
   const [facing, setFacing] = useState<CameraType>('front');
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -58,6 +74,61 @@ export function VideoRecorder({ visible, minSeconds, maxSeconds, onClose, onDone
     const timer = setInterval(() => setElapsed((Date.now() - startedAt.current) / 1000), 500);
     return () => clearInterval(timer);
   }, [recording]);
+
+  // Al volver de Ajustes se relee el permiso; si la app pasa a segundo plano grabando, se detiene.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        getCamera().catch(() => undefined);
+        getMic().catch(() => undefined);
+      } else if (recording) {
+        camera.current?.stopRecording();
+      }
+    });
+    return () => sub.remove();
+  }, [getCamera, getMic, recording]);
+
+  /** Pide cámara y luego micrófono (uno tras otro). Nunca deja la pantalla trabada. */
+  async function askPermissions() {
+    setAsking(true);
+    setMessage(null);
+    try {
+      const cam = cameraPermission?.granted ? cameraPermission : await requestCamera();
+      if (!cam.granted) return;
+      if (!micPermission?.granted) await requestMic();
+    } catch {
+      setMessage('No pudimos pedir el permiso. Puedes subir un video de tu galería.');
+    } finally {
+      setAsking(false);
+    }
+  }
+
+  /** Respaldo: un video grabado con la cámara del teléfono, que el equipo revisa a mano. */
+  async function pickFromGallery() {
+    setMessage(null);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'] });
+      const asset = result.canceled ? null : result.assets[0];
+      if (!asset) return;
+      const seconds = (asset.duration ?? 0) / 1000;
+      if (seconds < minSeconds || seconds > maxSeconds) {
+        setMessage(
+          `El video dura ${formatClock(seconds)}. Debe durar entre ${formatClock(minSeconds)} y ${formatClock(maxSeconds)}.`,
+        );
+        return;
+      }
+      const mimeType = asset.mimeType ?? 'video/mp4';
+      onDone({
+        uri: asset.uri,
+        mimeType,
+        extension: mimeType.includes('quicktime') ? 'mov' : 'mp4',
+        durationSeconds: seconds,
+        source: 'gallery',
+      });
+    } catch {
+      setMessage('No pudimos abrir tu galería. Intenta de nuevo.');
+    }
+  }
 
   async function pickOnWeb() {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['videos'] });
@@ -105,12 +176,16 @@ export function VideoRecorder({ visible, minSeconds, maxSeconds, onClose, onDone
       });
     } catch {
       setRecording(false);
-      setMessage('No se pudo grabar. Cierra y vuelve a intentarlo.');
+      setMessage('No se pudo grabar. Vuelve a intentarlo o sube un video de tu galería.');
     }
   }
 
   const needsPermission =
     Platform.OS !== 'web' && (!cameraPermission?.granted || !micPermission?.granted);
+  // Negado con "no volver a preguntar": solo se puede activar desde los Ajustes del teléfono.
+  const blocked =
+    (cameraPermission !== null && !cameraPermission.granted && !cameraPermission.canAskAgain) ||
+    (micPermission !== null && !micPermission.granted && !micPermission.canAskAgain);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -137,17 +212,40 @@ export function VideoRecorder({ visible, minSeconds, maxSeconds, onClose, onDone
           <View style={styles.webBox}>
             <Button label="Elegir video" onPress={pickOnWeb} />
           </View>
-        ) : needsPermission ? (
-          <View style={styles.webBox}>
-            <Text style={styles.subtitle}>
-              Para grabar necesitamos la cámara y el micrófono. Solo se usan mientras grabas.
-            </Text>
+        ) : needsPermission || cameraFailed ? (
+          <View style={styles.webBox} testID="permiso-video">
+            {cameraFailed ? (
+              <Text style={styles.subtitle}>
+                La cámara no se pudo abrir en este teléfono. Sube un video grabado con la cámara de
+                tu teléfono: el equipo lo revisa a mano.
+              </Text>
+            ) : blocked ? (
+              <>
+                <Text style={styles.subtitle}>
+                  Negaste el permiso de cámara o micrófono. Para activarlo: Ajustes → Aplicaciones →
+                  Cerquita → Permisos → Cámara y Micrófono → Permitir.
+                </Text>
+                <Button
+                  label="Abrir ajustes del teléfono"
+                  onPress={() => Linking.openSettings().catch(() => undefined)}
+                />
+              </>
+            ) : (
+              <>
+                <Text style={styles.subtitle}>
+                  Para grabar necesitamos la cámara y el micrófono. Solo se usan mientras grabas.
+                </Text>
+                <Button
+                  label="Permitir cámara y micrófono"
+                  loading={asking}
+                  onPress={askPermissions}
+                />
+              </>
+            )}
             <Button
-              label="Permitir cámara y micrófono"
-              onPress={async () => {
-                await requestCamera();
-                await requestMic();
-              }}
+              variant="outline"
+              label="Subir un video de tu galería"
+              onPress={pickFromGallery}
             />
           </View>
         ) : (
@@ -159,6 +257,7 @@ export function VideoRecorder({ visible, minSeconds, maxSeconds, onClose, onDone
               mode="video"
               videoQuality={Platform.OS === 'android' ? '480p' : '4:3'}
               videoBitrate={1_000_000}
+              onMountError={() => setCameraFailed(true)}
             />
             <View style={styles.timer} accessibilityLiveRegion="polite">
               <Text style={styles.timerText}>
@@ -175,7 +274,7 @@ export function VideoRecorder({ visible, minSeconds, maxSeconds, onClose, onDone
           </Text>
         )}
 
-        {Platform.OS !== 'web' && !needsPermission && (
+        {Platform.OS !== 'web' && !needsPermission && !cameraFailed && (
           <View style={styles.actions}>
             {!recording && (
               <Pressable
