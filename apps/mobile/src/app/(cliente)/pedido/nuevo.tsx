@@ -206,6 +206,21 @@ export default function NuevoPedido() {
     router.replace({ pathname: '/pedido/[id]/ofertas', params: { id: job.id } });
   }
 
+  // Sin oficio (enlace directo o atrás desde otra pantalla): se pide elegirlo en Inicio.
+  if (!Number.isInteger(Number(tradeParam))) {
+    return (
+      <SafeAreaView style={[styles.safe, styles.missingTrade]}>
+        <Text style={styles.title} accessibilityRole="header">
+          Elige un oficio
+        </Text>
+        <Text style={styles.missingText}>
+          Para pedir, primero elige qué profesional necesitas en Inicio.
+        </Text>
+        <Button label="Ir a Inicio" onPress={() => router.replace('/inicio')} />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -528,6 +543,13 @@ export default function NuevoPedido() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  missingTrade: { justifyContent: 'center', padding: 24, gap: 16 },
+  missingText: {
+    fontFamily: fonts.body,
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.textSecondary,
+  },
   content: { padding: 20, gap: 14 },
   topRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   back: { fontSize: 32, color: colors.text, paddingRight: 4 },

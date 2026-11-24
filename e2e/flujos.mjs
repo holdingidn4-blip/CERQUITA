@@ -129,6 +129,22 @@ try {
   await client.click('text=Ingresar');
   await client.waitForSelector('text=El código venció');
   ok('código incorrecto muestra error');
+  for (const wrong of ['000001', '000002']) {
+    await client.fill('input[autocomplete=sms-otp]', wrong);
+    await client.click('text=Ingresar');
+    await client.waitForTimeout(300);
+  }
+  await client.waitForSelector(
+    'text=Escribiste mal el código 3 veces. Por seguridad, pide un código nuevo.',
+  );
+  await client.fill('input[autocomplete=sms-otp]', OTP);
+  check(
+    await client.getByRole('button', { name: 'Ingresar', exact: true }).isDisabled(),
+    'tras 3 códigos equivocados hay que pedir uno nuevo',
+  );
+  await client.waitForSelector('text=Reenviar código', { timeout: 70000 });
+  await client.click('text=Reenviar código');
+  await client.waitForSelector('text=Código que te enviamos');
   await client.fill('input[autocomplete=sms-otp]', OTP);
   await client.click('text=Ingresar');
   await client.waitForURL('**/registro');
@@ -563,10 +579,33 @@ try {
   await pro.goBack();
   await client.goBack();
 
-  await pro.fill('[aria-labelledby=code-label]', code === '0000' ? '1111' : '0000');
+  const wrongCode = code === '0000' ? '1111' : '0000';
+  await pro.fill('[aria-labelledby=code-label]', wrongCode);
   await pro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
-  await pro.waitForSelector('text=El código no coincide');
-  ok('un código equivocado no marca la llegada');
+  await pro.waitForSelector(
+    'text=El código no coincide. Pídeselo al cliente. Te quedan 2 intentos.',
+  );
+  ok('un código equivocado no marca la llegada y dice cuántos intentos quedan');
+  for (let i = 0; i < 2; i++) {
+    await pro.fill('[aria-labelledby=code-label]', wrongCode);
+    await pro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
+    await pro.waitForTimeout(500);
+  }
+  await pro.waitForSelector('text=/quedó bloqueado hasta las/');
+  check(
+    sql(
+      `select count(*) from public.notification_outbox where user_id = '11111111-1111-1111-1111-111111111111' and kind = 'arrival_code_locked'`,
+    ) === '1',
+    'al tercer código equivocado se bloquea y se avisa al cliente',
+  );
+  await pro.fill('[aria-labelledby=code-label]', code);
+  await pro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
+  await pro.waitForSelector('text=/Código bloqueado por intentos fallidos/');
+  ok('bloqueado, ni el código correcto pasa');
+  // Pasan los 10 minutos del bloqueo.
+  sql(
+    `update public.jobs set arrival_locked_until = now() - interval '1 minute' where id = '${jobId}'`,
+  );
   await pro.fill('[aria-labelledby=code-label]', code);
   await pro.getByRole('button', { name: 'Llegué al domicilio', exact: true }).click();
   await pro.waitForSelector('[data-testid=fotos-trabajo]');
@@ -1377,6 +1416,11 @@ try {
   await client.fill('[aria-label="Nombre del contacto"]', 'Mamá');
   await client.fill('[aria-label="Celular del contacto"]', '911 111 111');
   await client.fill('[aria-label="Relación"]', 'mamá');
+  await client.context().setOffline(true);
+  await client.click('text=Agregar contacto');
+  await client.waitForSelector('text=Sin conexión: revisa tu internet e intenta de nuevo.');
+  ok('sin internet: mensaje claro en español y no se pierde lo escrito');
+  await client.context().setOffline(false);
   await client.click('text=Agregar contacto');
   await client.waitForSelector('[data-testid=contacto]:has-text("Mamá")');
   ok('agrega un contacto de confianza');

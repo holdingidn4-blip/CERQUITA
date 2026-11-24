@@ -74,7 +74,8 @@ select throws_ok(format('select public.send_job_message(%L, %L)', :job, 'hola'),
 
 -- ───────── Llegué ─────────
 select pg_temp.as_user(:p);
-select throws_ok(format('select public.arrive(%L, %L)', :job, '0000x'), '22023', null, 'código equivocado no sirve');
+select is((select status::text || '|' || arrival_failed_attempts from public.arrive(:job, '0000x')), 'on_the_way|1',
+  'código equivocado no sirve: sigue En camino y cuenta el intento');
 select pg_temp.as_postgres();
 select security_code as code from public.jobs where id = :job \gset
 select pg_temp.as_user(:p);

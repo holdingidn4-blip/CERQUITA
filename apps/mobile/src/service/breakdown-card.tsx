@@ -64,8 +64,8 @@ export function BreakdownCard({
 function Line({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <View style={styles.line}>
-      <Text style={[styles.label, strong && styles.strong]}>{label}</Text>
-      <Text style={[styles.value, strong && styles.strong]}>{value}</Text>
+      <Text style={[styles.label, styles.lineLabel, strong && styles.strong]}>{label}</Text>
+      <Text style={[styles.value, styles.lineValue, strong && styles.strong]}>{value}</Text>
     </View>
   );
 }
@@ -81,6 +81,9 @@ const styles = StyleSheet.create({
   },
   title: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
   line: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  // El monto nunca se parte: la etiqueta usa el espacio que queda y salta de línea si hace falta.
+  lineLabel: { flex: 1 },
+  lineValue: { flexShrink: 0, textAlign: 'right' },
   label: { flex: 1, fontFamily: fonts.body, fontSize: 14, color: colors.text },
   value: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
   strong: { fontFamily: fonts.display, fontSize: 17 },

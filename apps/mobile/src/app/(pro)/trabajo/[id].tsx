@@ -1,4 +1,5 @@
 import {
+  arrivalCodeMessage,
   formatArrival,
   formatRating,
   formatSoles,
@@ -31,6 +32,7 @@ import { Stars } from '@/components/stars';
 import { BreakdownCard } from '@/service/breakdown-card';
 import { ReevaluatePanel } from '@/service/reevaluate-panel';
 import { confirm } from '@/lib/confirm';
+import { useSettingInt } from '@/lib/settings';
 import { supabase } from '@/lib/supabase';
 import { SosButton } from '@/components/sos-button';
 import { ContactActions, StepBar } from '@/service/contact-actions';
@@ -58,6 +60,8 @@ export default function Trabajo() {
   const [stars, setStars] = useState(0);
   const [rated, setRated] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Intentos del código de llegada antes del bloqueo (settings: arrival_code_max_attempts).
+  const maxArrivalAttempts = useSettingInt('arrival_code_max_attempts') ?? 3;
   const [error, setError] = useState<string | null>(null);
 
   // Reanuda el envío si la app se reabre con el servicio en curso; lo corta al terminar.
@@ -93,8 +97,23 @@ export default function Trabajo() {
 
   async function arrived() {
     if (code.length !== 4) return setError('Pídele al cliente su código de 4 dígitos.');
-    if (await run(() => supabase.rpc('arrive', { p_job: id, p_code: code })))
-      await startTracking(id, 'at_home');
+    setBusy(true);
+    setError(null);
+    const { data, error: rpcError } = await supabase.rpc('arrive', { p_job: id, p_code: code });
+    setBusy(false);
+    await reload();
+    if (rpcError) return setError(rpcError.message);
+    // Código equivocado: el servidor cuenta el intento y, tras varios, bloquea unos minutos.
+    if (data?.status !== 'at_home') {
+      return setError(
+        arrivalCodeMessage(
+          data?.arrival_failed_attempts ?? 0,
+          data?.arrival_locked_until ?? null,
+          maxArrivalAttempts,
+        ),
+      );
+    }
+    await startTracking(id, 'at_home');
   }
 
   async function finish() {

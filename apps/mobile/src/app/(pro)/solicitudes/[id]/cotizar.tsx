@@ -410,8 +410,8 @@ export default function Cotizar() {
 function Line({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <View style={styles.line}>
-      <Text style={[styles.body, strong && styles.strong]}>{label}</Text>
-      <Text style={[styles.body, strong && styles.strongValue]}>{value}</Text>
+      <Text style={[styles.body, styles.lineLabel, strong && styles.strong]}>{label}</Text>
+      <Text style={[styles.body, styles.lineValue, strong && styles.strongValue]}>{value}</Text>
     </View>
   );
 }
@@ -486,7 +486,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: colors.text,
   },
-  line: { flexDirection: 'row', justifyContent: 'space-between' },
+  line: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  // El monto nunca se parte: la etiqueta usa el espacio que queda y salta de línea si hace falta.
+  lineLabel: { flex: 1 },
+  lineValue: { flexShrink: 0, textAlign: 'right' },
   strong: { fontFamily: fonts.bodySemibold },
   strongValue: { fontFamily: fonts.display, fontSize: 18, color: colors.primary },
   divider: { height: 1, backgroundColor: colors.surfaceMuted },

@@ -100,3 +100,19 @@ export function proNextStep(status: string): string | null {
       return null;
   }
 }
+
+/** Mensaje al pro cuando el código de llegada no coincide (el servidor bloquea tras varios intentos). */
+export function arrivalCodeMessage(
+  attempts: number,
+  lockedUntil: string | null,
+  maxAttempts: number,
+): string {
+  if (lockedUntil) {
+    const d = new Date(new Date(lockedUntil).getTime() - 5 * 3_600_000);
+    const hh = String(d.getUTCHours()).padStart(2, '0');
+    const mm = String(d.getUTCMinutes()).padStart(2, '0');
+    return `El código no coincide. Por seguridad quedó bloqueado hasta las ${hh}:${mm}. Pídele al cliente que te lo dicte en persona.`;
+  }
+  const left = Math.max(0, maxAttempts - attempts);
+  return `El código no coincide. Pídeselo al cliente. ${left === 1 ? 'Te queda 1 intento.' : `Te quedan ${left} intentos.`}`;
+}

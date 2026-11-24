@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { confirm } from '@/lib/confirm';
-import { supabase } from '@/lib/supabase';
+import { friendlyError, supabase } from '@/lib/supabase';
 import { usePolling } from '@/lib/use-polling';
 import { colors, fonts, radii } from '@/theme';
 
@@ -42,7 +42,7 @@ export default function Contactos() {
       return setError(
         e.message.includes('Máximo')
           ? 'Puedes tener hasta 3 contactos.'
-          : 'No pudimos guardar el contacto.',
+          : friendlyError(e, 'No pudimos guardar el contacto.'),
       );
     setName('');
     setPhone('');

@@ -29,6 +29,9 @@ import { isSupabaseConfigured, legalUrls } from '@/lib/env';
 import { authErrorMessage, supabase } from '@/lib/supabase';
 import { colors, fonts, radii, spacing } from '@/theme';
 
+/** Tras estos códigos equivocados seguidos se exige pedir uno nuevo (Supabase además limita por IP). */
+const MAX_WRONG_CODES = 3;
+
 const ROLE_OPTIONS = [
   { value: 'client', label: 'Necesito un servicio' },
   { value: 'pro', label: 'Ofrezco mis servicios' },
@@ -48,6 +51,8 @@ export default function Ingreso() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [resendIn, setResendIn] = useState(0);
+  // Códigos equivocados seguidos: al tercero se pide un código nuevo.
+  const [wrongCodes, setWrongCodes] = useState(0);
   const codeInput = useRef<ComponentRef<typeof TextInput>>(null);
 
   const phone = normalizePeruMobile(rawPhone);
@@ -73,6 +78,7 @@ export default function Ingreso() {
     }
     setStep('code');
     setCode('');
+    setWrongCodes(0);
     setResendIn(OTP_RESEND_SECONDS);
     setTimeout(() => codeInput.current?.focus(), 100);
   }
@@ -91,7 +97,14 @@ export default function Ingreso() {
     });
     if (verifyError) {
       setBusy(false);
-      setError(authErrorMessage(verifyError));
+      const wrong = verifyError.code === 'otp_expired' ? wrongCodes + 1 : wrongCodes;
+      setWrongCodes(wrong);
+      setCode('');
+      setError(
+        wrong >= MAX_WRONG_CODES
+          ? `Escribiste mal el código ${MAX_WRONG_CODES} veces. Por seguridad, pide un código nuevo.`
+          : authErrorMessage(verifyError),
+      );
       return;
     }
     try {
@@ -222,7 +235,7 @@ export default function Ingreso() {
               <Button
                 label="Ingresar"
                 loading={busy}
-                disabled={code.length < OTP_LENGTH}
+                disabled={code.length < OTP_LENGTH || wrongCodes >= MAX_WRONG_CODES}
                 onPress={verify}
               />
             )}

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  arrivalCodeMessage,
   proNextStep,
   backgroundLocationTarget,
   isTrackingStatus,
@@ -58,5 +59,17 @@ describe('proNextStep', () => {
     expect(proNextStep('on_the_way')).toContain('código de 4 dígitos');
     expect(proNextStep('finished')).toContain('Cóbrale');
     expect(proNextStep('published')).toBeNull();
+  });
+});
+
+describe('código de llegada equivocado', () => {
+  it('dice cuántos intentos quedan', () => {
+    expect(arrivalCodeMessage(1, null, 3)).toBe(
+      'El código no coincide. Pídeselo al cliente. Te quedan 2 intentos.',
+    );
+    expect(arrivalCodeMessage(2, null, 3)).toMatch(/Te queda 1 intento\./);
+  });
+  it('con bloqueo, dice hasta qué hora (hora de Lima)', () => {
+    expect(arrivalCodeMessage(3, '2026-11-24T15:10:00Z', 3)).toMatch(/bloqueado hasta las 10:10/);
   });
 });

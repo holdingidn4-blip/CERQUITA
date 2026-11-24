@@ -635,6 +635,8 @@ export type Database = {
         Row: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -695,6 +697,8 @@ export type Database = {
         Insert: {
           accepted_offer_id?: string | null;
           approx_point: unknown;
+          arrival_failed_attempts?: number;
+          arrival_locked_until?: string | null;
           arrived_at?: string | null;
           assigned_at?: string | null;
           cancel_reason?: string | null;
@@ -754,6 +758,8 @@ export type Database = {
         Update: {
           accepted_offer_id?: string | null;
           approx_point?: unknown;
+          arrival_failed_attempts?: number;
+          arrival_locked_until?: string | null;
           arrived_at?: string | null;
           assigned_at?: string | null;
           cancel_reason?: string | null;
@@ -2411,6 +2417,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -2570,6 +2578,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -2662,6 +2672,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -2730,6 +2742,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -2798,6 +2812,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -2866,6 +2882,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -2951,6 +2969,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -3035,6 +3055,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -3177,6 +3199,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -3452,6 +3476,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -3572,6 +3598,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;
@@ -3941,6 +3969,8 @@ export type Database = {
         Returns: {
           accepted_offer_id: string | null;
           approx_point: unknown;
+          arrival_failed_attempts: number;
+          arrival_locked_until: string | null;
           arrived_at: string | null;
           assigned_at: string | null;
           cancel_reason: string | null;

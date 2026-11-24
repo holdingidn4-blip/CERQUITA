@@ -223,8 +223,8 @@ export default function Confirmar() {
 function Line({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
     <View style={styles.line}>
-      <Text style={styles.body}>{label}</Text>
-      <Text style={[styles.body, strong && styles.strong]}>{value}</Text>
+      <Text style={[styles.body, styles.lineLabel]}>{label}</Text>
+      <Text style={[styles.body, styles.lineValue, strong && styles.strong]}>{value}</Text>
     </View>
   );
 }
@@ -245,7 +245,10 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   name: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
-  line: { flexDirection: 'row', justifyContent: 'space-between' },
+  line: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  // El monto nunca se parte: la etiqueta usa el espacio que queda y salta de línea si hace falta.
+  lineLabel: { flex: 1 },
+  lineValue: { flexShrink: 0, textAlign: 'right' },
   body: { fontFamily: fonts.body, fontSize: 15, color: colors.text },
   strong: { fontFamily: fonts.display, fontSize: 18 },
   secondary: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: colors.textSecondary },
