@@ -3,10 +3,10 @@
 Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
 ## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** F7 (ciclo de pruebas y corrección: emulador Android con capturas, lista de errores corregidos y pendientes).
-- **Último paso terminado:** F6: push listo para activarse con `GOOGLE_SERVICES_JSON` (FCM gratis), comparación de SMS con precios oficiales (recomendado Twilio; punto de parada antes de pagar), Maps sin costo de uso en Android y aprobación de constancias Yape/Plin solo tras verificar el abono. Todo en `docs/servicios-externos.md`. e2e 188 pasos.
-- **Siguiente paso exacto:** F7 · revisar si este entorno puede correr un emulador Android (KVM); si no, usar el arranque en emulador del CI (`.github/workflows/android-apk.yml`) y el export web en tamaños de teléfono para capturas, recorrer los flujos de cliente y pro, y anotar errores en `docs/pruebas-f7.md`.
-- F7–F8 pendientes. Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
+- **Fase actual:** F7 (casi cerrada; ver `docs/pruebas-f7.md`).
+- **Último paso terminado:** ciclo de pruebas: pgTAP 652, unitarias 232, e2e 192, revisión de 72 pantallas sin observaciones; 5 errores corregidos (código de llegada adivinable, mensajes sin internet, código SMS, monto partido, pedido sin oficio). Emulador nativo no verificado (sin KVM; EAS Simulator no habilitado).
+- **Siguiente paso exacto:** aplicar en producción `20261124000300_arrival_code_lock` (md5 `49b4e3ce…`). **Ojo:** la tabla temporal `_deploy_staging` quedó creada en producción con el archivo cargado (la herramienta SQL pidió una confirmación que nadie respondió). Ejecutar el `do $$ … execute …$$`, registrar la versión, borrar la tabla y comparar la huella de `public.arrive`. Luego volver a capturar Cotizar, cerrar F7 y pasar a F8.
+- F8 pendiente (F7 por cerrar). Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
 
 ## Implementado
 - Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (32 migraciones).
@@ -34,7 +34,7 @@ Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin h
 - **AAB:** EAS `@holdingidn/cerquita`, perfil `production`, build `a1a6c154` (versionCode 2), llave en EAS.
 
 ## Pruebas (última corrida)
-- Local (2026-11-23, base reseteada): pgTAP 643 (19 suites; nuevas `reputation` 43 y `trainings` 28), e2e 187 pasos (F4 completo y la landing pública), unitarias 230 (incluye contraste AA de ambas paletas), formato + lint + tipos. Todo en verde.
+- Local (2026-11-23, base reseteada): pgTAP 652 (20 suites; nuevas `reputation` 43, `trainings` 28 y `arrival_lock` 9), e2e 192 pasos (F4, landing, código SMS y de llegada 3 veces, sin internet), unitarias 232, revisión de 72 pantallas (`e2e/pantallas.mjs`), formato + lint + tipos. Todo en verde.
 - Producción (F4): `20261124000100` y `…000200` aplicadas por tabla temporal con huella md5 (`a2008215…`, `1c287a4b…`) y registradas; 20 funciones con huella igual a local; `anon` ejecuta 0 funciones; 0 tablas sin RLS; tabla temporal borrada. F3 (`…400`) igual, 18 funciones verificadas.
 - CI en `main` (`1595fa4`, 2026-11-21): base, chequeo y e2e en verde.
 - Producción (F1, transacciones revertidas): borrar cuenta de pro con DNI visto → documentos 0, vista conservada, perfil anonimizado; 15 RPC de soporte con usuario común → 42501 o vacío; panel desplegado sin sesión → `/login`.
