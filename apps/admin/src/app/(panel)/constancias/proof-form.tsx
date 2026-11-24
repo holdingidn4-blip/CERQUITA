@@ -13,6 +13,10 @@ export function ProofForm({ id }: { id: string }) {
   if (state.done) return <span className={styles.muted}>{state.done}</span>;
   return (
     <form action={action} className={styles.inlineForm}>
+      <label className={styles.check}>
+        <input type="checkbox" name="verified" /> Verifiqué el abono en la cuenta de Cerquita
+        (monto, fecha y n.° de operación)
+      </label>
       <input
         name="note"
         placeholder="Motivo si rechazas"

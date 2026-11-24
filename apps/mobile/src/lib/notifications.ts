@@ -6,6 +6,7 @@ import { router, type Href } from 'expo-router';
 import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
+import { colors } from '@/theme';
 
 // Se muestran también con la app abierta.
 Notifications.setNotificationHandler({
@@ -30,7 +31,7 @@ export async function registerForPush(): Promise<string | null> {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'Cerquita',
       importance: AndroidImportance.HIGH,
-      lightColor: '#0E5A4B',
+      lightColor: colors.primary,
     });
   }
   const current = await Notifications.getPermissionsAsync();

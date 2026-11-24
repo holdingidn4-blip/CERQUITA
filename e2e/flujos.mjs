@@ -692,6 +692,12 @@ try {
   );
   await proofTab.close();
   await admin.click('tr:has-text("OP-77812") >> button:has-text("Aprobar")');
+  await admin.waitForSelector(
+    'text=Antes de aprobar, verifica el abono en la cuenta y marca la casilla.',
+  );
+  ok('la captura sola no basta: soporte debe verificar el abono en la cuenta');
+  await admin.check('tr:has-text("OP-77812") >> input[name=verified]');
+  await admin.click('tr:has-text("OP-77812") >> button:has-text("Aprobar")');
   await admin.waitForSelector('text=Aprobada: se creó el abono en el libro.');
   check(
     sql(

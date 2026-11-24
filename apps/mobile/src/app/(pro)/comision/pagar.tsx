@@ -162,7 +162,8 @@ export default function PagarComision() {
             />
           )}
           <Text style={styles.secondary}>
-            Luego sube aquí la constancia. Soporte la revisa y la descuenta de tu comisión.
+            Luego sube aquí la constancia. Soporte confirma el abono en la cuenta de Cerquita (la
+            foto sola no basta) y lo descuenta de tu comisión.
           </Text>
         </View>
         <TextInput
