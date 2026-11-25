@@ -1,18 +1,20 @@
 # Cerquita · Estado
 
-Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
+Actualizado: 2026-11-25. Se **reescribe** en cada fase (máx. 100 líneas, sin historial; el historial está en git y `docs/progreso.md`).
 
-## Plan de lanzamiento (F1–F8, `cerquita-prompt-lanzamiento`)
-- **Fase actual:** correcciones de la prueba en teléfono real. Sección 0 cerrada; sección 1 corregida en código, **sin probar en el teléfono**; sigue la sección 2 (pantalla de inicio).
-- **Último paso terminado:** sección 1:
-  - Hallazgo comprobado en el manifiesto Android generado: `RECORD_AUDIO` estaba en `blockedPermissions` (`tools:node="remove"`), así que la app no declaraba el micrófono. Además no se manejaba el permiso negado. Falta la línea de `adb logcat` que lo confirme como causa.
-  - Corregido: micrófono declarado, permisos uno tras otro, estado "negado" con botón a Ajustes, grabación detenida al salir de la app, error de cámara y respaldo "Subir un video de tu galería" (marcado en el panel para revisión manual). Se activó el escáner QR (`barcodeScannerEnabled`).
-  - APK `pilot` EAS `834dded0` (versionCode 6) en compilación.
-- **Siguiente paso exacto:** cuando el dueño conecte su laptop por Remote Control con el teléfono por USB: `adb install` del APK `834dded0`, reproducir "Permitir cámara y micrófono" y los casos de grabación (detener antes de 1 min, pasar de 3 min, girar y salir a mitad) con `adb logcat`, y tomar capturas con `adb exec-out screencap`. Mientras tanto, sección 2 (nuevo ingreso: degradado, animación, interruptor Cliente/Profesional, mensajes rotativos, celular con formato, OTP de 6 casillas).
-- F8 pendiente (F7 por cerrar). Puntos de parada: pagos, cuentas del dueño, publicar en Google Play o cambios irreversibles en producción.
+## Plan de lanzamiento (F1–F8) y correcciones de la prueba en teléfono
+- **Fase actual:** `cerquita-prompt-correcciones`. Secciones 0 a 4 hechas en código, con pgTAP, e2e y revisión de capturas; **ninguna probada aún en el teléfono** (no hay carpeta de la laptop compartida por Remote Control). Sigue la sección 5 (landing nueva y menú del panel por áreas).
+- **Último paso terminado (sección 4, catálogo de trabajos):**
+  - 9 a 12 trabajos por oficio con palabras de búsqueda (buscador sin tildes, por comienzo de palabra).
+  - Trabajos de riesgo (gas, termas, tableros, cableado, pozo a tierra, medidor, duchas eléctricas, cocinas a gas, cerrajería, techos, ampliaciones, enfermos, postoperatorio, movilidad escolar) aprobados a cada pro por separado; sin aprobación no ve, no recibe aviso ni cotiza ese pedido.
+  - "Otro trabajo": pendiente de revisión, sin pedidos hasta que soporte lo agregue al catálogo (común o de riesgo).
+  - El cliente elige el trabajo al pedir (opcional, 6 visibles + "Ver todos"); el pro lo ve en la solicitud.
+  - Panel → Catálogo (editar, agregar, activar, riesgo, orden) y, en Verificación, aprobar o rechazar cada trabajo de riesgo.
+- **Siguiente paso exacto:** sección 5. En paralelo, cuando el dueño comparta la carpeta de su laptop (Claude → Ajustes → Claude Code → Remote Control) y conecte el teléfono por USB con depuración activada: `adb install` del APK `834dded0`, `adb logcat` al tocar "Permitir cámara y micrófono" y probar las secciones 1–4 con capturas.
+- Paradas: pagos, cuentas del dueño, publicar en Google Play, operaciones destructivas en producción.
 
 ## Implementado
-- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (32 migraciones).
+- Monorepo pnpm: app Expo (`apps/mobile`), panel Next.js (`apps/admin`), lógica compartida (`packages/shared`), Supabase (34 migraciones).
 - Ingreso por SMS (OTP), modo Cliente/Profesional, hook que solo admite +51 9XXXXXXXX, roles de soporte.
 - Registro del pro y verificación por oficio (9 oficios, 4 categorías, requisitos por categoría, cola y revisión en el panel).
 - Pedidos: tarifario sin regateo, fotos, video (15 s, 48 h), visita de diagnóstico S/ 20, programación y recordatorio 60 min antes.
@@ -26,10 +28,11 @@ Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin h
 - **Cotización y cierre (F3):** oferta con visita, mano de obra, materiales y movilidad (el servidor suma y valida el tarifario solo en mano de obra); términos fijos con "plataforma intermediaria"; un botón "Acepto" que guarda monto, desglose, fecha, hora y versión (`quote_acceptances`); cada cambio de precio = cotización nueva aceptada; fotos de antes y después obligatorias para "Terminado"; confirmación del cliente con la versión aceptada; comprobante PDF para WhatsApp; portafolio solo con permiso del cliente (revocable); cupón por falta que asume Cerquita con tope mensual; el pro apela la falta y soporte decide en el panel.
 - **Reputación y capacitaciones (F4):** calificación visible desde 3; niveles Nuevo, Verificado, De confianza y Destacado (trabajos + puntos, cero quejas confirmadas) con prioridad en las ofertas; lista negra de personas con motivo, plazo, DNI y dispositivo (solo hash) y apelación decidida por una persona; primer trabajo supervisado y muestreo en oficios de riesgo con checklist; capacitaciones con código o QR de un solo uso, cuestionario sin respuestas visibles, certificado PDF y puntos inmutables; canje de premios "próximamente".
 - **Diseño (F5):** paleta neutra con acentos vivos (verde en claro, menta neón en oscuro), modo claro y oscuro según el sistema en app, panel y landing; textos ≥ 14 px, botones ≥ 48 px, microanimación corta que respeta "reducir movimiento"; landing pública `/inicio` (mobile first) con llamadas para cliente y profesional, confianza y capacitaciones.
+- **Correcciones (sección 1–4):** video con permisos uno tras otro, botón a Ajustes y respaldo desde galería; ingreso nuevo (degradado, radar, interruptor Cliente/Profesional, celular con formato, OTP de 6 casillas); app del pro con barra inferior (Inicio, Pedidos, Ganancias, Cursos, Perfil), tarjeta de nivel y pasos de verificación; catálogo de trabajos con riesgo por trabajo.
 - **Seguridad (F1):** panel sin `service_role`; `anon` no ejecuta funciones; 59 RPC con validación interna; teléfono entre partes retirado; políticas por acción e índices en todas las claves foráneas.
 
 ## Desplegado (producción del piloto)
-- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 32 migraciones aplicadas y verificadas (mismas huellas que en local), seed de Huancayo, 45 tablas, todas con RLS, 6 tareas cron.
+- **Backend:** Supabase `cerquita` (`dknxuxrylnncbdzjqagh`, São Paulo, plan gratis). 34 migraciones aplicadas y verificadas (mismas huellas que en local), seed de Huancayo, 46 tablas, todas con RLS, 6 tareas cron.
 - **Auth:** Phone con Twilio trial (solo números verificados) + números de prueba con OTP fijo.
 - **Notificaciones:** Edge Function `send-push` (secreto en Vault) y cron cada minuto; el código de FCM está listo y se activa con `google-services.json` + la llave FCM V1 en EAS (pasos en `docs/servicios-externos.md`).
 - **APK:** EAS perfil `pilot`, build `2cb6a8ae` (versionCode 4, con F3, commit `a754876`, llave privada de EAS; enlace en `docs/produccion.md`). Falta el de F4. Quien tenga el build 4 de CI (llave de depuración) debe desinstalarlo antes.
@@ -37,15 +40,13 @@ Actualizado: 2026-11-23. Se **reescribe** en cada fase (máx. 100 líneas, sin h
 - **AAB:** EAS `@holdingidn/cerquita`, perfil `production`, build `a1a6c154` (versionCode 2), llave en EAS.
 
 ## Pruebas (última corrida)
-- Local (2026-11-23, base reseteada): pgTAP 652 (20 suites; nuevas `reputation` 43, `trainings` 28 y `arrival_lock` 9), e2e 192 pasos (F4, landing, código SMS y de llegada 3 veces, sin internet), unitarias 232, revisión de 72 pantallas (`e2e/pantallas.mjs`), formato + lint + tipos. Todo en verde.
-- Producción (F4): `20261124000100` y `…000200` aplicadas por tabla temporal con huella md5 (`a2008215…`, `1c287a4b…`) y registradas; 20 funciones con huella igual a local; `anon` ejecuta 0 funciones; 0 tablas sin RLS; tabla temporal borrada. F3 (`…400`) igual, 18 funciones verificadas.
-- CI en `main` (`1595fa4`, 2026-11-21): base, chequeo y e2e en verde.
-- Producción (F1, transacciones revertidas): borrar cuenta de pro con DNI visto → documentos 0, vista conservada, perfil anonimizado; 15 RPC de soporte con usuario común → 42501 o vacío; panel desplegado sin sesión → `/login`.
-- APK build 4: arranque en emulador Android OK.
+- Local (2026-11-25, base reseteada): pgTAP 700 (21 suites; nueva `catalog` 48), e2e 202 pasos (catálogo: buscador, riesgo pendiente, otro trabajo, aprobación aparte en el panel, pedido con trabajo), unitarias 242, revisión de 74 pantallas claro/oscuro (0 observaciones; la landing queda con 9 "revisar contraste", sección 5), formato + lint + tipos. Todo en verde. Capturas de la sección 4 revisadas y corregidas.
+- Producción (sección 4): `20261125010403` aplicada; catálogo 11/12/9/9/9/9/9/9/9 por oficio; `anon` ejecuta 0 funciones; 0 tablas sin RLS.
+- Producción (F1, revertido): borrar cuenta de pro → documentos 0 y perfil anonimizado; RPC de soporte con usuario común → 42501.
 - **No probado todavía:** ingreso real con números de prueba, cámara, GPS en segundo plano, push y flujo completo en teléfonos físicos.
 
 ## Avance técnico del piloto (A)
-Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 70).
+Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pgTAP y llamadas a producción cuentan como "sin verificar". El e2e corre la app exportada para web: no cuenta como celular. Pesos: alto 3, medio 2, bajo 1 (total 75).
 
 | Funcionalidad | Peso | Estado | Fuente |
 | --- | --- | --- | --- |
@@ -58,10 +59,12 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pgTA
 | Panel: cola por riesgo, antecedentes e historial de verificación | medio | Verificado | e2e Fase 4 |
 | Panel: apelaciones de llegadas incumplidas | bajo | Verificado | e2e Fase 7 |
 | Panel: supervisión, capacitaciones con QR y lista negra de personas | medio | Verificado | e2e Fase 10 (186 pasos) |
+| Panel: catálogo de trabajos y trabajos de riesgo aprobados aparte | medio | Verificado | e2e sección 4 |
 | Panel en producción con ingreso real | alto | Sin verificar | Solo `/login`; falta primer admin |
 | App: ingreso por SMS y modo Cliente/Profesional | alto | Sin verificar | e2e en export web |
 | App: registro del profesional en 6 pasos (DNI +18, especialidades, video) | alto | Sin verificar | e2e en export web; cámara y video reales no probados |
 | App: publicar pedido | alto | Sin verificar | e2e en export web |
+| App: catálogo con buscador, otro trabajo y trabajo en el pedido | alto | Sin verificar | e2e en export web |
 | App: cotizar y aceptar oferta | alto | Sin verificar | e2e en export web |
 | App: desglose, "Acepto" versionado, fotos antes/después, comprobante PDF, cupón y apelación | alto | Sin verificar | e2e en export web; cámara y PDF reales no probados |
 | App: nivel, capacitaciones (código/QR, cuestionario, certificado) y restricción con apelación | alto | Sin verificar | e2e en export web; QR con cámara, Android ID y PDF reales no probados |
@@ -79,7 +82,7 @@ Regla: "verificado" solo si se recorrió en celular o en el panel. Código, pgTA
 | Backend: recordatorios de pedidos programados | bajo | Sin verificar | pgTAP `schedule` |
 | Backend: limpieza de Storage | bajo | Sin verificar | En modo prueba (solo cuenta) |
 
-Cálculo: verificado 18/70 = **25,7 %** · implementado sin verificar 49/70 = **70,0 %** · pendiente 3/70 = **4,3 %** (push, espera Firebase).
+Cálculo: verificado 20/75 = **26,7 %** · implementado sin verificar 52/75 = **69,3 %** · pendiente 3/75 = **4,0 %** (push, espera Firebase).
 
 ## Bloqueos para lanzar (B, sin porcentaje)
 - **Seguridad (dueño):** borrar en Vercel las 13 variables que no se usan (lista en `docs/seguridad.md`); primer admin con un número sin código fijo; decidir si se activa el borrado de archivos huérfanos.
@@ -95,4 +98,3 @@ Cálculo: verificado 18/70 = **25,7 %** · implementado sin verificar 49/70 = **
 - Advisors: 83 avisos de RPC `security definer` intencionales (cada una valida quién llama; justificados en `docs/seguridad.md`); `notification_outbox` sin políticas a propósito (solo la usa el servidor).
 - El token personal de Supabase del entorno es inválido: el SQL de producción se aplica con el conector.
 - En este entorno Docker muere al reiniciar el contenedor y el proxy bloquea la API de secretos de GitHub y descargas de artefactos.
-- `docs/demo/cerquita-demo.html` es una simulación antigua.
