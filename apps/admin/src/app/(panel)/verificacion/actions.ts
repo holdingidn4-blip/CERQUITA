@@ -35,3 +35,27 @@ export async function decide(id: string, _prev: ReviewState, form: FormData): Pr
   revalidatePath('/verificacion');
   redirect(`/verificacion?hecho=${decision}`);
 }
+
+/** Trabajo de riesgo: se aprueba o rechaza aparte del oficio (con motivo si se rechaza). */
+export async function decideSpecialty(
+  proTradeId: string,
+  specialtyId: number,
+  _prev: ReviewState,
+  form: FormData,
+): Promise<ReviewState & { ok?: string | null }> {
+  await requireStaff();
+  const decision = String(form.get('decision') ?? '');
+  if (decision !== 'approve' && decision !== 'reject') return { error: 'Decisión inválida.' };
+  const note = String(form.get('note') ?? '').trim();
+  if (decision === 'reject' && note === '') return { error: 'Escribe el motivo para rechazar.' };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('review_pro_specialty', {
+    p_pro_trade: proTradeId,
+    p_specialty: specialtyId,
+    p_decision: decision,
+    p_reason: note === '' ? undefined : note,
+  });
+  if (error) return { error: error.message };
+  revalidatePath(`/verificacion/${proTradeId}`);
+  return { error: null, ok: decision === 'approve' ? 'Trabajo aprobado.' : 'Trabajo rechazado.' };
+}

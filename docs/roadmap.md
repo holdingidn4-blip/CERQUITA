@@ -36,6 +36,15 @@ Marcas: `[ ]` pendiente · `[x]` hecho · **(D)** depende del dueño (cuentas, p
 - [x] F5 Diseño (tokens únicos claro/oscuro con contraste AA, app/panel/landing, landing pública `/inicio`).
 - [x] F6 Push listo (falta el archivo de Firebase del dueño), comparación de SMS con recomendación, Maps sin costo de uso, Yape/Plin manual con verificación del abono (`docs/servicios-externos.md`).
 - [ ] F7 Ciclo de pruebas y corrección.
+
+## Correcciones de la prueba en teléfono (`cerquita-prompt-correcciones`)
+- [x] 0 Producción al día: migración `…012613` aplicada y registrada; tabla temporal borrada; migraciones solo por `apply_migration`.
+- [ ] 1 Cámara y micrófono del video: corregido en código y APK `834dded0`; **falta probarlo en el teléfono con `adb logcat`**.
+- [ ] 2 Nuevo ingreso (degradado, radar, interruptor, celular con formato, OTP de 6 casillas): hecho y con e2e; **falta en el teléfono**.
+- [ ] 3 App del pro con barra inferior, tarjeta de nivel y pasos de verificación: hecho y con e2e; **falta en el teléfono**.
+- [ ] 4 Catálogo de trabajos (8–12 por oficio, buscador, "Otro trabajo" en revisión, edición en el panel, trabajos de riesgo aprobados aparte): hecho y con e2e; **falta en el teléfono**.
+- [ ] 5 Landing nueva (Lighthouse ≥ 90 en móvil) y menú del panel por áreas.
+- [ ] 6 Flujo completo en el teléfono con capturas (incluye el error 5 de F7: comisión en dos líneas).
 - [ ] F8 Google Play: AAB, APK de EAS, ficha, privacidad y términos, prueba cerrada.
 
 ## P1 · Primeras semanas del piloto

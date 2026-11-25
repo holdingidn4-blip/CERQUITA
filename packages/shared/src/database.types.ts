@@ -680,6 +680,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -742,6 +743,7 @@ export type Database = {
           schedule_reminded_at?: string | null;
           scheduled_for?: string | null;
           security_code?: string | null;
+          specialty_id?: number | null;
           started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
           total_cents?: never;
@@ -803,6 +805,7 @@ export type Database = {
           schedule_reminded_at?: string | null;
           scheduled_for?: string | null;
           security_code?: string | null;
+          specialty_id?: number | null;
           started_at?: string | null;
           status?: Database['public']['Enums']['job_status'];
           total_cents?: never;
@@ -843,6 +846,13 @@ export type Database = {
             columns: ['coupon_id'];
             isOneToOne: false;
             referencedRelation: 'client_coupons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'jobs_specialty_id_fkey';
+            columns: ['specialty_id'];
+            isOneToOne: false;
+            referencedRelation: 'trade_specialties';
             referencedColumns: ['id'];
           },
           {
@@ -1398,16 +1408,28 @@ export type Database = {
       pro_trade_specialties: {
         Row: {
           pro_trade_id: string;
+          reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
           specialty_id: number;
+          status: string;
         };
         ComputedFields: never;
         Insert: {
           pro_trade_id: string;
+          reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
           specialty_id: number;
+          status?: string;
         };
         Update: {
           pro_trade_id?: string;
+          reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
           specialty_id?: number;
+          status?: string;
         };
         Relationships: [
           {
@@ -1415,6 +1437,13 @@ export type Database = {
             columns: ['pro_trade_id'];
             isOneToOne: false;
             referencedRelation: 'pro_trades';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pro_trade_specialties_reviewed_by_fkey';
+            columns: ['reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id'];
           },
           {
@@ -1778,6 +1807,75 @@ export type Database = {
           },
         ];
       };
+      specialty_requests: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          pro_id: string;
+          pro_trade_id: string;
+          reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          specialty_id: number | null;
+          status: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          pro_id: string;
+          pro_trade_id: string;
+          reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          specialty_id?: number | null;
+          status?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          pro_id?: string;
+          pro_trade_id?: string;
+          reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          specialty_id?: number | null;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'specialty_requests_pro_id_fkey';
+            columns: ['pro_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'specialty_requests_pro_trade_id_fkey';
+            columns: ['pro_trade_id'];
+            isOneToOne: false;
+            referencedRelation: 'pro_trades';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'specialty_requests_reviewed_by_fkey';
+            columns: ['reviewed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'specialty_requests_specialty_id_fkey';
+            columns: ['specialty_id'];
+            isOneToOne: false;
+            referencedRelation: 'trade_specialties';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       support_tickets: {
         Row: {
           body: string;
@@ -1899,23 +1997,38 @@ export type Database = {
           active: boolean;
           id: number;
           name: string;
+          requires_review: boolean;
+          search_terms: string;
           slug: string;
+          sort_order: number;
           trade_id: number;
+          updated_at: string;
+          updated_by: string | null;
         };
         ComputedFields: never;
         Insert: {
           active?: boolean;
           id?: never;
           name: string;
+          requires_review?: boolean;
+          search_terms?: string;
           slug: string;
+          sort_order?: number;
           trade_id: number;
+          updated_at?: string;
+          updated_by?: string | null;
         };
         Update: {
           active?: boolean;
           id?: never;
           name?: string;
+          requires_review?: boolean;
+          search_terms?: string;
           slug?: string;
+          sort_order?: number;
           trade_id?: number;
+          updated_at?: string;
+          updated_by?: string | null;
         };
         Relationships: [
           {
@@ -1923,6 +2036,13 @@ export type Database = {
             columns: ['trade_id'];
             isOneToOne: false;
             referencedRelation: 'trades';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'trade_specialties_updated_by_fkey';
+            columns: ['updated_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id'];
           },
         ];
@@ -2462,6 +2582,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -2623,6 +2744,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -2717,6 +2839,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -2787,6 +2910,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -2857,6 +2981,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -2927,6 +3052,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -3014,6 +3140,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -3100,6 +3227,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -3244,6 +3372,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -3388,6 +3517,7 @@ export type Database = {
           pricing_unit: Database['public']['Enums']['pricing_unit'];
           schedule_kind: string;
           scheduled_for: string;
+          specialty_name: string;
           trade_id: number;
           trade_name: string;
           units: number;
@@ -3521,6 +3651,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -3643,6 +3774,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;
@@ -3687,6 +3819,27 @@ export type Database = {
         SetofOptions: {
           from: '*';
           to: 'user_reports';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      request_specialty: {
+        Args: { p_name: string; p_pro_trade: string };
+        Returns: {
+          created_at: string;
+          id: string;
+          name: string;
+          pro_id: string;
+          pro_trade_id: string;
+          reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          specialty_id: number | null;
+          status: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'specialty_requests';
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -3806,6 +3959,23 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      review_pro_specialty: {
+        Args: { p_decision: string; p_pro_trade: string; p_reason?: string; p_specialty: number };
+        Returns: {
+          pro_trade_id: string;
+          reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          specialty_id: number;
+          status: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'pro_trade_specialties';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       review_pro_trade: {
         Args: { p_background?: string; p_decision: string; p_pro_trade: string; p_reason?: string };
         Returns: {
@@ -3846,6 +4016,33 @@ export type Database = {
         SetofOptions: {
           from: '*';
           to: 'user_reports';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      review_specialty_request: {
+        Args: {
+          p_decision: string;
+          p_name?: string;
+          p_reason?: string;
+          p_request: string;
+          p_requires_review?: boolean;
+        };
+        Returns: {
+          created_at: string;
+          id: string;
+          name: string;
+          pro_id: string;
+          pro_trade_id: string;
+          reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          specialty_id: number | null;
+          status: string;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'specialty_requests';
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -3893,6 +4090,35 @@ export type Database = {
         SetofOptions: {
           from: '*';
           to: 'pro_identity';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      save_trade_specialty: {
+        Args: {
+          p_active?: boolean;
+          p_id: number;
+          p_name: string;
+          p_requires_review?: boolean;
+          p_search_terms?: string;
+          p_sort_order?: number;
+          p_trade: number;
+        };
+        Returns: {
+          active: boolean;
+          id: number;
+          name: string;
+          requires_review: boolean;
+          search_terms: string;
+          slug: string;
+          sort_order: number;
+          trade_id: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'trade_specialties';
           isOneToOne: true;
           isSetofReturn: false;
         };
@@ -4014,6 +4240,7 @@ export type Database = {
           schedule_reminded_at: string | null;
           scheduled_for: string | null;
           security_code: string | null;
+          specialty_id: number | null;
           started_at: string | null;
           status: Database['public']['Enums']['job_status'];
           total_cents: number | null;

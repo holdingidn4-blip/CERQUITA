@@ -6,6 +6,7 @@ import {
   type ProTradeStatus,
   type RiskLevel,
   type VerificationDocumentKind,
+  type ProSpecialtyStatus,
 } from '@cerquita/shared';
 
 import { createClient } from '@/lib/supabase/server';
@@ -92,7 +93,7 @@ export async function getCase(id: string) {
         .maybeSingle(),
       supabase
         .from('pro_trade_specialties')
-        .select('specialty:trade_specialties(name)')
+        .select('specialty_id, status, reason, specialty:trade_specialties(name, requires_review)')
         .eq('pro_trade_id', id),
       supabase
         .from('pro_background_checks')
@@ -134,7 +135,13 @@ export async function getCase(id: string) {
     identityData: identity.data
       ? { dni: identity.data.dni_number, birthDate: identity.data.birth_date }
       : null,
-    specialties: (specialties.data ?? []).map((s) => s.specialty?.name ?? '').filter(Boolean),
+    specialties: (specialties.data ?? []).map((s) => ({
+      id: s.specialty_id,
+      name: s.specialty?.name ?? 'Trabajo retirado',
+      requiresReview: s.specialty?.requires_review ?? false,
+      status: s.status as ProSpecialtyStatus,
+      reason: s.reason,
+    })),
     background: background.data
       ? {
           result: background.data.result as BackgroundResult,

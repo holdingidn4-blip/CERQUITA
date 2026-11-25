@@ -390,3 +390,24 @@ a.navItem:hover {
   gap: 10px;
   margin-bottom: 10px;
 }
+
+/* Catálogo de trabajos: una fila por trabajo con sus campos alineados. */
+.catalogRow {
+  display: grid;
+  grid-template-columns: minmax(160px, 2fr) minmax(160px, 2fr) 72px 110px 90px 104px;
+  gap: 8px;
+  align-items: center;
+}
+.catalogRow .smallInput {
+  min-width: 0;
+  width: 100%;
+}
+.catalogHead {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.catalogRow .errorInline,
+.catalogRow .muted {
+  grid-column: 1 / -1;
+}

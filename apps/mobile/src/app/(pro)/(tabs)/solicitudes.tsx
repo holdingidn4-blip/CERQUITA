@@ -408,6 +408,11 @@ export default function Solicitudes() {
                 {job.diagnostic_visit && (
                   <Text style={styles.secondary}>Visita de diagnóstico</Text>
                 )}
+                {job.specialty_name && (
+                  <Text style={styles.jobType} testID="trabajo-solicitud">
+                    {job.specialty_name}
+                  </Text>
+                )}
                 <Text style={styles.secondary}>
                   {job.trade_name} · {distanceAndEta(job.distance_m, 'a')}
                 </Text>
@@ -463,6 +468,7 @@ export default function Solicitudes() {
 }
 
 const styles = StyleSheet.create({
+  jobType: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
   linkText: {
     fontFamily: fonts.bodySemibold,
     fontSize: 15,

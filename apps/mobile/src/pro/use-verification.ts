@@ -1,6 +1,8 @@
 import {
   verificationPath,
+  type ProSpecialtyStatus,
   type ProTradeStatus,
+  type SpecialtyRequestStatus,
   type Tables,
   type VerificationDocumentKind,
 } from '@cerquita/shared';
@@ -13,7 +15,22 @@ import { supabase } from '@/lib/supabase';
 import { GALLERY_VIDEO_NOTE } from '@/pro/onboarding/video-recorder';
 
 export type Trade = Pick<Tables<'trades'>, 'id' | 'slug' | 'name' | 'pro_name' | 'risk_level'>;
-export type Specialty = { id: number; tradeId: number; name: string };
+export type Specialty = {
+  id: number;
+  tradeId: number;
+  name: string;
+  searchTerms: string;
+  /** Trabajo de riesgo: se aprueba aparte del oficio. */
+  requiresReview: boolean;
+};
+/** "Otro trabajo" que el profesional pidió agregar al catálogo. */
+export type SpecialtyRequest = {
+  id: string;
+  proTradeId: string;
+  name: string;
+  status: SpecialtyRequestStatus;
+  reason: string | null;
+};
 export type ProTrade = {
   id: string;
   tradeId: number;
@@ -22,6 +39,8 @@ export type ProTrade = {
   goodRatings: number;
   reviewedAt: string | null;
   specialtyIds: number[];
+  /** Estado de cada trabajo elegido (los de riesgo se revisan aparte). */
+  specialtyStatus: Record<number, { status: ProSpecialtyStatus; reason: string | null }>;
   /** Lo que falta para enviarlo, según el servidor (`pro_trade_missing`). */
   missing: string[];
 };
@@ -47,6 +66,7 @@ export type VerificationData = {
   identity: { dni: string; birthDate: string } | null;
   trades: Trade[];
   specialties: Specialty[];
+  requests: SpecialtyRequest[];
   proTrades: ProTrade[];
   documents: DocumentMeta[];
   identityVerified: boolean;
@@ -116,38 +136,53 @@ export function useVerification() {
     const { data: auth } = await supabase.auth.getSession();
     const userId = auth.session?.user.id;
     if (!userId) return;
-    const [trades, specialties, proTrades, documents, verification, presence, settings, identity] =
-      await Promise.all([
-        supabase
-          .from('trades')
-          .select('id, slug, name, pro_name, risk_level')
-          .eq('active', true)
-          .order('id'),
-        supabase
-          .from('trade_specialties')
-          .select('id, trade_id, name')
-          .eq('active', true)
-          .order('id'),
-        supabase
-          .from('pro_trades')
-          .select(
-            'id, trade_id, status, reason, good_ratings_count, reviewed_at, pro_trade_specialties(specialty_id)',
-          )
-          .eq('pro_id', userId)
-          .order('created_at'),
-        supabase
-          .from('verification_documents')
-          .select('id, kind, pro_trade_id, description')
-          .eq('pro_id', userId),
-        supabase.rpc('my_verification'),
-        supabase.from('pro_presence').select('radius_m').eq('pro_id', userId).maybeSingle(),
-        supabase.from('settings').select('key, value').eq('scope', 'global'),
-        supabase
-          .from('pro_identity')
-          .select('dni_number, birth_date')
-          .eq('pro_id', userId)
-          .maybeSingle(),
-      ]);
+    const [
+      trades,
+      specialties,
+      proTrades,
+      documents,
+      verification,
+      presence,
+      settings,
+      identity,
+      requests,
+    ] = await Promise.all([
+      supabase
+        .from('trades')
+        .select('id, slug, name, pro_name, risk_level')
+        .eq('active', true)
+        .order('id'),
+      supabase
+        .from('trade_specialties')
+        .select('id, trade_id, name, search_terms, requires_review')
+        .eq('active', true)
+        .order('sort_order')
+        .order('id'),
+      supabase
+        .from('pro_trades')
+        .select(
+          'id, trade_id, status, reason, good_ratings_count, reviewed_at, pro_trade_specialties(specialty_id, status, reason)',
+        )
+        .eq('pro_id', userId)
+        .order('created_at'),
+      supabase
+        .from('verification_documents')
+        .select('id, kind, pro_trade_id, description')
+        .eq('pro_id', userId),
+      supabase.rpc('my_verification'),
+      supabase.from('pro_presence').select('radius_m').eq('pro_id', userId).maybeSingle(),
+      supabase.from('settings').select('key, value').eq('scope', 'global'),
+      supabase
+        .from('pro_identity')
+        .select('dni_number, birth_date')
+        .eq('pro_id', userId)
+        .maybeSingle(),
+      supabase
+        .from('specialty_requests')
+        .select('id, pro_trade_id, name, status, reason')
+        .eq('pro_id', userId)
+        .order('created_at'),
+    ]);
     const failed = [
       trades,
       specialties,
@@ -157,6 +192,7 @@ export function useVerification() {
       presence,
       settings,
       identity,
+      requests,
     ].find((r) => r.error);
     if (failed?.error) {
       setError('No pudimos cargar tu registro. Revisa tu conexión.');
@@ -191,6 +227,12 @@ export function useVerification() {
       goodRatings: t.good_ratings_count,
       reviewedAt: t.reviewed_at,
       specialtyIds: (t.pro_trade_specialties ?? []).map((s) => s.specialty_id),
+      specialtyStatus: Object.fromEntries(
+        (t.pro_trade_specialties ?? []).map((s) => [
+          s.specialty_id,
+          { status: s.status as ProSpecialtyStatus, reason: s.reason },
+        ]),
+      ),
       missing: missing[i] ?? [],
     }));
     const s = settings.data ?? [];
@@ -205,6 +247,15 @@ export function useVerification() {
         id: sp.id,
         tradeId: sp.trade_id,
         name: sp.name,
+        searchTerms: sp.search_terms,
+        requiresReview: sp.requires_review,
+      })),
+      requests: (requests.data ?? []).map((r) => ({
+        id: r.id,
+        proTradeId: r.pro_trade_id,
+        name: r.name,
+        status: r.status as SpecialtyRequestStatus,
+        reason: r.reason,
       })),
       proTrades: list,
       documents: docs,
@@ -284,6 +335,19 @@ export function useVerification() {
       });
       if (saveError) setError(saveError.message);
       await load();
+    },
+    [load],
+  );
+
+  /** "Otro trabajo": queda pendiente de revisión hasta que soporte lo agregue al catálogo. */
+  const requestSpecialty = useCallback(
+    async (proTradeId: string, name: string): Promise<string | null> => {
+      const { error: requestError } = await supabase.rpc('request_specialty', {
+        p_pro_trade: proTradeId,
+        p_name: name,
+      });
+      await load();
+      return requestError ? requestError.message : null;
     },
     [load],
   );
@@ -417,6 +481,7 @@ export function useVerification() {
     saveIdentity,
     toggleTrade,
     setSpecialties,
+    requestSpecialty,
     upload,
     uploadVideo,
     submitReady,

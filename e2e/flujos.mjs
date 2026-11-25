@@ -220,10 +220,32 @@ try {
   await next();
   await pro.waitForSelector('text=Marca al menos un trabajo que haces en cada oficio.');
   ok('pide elegir al menos una especialidad');
+  const myJobs = `from public.pro_trade_specialties s join public.pro_trades p on p.id = s.pro_trade_id where p.pro_id = '${proId}'`;
+  check(
+    (await pro.locator('[data-testid=trabajos-gasfiteria] [role=checkbox]').count()) >= 8,
+    'gasfitería muestra al menos 8 trabajos frecuentes',
+  );
+  await pro.fill('[aria-label="Buscar trabajo"]', 'balon');
+  await pro.waitForSelector('[role=checkbox]:has-text("Instalación de gas")');
+  check(
+    (await pro.locator('[data-testid=trabajos-gasfiteria] [role=checkbox]').count()) === 1,
+    'el buscador encuentra "Instalación de gas" con "balon" (sin tilde, por palabra)',
+  );
+  await pro.click('[role=checkbox]:has-text("Instalación de gas")');
+  await until(`select string_agg(s.status, ',') ${myJobs}`, 'pending');
+  ok('instalación de gas es de riesgo: queda pendiente de revisión aparte');
+  await pro.fill('[aria-label="Buscar trabajo"]', '');
   await pro.click('[role=checkbox]:has-text("Agua y desagüe")');
-  await until(
-    `select count(*) from public.pro_trade_specialties s join public.pro_trades p on p.id = s.pro_trade_id where p.pro_id = '${proId}'`,
-    '1',
+  await until(`select count(*) ${myJobs}`, '2');
+  await pro.click('[data-testid=otro-trabajo]');
+  await pro.fill('[data-testid=otro-trabajo-texto]', 'Calentadores solares');
+  await pro.click('text=Enviar a revisión');
+  await pro.waitForSelector('[data-testid=otro-trabajo-pedido] >> text=Pendiente de revisión');
+  check(
+    sql(`select status from public.specialty_requests where pro_id = '${proId}'`) === 'pending' &&
+      sql(`select count(*) from public.trade_specialties where name = 'Calentadores solares'`) ===
+        '0',
+    '"Otro trabajo" queda pendiente de revisión y no entra al catálogo todavía',
   );
   await next();
   await pro.waitForSelector('text=Paso 3 de 6 · Pruebas de tu trabajo');
@@ -294,6 +316,13 @@ try {
   await admin.click('text=Luis Quispe · Gasfitero');
   await admin.waitForSelector('text=En revisión');
   ok('al abrir el caso pasa a "En revisión"');
+  const riskyRow = admin.locator('[data-testid=trabajo-riesgo]:has-text("Instalación de gas")');
+  await riskyRow.locator('button:has-text("Aprobar")').click();
+  await until(
+    `select s.status from public.pro_trade_specialties s join public.pro_trades p on p.id = s.pro_trade_id join public.trade_specialties t on t.id = s.specialty_id where p.pro_id = '${proId}' and t.slug = 'gas'`,
+    'approved',
+  );
+  ok('soporte aprueba aparte el trabajo de riesgo (instalación de gas)');
   check(
     /45678901.*mayor de edad ✓/.test(await admin.locator('[data-testid=dni-datos]').innerText()),
     'soporte ve DNI, edad y que es mayor de edad',
@@ -404,6 +433,8 @@ try {
     'textarea',
     'Se filtra agua debajo del lavadero de la cocina, gotea desde ayer.',
   );
+  await client.fill('[aria-label="Buscar trabajo"]', 'gotea');
+  await client.click('[role=radio]:has-text("Fugas de agua")');
   await uploadPhoto(client, 'Agregar foto', 'trabajo1.jpg');
   await client.waitForSelector('[aria-label="Foto del pedido"]');
   await client.fill('input[autocomplete=street-address]', 'Jr. Los Pinos 245');
@@ -424,6 +455,12 @@ try {
   );
   check(
     sql(
+      `select t.name from public.jobs j join public.trade_specialties t on t.id = j.specialty_id where j.id = '${jobId}'`,
+    ) === 'Fugas de agua',
+    'el pedido guarda el trabajo elegido (buscado por "gotea")',
+  );
+  check(
+    sql(
       `select extensions.st_astext(approx_point::extensions.geometry) from public.jobs where id = '${jobId}'`,
     ) === 'POINT(-75.205 -12.065)',
     'el servidor guarda solo la zona aproximada',
@@ -441,6 +478,10 @@ try {
   await pro.click('[aria-label="En línea"]');
   await pro.waitForSelector('text=Se filtra agua debajo del lavadero de la cocina');
   ok('el pro se pone en línea y ve el pedido cercano');
+  check(
+    (await pro.locator('[data-testid=trabajo-solicitud]').first().innerText()) === 'Fugas de agua',
+    'la solicitud dice qué trabajo eligió el cliente',
+  );
   check(!(await pro.isVisible('text=Jr. Los Pinos')), 'no ve la dirección exacta antes de aceptar');
   check(await pro.isVisible('text=Carla C. · Nuevo'), 've el nombre corto del cliente');
   await pro.click('text=Cotizar');
@@ -1313,6 +1354,34 @@ try {
     'ok',
   );
   ok('soporte completa el checklist (llegada, trato, alcance, seguridad) del primer trabajo');
+
+  // ─────────────── Sección 4 · Catálogo: otro trabajo y edición desde el panel ───────────────
+  await boss.goto(`${ADMIN}/catalogo`, { waitUntil: 'networkidle' });
+  const otherRow = boss.locator('[data-testid=otro-trabajo]:has-text("Calentadores solares")');
+  await otherRow.locator('button:has-text("Agregar como de riesgo")').click();
+  await until(
+    `select status from public.specialty_requests where name = 'Calentadores solares'`,
+    'approved',
+  );
+  check(
+    sql(
+      `select t.requires_review::text || '|' || s.status from public.pro_trade_specialties s join public.trade_specialties t on t.id = s.specialty_id where t.name = 'Calentadores solares'`,
+    ) === 'true|approved',
+    'soporte agrega el otro trabajo al catálogo como de riesgo y queda aprobado para ese pro',
+  );
+  const gasTrade = sql("select id from public.trades where slug = 'gasfiteria'");
+  await boss.click(`[data-testid=catalogo-oficio-${gasTrade}] summary`);
+  const newJob = boss.locator(
+    `[data-testid=catalogo-oficio-${gasTrade}] [data-testid=nuevo-trabajo]`,
+  );
+  await newJob.locator('input[name=name]').fill('Instalación de duchas');
+  await newJob.locator('input[name=terms]').fill('ducha regadera');
+  await newJob.locator('button:has-text("Agregar")').click();
+  await until(
+    `select search_terms from public.trade_specialties where name = 'Instalación de duchas'`,
+    'ducha regadera',
+  );
+  ok('soporte agrega un trabajo nuevo al catálogo desde el panel');
 
   // ─────────────── Fase 10 · Capacitaciones: código, cuestionario, certificado y puntos ───────────────
   await boss.goto(`${ADMIN}/capacitaciones`, { waitUntil: 'networkidle' });

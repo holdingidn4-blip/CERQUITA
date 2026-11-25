@@ -157,6 +157,7 @@ export const TEXT_PAIRS: [keyof ThemePalette, keyof ThemePalette][] = [
   ['primary', 'primarySoft'],
   ['onPrimary', 'primary'],
   ['warningText', 'amberSoft'],
+  ['warningText', 'surface'],
   ['danger', 'surface'],
   ['danger', 'dangerSoft'],
   ['infoText', 'infoSoft'],

@@ -254,6 +254,11 @@ export default function Cotizar() {
               ))}
             </View>
           )}
+          {job.specialty_name && (
+            <Text style={styles.jobType} testID="trabajo-solicitud">
+              {job.specialty_name}
+            </Text>
+          )}
           <Text style={styles.secondary}>
             {job.trade_name} · {distanceAndEta(job.distance_m, 'a')}
           </Text>
@@ -417,6 +422,7 @@ function Line({ label, value, strong }: { label: string; value: string; strong?:
 }
 
 const styles = StyleSheet.create({
+  jobType: { fontFamily: fonts.bodySemibold, fontSize: 15, color: colors.primary },
   extraRow: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 56 },
   currencySmall: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
   extraInput: {

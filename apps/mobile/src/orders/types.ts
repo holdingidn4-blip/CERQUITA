@@ -24,4 +24,6 @@ export type NearbyJob = {
   caution: boolean;
   schedule_kind: ScheduleKind;
   scheduled_for: string | null;
+  /** Trabajo del catálogo que eligió el cliente (opcional). */
+  specialty_name: string | null;
 };

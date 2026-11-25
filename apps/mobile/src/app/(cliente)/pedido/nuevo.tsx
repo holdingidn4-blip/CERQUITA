@@ -27,6 +27,7 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { type PickerItem, SpecialtyPicker } from '@/components/specialty-picker';
 import { getCurrentPoint, type Point } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, radii } from '@/theme';
@@ -38,6 +39,9 @@ export default function NuevoPedido() {
   const { trade: tradeParam } = useLocalSearchParams<{ trade?: string }>();
   const [trade, setTrade] = useState<Trade | null>(null);
   const [description, setDescription] = useState('');
+  // Trabajo del catálogo (opcional): los de riesgo solo los cotizan profesionales aprobados para eso.
+  const [jobTypes, setJobTypes] = useState<PickerItem[]>([]);
+  const [specialtyId, setSpecialtyId] = useState<number | null>(null);
   const [photos, setPhotos] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [video, setVideo] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [diagnostic, setDiagnostic] = useState(false);
@@ -79,6 +83,23 @@ export default function NuevoPedido() {
           .maybeSingle();
         setRateCard(card ?? null);
       });
+    supabase
+      .from('trade_specialties')
+      .select('id, name, search_terms, requires_review')
+      .eq('trade_id', id)
+      .eq('active', true)
+      .order('sort_order')
+      .order('id')
+      .then(({ data }) =>
+        setJobTypes(
+          (data ?? []).map((s) => ({
+            id: s.id,
+            name: s.name,
+            searchTerms: s.search_terms,
+            requiresReview: s.requires_review,
+          })),
+        ),
+      );
     supabase.rpc('price_hint', { p_trade: id }).then(({ data }) => {
       const row = data?.[0];
       setHint(row ? { low: row.low_cents, high: row.high_cents } : null);
@@ -152,6 +173,7 @@ export default function NuevoPedido() {
       .from('jobs')
       .insert({
         trade_id: trade.id,
+        specialty_id: specialtyId,
         description: description.trim(),
         offered_price_cents: priceCents,
         units: unit === 'job' ? 1 : units,
@@ -237,6 +259,29 @@ export default function NuevoPedido() {
           </Text>
         </View>
         <Text style={styles.tradeChip}>{trade?.pro_name ?? '…'}</Text>
+
+        {jobTypes.length > 0 && (
+          <View style={styles.field}>
+            <Text style={styles.label}>
+              ¿Qué trabajo necesitas? <Text style={styles.optional}>(opcional)</Text>
+            </Text>
+            <SpecialtyPicker
+              items={jobTypes}
+              selected={specialtyId === null ? [] : [specialtyId]}
+              onToggle={(id) => setSpecialtyId((current) => (current === id ? null : id))}
+              multiple={false}
+              riskNote={false}
+              initialVisible={6}
+              emptyText="No lo encontramos. No pasa nada: descríbelo abajo."
+              testID="trabajo-pedido"
+            />
+            {jobTypes.find((j) => j.id === specialtyId)?.requiresReview && (
+              <Text style={styles.riskInfo} testID="trabajo-riesgo">
+                Por seguridad, este trabajo solo lo cotizan profesionales aprobados para hacerlo.
+              </Text>
+            )}
+          </View>
+        )}
 
         <View style={styles.field}>
           <Text style={styles.label} nativeID="desc-label">
@@ -567,6 +612,16 @@ const styles = StyleSheet.create({
   },
   field: { gap: 6 },
   label: { fontFamily: fonts.bodySemibold, fontSize: 14, color: colors.text },
+  optional: { fontFamily: fonts.body, color: colors.textSecondary },
+  riskInfo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.infoText,
+    backgroundColor: colors.infoSoft,
+    borderRadius: radii.md,
+    padding: 10,
+  },
   input: {
     minHeight: 52,
     paddingHorizontal: 14,

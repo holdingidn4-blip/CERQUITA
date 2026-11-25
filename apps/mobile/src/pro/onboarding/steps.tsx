@@ -1,13 +1,16 @@
 import {
+  customSpecialtyError,
   describeMissing,
   DOCUMENT_LABELS,
   ID_PHOTO_KINDS,
   isValidDni,
   normalizeDni,
   parseBirthDate,
+  PRO_SPECIALTY_STATUS_LABELS,
   RADIUS_OPTIONS_KM,
   RISK_HELP,
   RISK_LABELS,
+  SPECIALTY_REQUEST_LABELS,
   stepOfRequirement,
   type RiskLevel,
   type VerificationDocumentKind,
@@ -15,8 +18,14 @@ import {
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { SpecialtyPicker } from '@/components/specialty-picker';
 import { TradeIcon } from '@/components/trade-icon';
-import { isEditable, type useVerification, type VerificationData } from '@/pro/use-verification';
+import {
+  isEditable,
+  type ProTrade,
+  type useVerification,
+  type VerificationData,
+} from '@/pro/use-verification';
 import { colors, fonts, radii } from '@/theme';
 
 import { Note, onboardingStyles as o, PhotoExamples, Section, UploadRow } from './ui';
@@ -178,29 +187,29 @@ export function StepOficios({ v }: { v: V }) {
             {pt && !locked && (
               <View style={styles.specialties}>
                 <Text style={o.label}>¿Qué trabajos haces?</Text>
-                <View style={o.chips}>
-                  {specialties.map((s) => {
-                    const on = pt.specialtyIds.includes(s.id);
-                    return (
-                      <Pressable
-                        key={s.id}
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: on }}
-                        onPress={() =>
-                          v.setSpecialties(
-                            pt.id,
-                            on
-                              ? pt.specialtyIds.filter((id) => id !== s.id)
-                              : [...pt.specialtyIds, s.id],
-                          )
-                        }
-                        style={[o.chip, on && o.chipOn]}
-                      >
-                        <Text style={[o.chipText, on && o.chipTextOn]}>{s.name}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                <SpecialtyPicker
+                  items={specialties}
+                  selected={pt.specialtyIds}
+                  onToggle={(id) =>
+                    v.setSpecialties(
+                      pt.id,
+                      pt.specialtyIds.includes(id)
+                        ? pt.specialtyIds.filter((x) => x !== id)
+                        : [...pt.specialtyIds, id],
+                    )
+                  }
+                  emptyText="No está en la lista. Pídelo abajo en «Otro trabajo»."
+                  testID={`trabajos-${trade.slug}`}
+                />
+                <OtherJob v={v} proTradeId={pt.id} />
+              </View>
+            )}
+            {pt && locked && (
+              <View style={styles.specialties}>
+                <ChosenJobs d={d} pt={pt} />
+                {pt.status !== 'rejected' && pt.status !== 'suspended' && (
+                  <OtherJob v={v} proTradeId={pt.id} />
+                )}
               </View>
             )}
           </View>
@@ -209,6 +218,145 @@ export function StepOficios({ v }: { v: V }) {
     </>
   );
 }
+/** Trabajos ya enviados con su estado: los de riesgo se aprueban uno por uno. */
+function ChosenJobs({ d, pt }: { d: D; pt: ProTrade }) {
+  return (
+    <View style={styles.jobList} testID="trabajos-elegidos">
+      <Text style={o.label}>Tus trabajos</Text>
+      {pt.specialtyIds.map((id) => {
+        const s = d.specialties.find((x) => x.id === id);
+        const st = pt.specialtyStatus[id];
+        return (
+          <View key={id} style={styles.jobRow}>
+            <Text style={styles.jobName}>{s?.name ?? 'Trabajo que ya no está en el catálogo'}</Text>
+            {st && st.status !== 'included' && (
+              <Text
+                style={[
+                  styles.badge,
+                  st.status === 'approved' && styles.badgeOk,
+                  st.status === 'rejected' && styles.badgeBad,
+                ]}
+              >
+                {PRO_SPECIALTY_STATUS_LABELS[st.status]}
+              </Text>
+            )}
+            {st?.status === 'rejected' && st.reason && (
+              <Text style={[o.hint, styles.fullRow]}>Motivo: {st.reason}</Text>
+            )}
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+/** "Otro trabajo": texto libre pendiente de revisión; no recibe pedidos hasta que soporte lo apruebe. */
+function OtherJob({ v, proTradeId }: { v: V; proTradeId: string }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const requests = (v.data?.requests ?? []).filter((r) => r.proTradeId === proTradeId);
+  const send = async () => {
+    const problem = customSpecialtyError(text);
+    if (problem) {
+      setMessage(problem);
+      return;
+    }
+    setSending(true);
+    const failure = await v.requestSpecialty(proTradeId, text);
+    setSending(false);
+    if (failure) {
+      setMessage(failure);
+      return;
+    }
+    setText('');
+    setMessage(null);
+    setOpen(false);
+  };
+  return (
+    <View style={styles.jobList}>
+      {requests.map((r) => (
+        <View key={r.id} style={styles.jobRow} testID="otro-trabajo-pedido">
+          <Text style={styles.jobName}>{r.name}</Text>
+          <Text
+            style={[
+              styles.badge,
+              r.status === 'approved' && styles.badgeOk,
+              r.status === 'rejected' && styles.badgeBad,
+            ]}
+          >
+            {SPECIALTY_REQUEST_LABELS[r.status]}
+          </Text>
+          {r.status === 'pending' && (
+            <Text style={[o.hint, styles.fullRow]}>
+              No recibe pedidos hasta que Cerquita lo revise.
+            </Text>
+          )}
+          {r.status === 'rejected' && r.reason && (
+            <Text style={[o.hint, styles.fullRow]}>Motivo: {r.reason}</Text>
+          )}
+        </View>
+      ))}
+      {open ? (
+        <View style={o.field}>
+          <Text style={o.label} nativeID={`otro-${proTradeId}`}>
+            ¿Qué otro trabajo haces?
+          </Text>
+          <TextInput
+            accessibilityLabelledBy={`otro-${proTradeId}`}
+            accessibilityLabel="Otro trabajo"
+            value={text}
+            onChangeText={(t) => {
+              setText(t);
+              setMessage(null);
+            }}
+            maxLength={60}
+            placeholder="Ej.: Paneles solares"
+            placeholderTextColor={colors.textSecondary}
+            style={o.input}
+            testID="otro-trabajo-texto"
+          />
+          <Text style={o.hint}>
+            Lo revisamos y, si corresponde, lo agregamos al catálogo. Mientras tanto no recibe
+            pedidos.
+          </Text>
+          {message && <Text style={styles.errorText}>{message}</Text>}
+          <View style={styles.otherButtons}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={send}
+              disabled={sending}
+              style={[styles.sendButton, sending && styles.disabled]}
+            >
+              <Text style={styles.sendText}>{sending ? 'Enviando…' : 'Enviar a revisión'}</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setOpen(false);
+                setMessage(null);
+              }}
+              style={styles.cancelButton}
+            >
+              <Text style={styles.cancelText}>Cancelar</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setOpen(true)}
+          style={styles.otherToggle}
+          testID="otro-trabajo"
+        >
+          <Text style={styles.otherToggleText}>+ Otro trabajo que no está en la lista</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
 export const oficiosDone = (d: D) =>
   d.proTrades.length > 0 && editableTrades(d).every((t) => t.specialtyIds.length > 0);
 
@@ -485,7 +633,46 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   checkOn: { fontSize: 22 },
-  specialties: { paddingHorizontal: 14, paddingBottom: 14, gap: 8 },
+  specialties: { paddingHorizontal: 14, paddingBottom: 14, gap: 12 },
+  jobList: { gap: 8 },
+  jobRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  jobName: { flex: 1, fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.text },
+  fullRow: { width: '100%' },
+  badge: {
+    fontFamily: fonts.bodySemibold,
+    fontSize: 13,
+    color: colors.warningText,
+    backgroundColor: colors.amberSoft,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: radii.pill,
+    overflow: 'hidden',
+  },
+  badgeOk: { color: colors.primary, backgroundColor: colors.primarySoft },
+  badgeBad: { color: colors.danger, backgroundColor: colors.dangerSoft },
+  errorText: { fontFamily: fonts.bodyMedium, fontSize: 15, color: colors.danger },
+  otherButtons: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
+  sendButton: {
+    minHeight: 48,
+    paddingHorizontal: 18,
+    borderRadius: radii.md,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+  },
+  sendText: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.onPrimary },
+  disabled: { opacity: 0.6 },
+  cancelButton: { minHeight: 48, paddingHorizontal: 14, justifyContent: 'center' },
+  cancelText: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.textSecondary },
+  otherToggle: { minHeight: 48, justifyContent: 'center' },
+  otherToggleText: { fontFamily: fonts.bodySemibold, fontSize: 16, color: colors.primary },
   radius: { gap: 10 },
   radiusOption: {
     backgroundColor: colors.surface,

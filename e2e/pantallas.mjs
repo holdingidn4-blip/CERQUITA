@@ -230,6 +230,7 @@ await sweep(proNuevo, [['registro-paso-1', '/registro']], 'pro-nuevo');
       '/constancias',
       '/supervision',
       '/capacitaciones',
+      '/catalogo',
       '/lista-negra',
       '/apelaciones',
       '/metricas',

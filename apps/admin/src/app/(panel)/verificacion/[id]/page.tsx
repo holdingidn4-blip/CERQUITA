@@ -5,6 +5,7 @@ import {
   formatClock,
   maskPhone,
   observationProgress,
+  PRO_SPECIALTY_STATUS_LABELS,
   PRO_TRADE_STATUS_LABELS,
   proTradeView,
   RISK_HELP,
@@ -17,7 +18,16 @@ import { createClient } from '@/lib/supabase/server';
 import { getCase } from '@/lib/verification';
 
 import styles from '../../panel.module.css';
+import { ActionForm } from '../../_components/action-form';
+import { decideSpecialty } from '../actions';
 import { ReviewForm } from './review-form';
+
+const SPECIALTY_TONE = {
+  included: 'info',
+  pending: 'warning',
+  approved: 'success',
+  rejected: 'danger',
+} as const;
 
 export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) {
   const { id } = await params;
@@ -26,6 +36,7 @@ export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) 
   await supabase.rpc('review_pro_trade', { p_pro_trade: id, p_decision: 'start' });
   const data = await getCase(id);
   if (!data) notFound();
+  const risky = data.specialties.filter((s) => s.requiresReview || s.status !== 'included');
 
   const view = proTradeView({
     status: data.status,
@@ -80,8 +91,8 @@ export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) 
               ? `${data.identityData.dni} · nació el ${data.identityData.birthDate.split('-').reverse().join('/')} · ${ageOn(data.identityData.birthDate, new Date(data.updatedAt))} años ${ageOn(data.identityData.birthDate, new Date(data.updatedAt)) >= 18 ? '(mayor de edad ✓)' : '(MENOR DE EDAD)'}`
               : 'Sin datos del DNI'}
           </dd>
-          <dt>Especialidades</dt>
-          <dd>{data.specialties.join(', ') || 'Ninguna'}</dd>
+          <dt>Trabajos</dt>
+          <dd>{data.specialties.map((s) => s.name).join(', ') || 'Ninguno'}</dd>
           <dt>Antecedentes</dt>
           <dd data-testid="antecedentes-resultado">
             {data.background
@@ -91,6 +102,48 @@ export default async function Caso({ params }: PageProps<'/verificacion/[id]'>) 
         </dl>
         <p className={styles.muted}>Compara los datos con la foto del DNI antes de aprobar.</p>
       </section>
+
+      {risky.length > 0 && (
+        <section className={styles.section} data-testid="trabajos-riesgo">
+          <h2>Trabajos de riesgo (se aprueban uno por uno)</h2>
+          <p className={styles.muted}>
+            Aprobar el oficio no aprueba estos trabajos: cada uno necesita tu decisión. Sin
+            aprobación, el profesional no ve ni recibe pedidos de ese trabajo.
+          </p>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th>Trabajo</th>
+                <th>Estado</th>
+                <th>Decisión</th>
+              </tr>
+            </thead>
+            <tbody>
+              {risky.map((s) => (
+                <tr key={s.id} data-testid="trabajo-riesgo">
+                  <td>{s.name}</td>
+                  <td>
+                    <span className={styles.badge} data-tone={SPECIALTY_TONE[s.status]}>
+                      {PRO_SPECIALTY_STATUS_LABELS[s.status]}
+                    </span>
+                    {s.reason && <div className={styles.muted}>Motivo: “{s.reason}”</div>}
+                  </td>
+                  <td>
+                    <ActionForm
+                      action={decideSpecialty.bind(null, data.id, s.id)}
+                      placeholder="Motivo si rechazas"
+                      buttons={[
+                        { name: 'decision', value: 'approve', label: 'Aprobar', tone: 'primary' },
+                        { name: 'decision', value: 'reject', label: 'Rechazar', tone: 'danger' },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
 
       <section className={styles.section}>
         <h2>Identidad</h2>
